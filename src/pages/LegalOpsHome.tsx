@@ -1,318 +1,340 @@
 
-import React, { useState, useEffect } from "react";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
-import { UploadCloud, Gavel, BookOpen, Users, Brain, Landmark, Layers, Wand2, AudioLines, Languages, Search, FileEdit } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-
-const roleOptions = [
-  { label: "Practicing Lawyer", value: "lawyer" },
-  { label: "Law Student", value: "student" }
-];
-
-const lawyerTools = [
-  {
-    name: "Contract Generator",
-    icon: <FileEdit className="w-7 h-7 text-blue-600" />,
-    description: "Draft NDAs, Rental and Employment Contracts.",
-    route: "/contract-generator"
-  },
-  {
-    name: "Legal Q&A (NyayaBot)",
-    icon: <Gavel className="w-7 h-7 text-yellow-700" />,
-    description: "Ask legal questions. Cites laws & gives detailed reply.",
-    route: "/qabot"
-  },
-  {
-    name: "Case Law Finder",
-    icon: <Search className="w-7 h-7 text-green-600" />,
-    description: "Find judgments by keyword/section.",
-    comingSoon: true
-  },
-  {
-    name: "Section Explainer",
-    icon: <Landmark className="w-7 h-7 text-gray-600" />,
-    description: "Get breakdowns of IPC, CrPC, CPC.",
-    comingSoon: true
-  },
-  {
-    name: "Bare Act Navigator",
-    icon: <BookOpen className="w-7 h-7 text-amber-700" />,
-    description: "Navigate legal acts easily.",
-    comingSoon: true
-  },
-  {
-    name: "Legal Draft Templates",
-    icon: <Layers className="w-7 h-7 text-purple-600" />,
-    description: "Editable affidavits, notices & more.",
-    comingSoon: true
-  },
-  {
-    name: "Voice Dictation → Legal Format",
-    icon: <AudioLines className="w-7 h-7 text-pink-600" />,
-    description: "Convert audio to formatted legal documents.",
-    comingSoon: true
-  },
-  {
-    name: "Citation Checker",
-    icon: <Wand2 className="w-7 h-7 text-lime-700" />,
-    description: "Check case law status.",
-    comingSoon: true
-  },
-  {
-    name: "Client Brief Summary Tool",
-    icon: <Brain className="w-7 h-7 text-indigo-700" />,
-    description: "Get digests for meeting prep.",
-    route: "/summarizer" // Reuse summarizer for now
-  },
-  {
-    name: "Hearing/Deadline Tracker",
-    icon: <Users className="w-7 h-7 text-orange-700" />,
-    description: "Add court reminders, link docs.",
-    comingSoon: true
-  },
-];
-
-const studentTools = [
-  {
-    name: "Topic-Wise Quiz Generator",
-    icon: <Brain className="w-7 h-7 text-blue-600" />,
-    description: "Auto-generate MCQs & quizzes.",
-    comingSoon: true
-  },
-  {
-    name: "Case Brief Generator",
-    icon: <Layers className="w-7 h-7 text-gray-700" />,
-    description: "Get briefs: facts, issues, ratio.",
-    comingSoon: true
-  },
-  {
-    name: "Flashcards (Legal Terms)",
-    icon: <Wand2 className="w-7 h-7 text-yellow-700" />,
-    description: "Learn legal maxims & terms.",
-    comingSoon: true
-  },
-  {
-    name: "Syllabus Tracker",
-    icon: <BookOpen className="w-7 h-7 text-purple-600" />,
-    description: "Generate weekly study plan.",
-    comingSoon: true
-  },
-  {
-    name: "Law News Digest",
-    icon: <Landmark className="w-7 h-7 text-green-700" />,
-    description: "Latest legal news, weekly/daily.",
-    comingSoon: true
-  },
-  {
-    name: "Doubt Forum (Ask Senior)",
-    icon: <Users className="w-7 h-7 text-pink-700" />,
-    description: "Post doubts, get mentor replies.",
-    comingSoon: true
-  },
-  {
-    name: "Mock Test Generator",
-    icon: <FileEdit className="w-7 h-7 text-indigo-700" />,
-    description: "Full mock tests by topic.",
-    comingSoon: true
-  },
-  {
-    name: "Legal Q&A (NyayaBot)",
-    icon: <Gavel className="w-7 h-7 text-yellow-700" />,
-    description: "Answers adjusted for your level.",
-    route: "/qabot"
-  },
-  {
-    name: "Study Plan Generator",
-    icon: <BookOpen className="w-7 h-7 text-blue-700" />,
-    description: "Get printable/online schedule.",
-    comingSoon: true
-  },
-  {
-    name: "Case Explainer",
-    icon: <Search className="w-7 h-7 text-orange-700" />,
-    description: "Breakdown judgments for learning.",
-    route: "/summarizer" // Reuse summarizer for now
-  },
-];
-
-const languages = [
-  { label: "English", code: "en" },
-  { label: "हिंदी", code: "hi" },
-  { label: "ಕನ್ನಡ", code: "kn" },
-  { label: "தமிழ்", code: "ta" },
-  { label: "తెలుగు", code: "te" }
-];
-
-const disclaimer = "This is not a substitute for professional legal advice.";
+import { 
+  Scale, 
+  FileText, 
+  Search, 
+  BookOpen, 
+  Navigation,
+  PenTool,
+  Mic,
+  Languages,
+  CheckCircle,
+  ClipboardList,
+  Calendar,
+  Users,
+  HelpCircle,
+  Archive,
+  Flashlight,
+  Target,
+  TrendingUp,
+  MessageSquare,
+  Globe
+} from "lucide-react";
+import RoleFeatureChat from "./RoleFeatureChat";
 
 const LegalOpsHome = () => {
-  const [role, setRole] = useState<string | null>(null);
-  const [lang, setLang] = useState("en");
-  const [docFiles, setDocFiles] = useState<File[]>([]);
-  const { toast } = useToast();
   const navigate = useNavigate();
+  const [selectedRole, setSelectedRole] = useState<"lawyer" | "student" | null>(null);
+  const [selectedFeature, setSelectedFeature] = useState<string | null>(null);
 
-  // Remember role in localStorage
-  useEffect(() => {
-    const stored = window.localStorage.getItem("legalops_role");
-    if (stored) setRole(stored);
-  }, []);
-  useEffect(() => {
-    if (role) window.localStorage.setItem("legalops_role", role);
-  }, [role]);
+  const lawyerFeatures = [
+    {
+      title: "Contract Generator",
+      description: "Generate professional legal contracts with AI assistance",
+      icon: FileText,
+      route: "/contract-generator",
+      useChat: false
+    },
+    {
+      title: "Legal Q&A (NyayaBot)",
+      description: "Get instant answers to Indian legal questions",
+      icon: HelpCircle,
+      route: "/legal-qna",
+      useChat: true
+    },
+    {
+      title: "Case Law Finder",
+      description: "Search and find relevant case law and precedents",
+      icon: Search,
+      route: "/case-law-finder",
+      useChat: true
+    },
+    {
+      title: "Section Explainer",
+      description: "Get detailed explanations of legal sections",
+      icon: BookOpen,
+      route: "/section-explainer",
+      useChat: true
+    },
+    {
+      title: "Bare Act Navigator",
+      description: "Navigate through legal acts efficiently",
+      icon: Navigation,
+      route: "/bare-act-navigator",
+      useChat: true
+    },
+    {
+      title: "Legal Draft Templates",
+      description: "Generate professional legal document templates",
+      icon: PenTool,
+      route: "/legal-draft-templates",
+      useChat: true
+    },
+    {
+      title: "Voice Dictation → Legal Format",
+      description: "Convert voice recordings to legal documents",
+      icon: Mic,
+      route: "/voice-dictation",
+      useChat: true
+    },
+    {
+      title: "Multi-Language Support",
+      description: "Translate legal documents and responses",
+      icon: Languages,
+      route: "/multi-language-support",
+      useChat: true
+    },
+    {
+      title: "Citation Checker",
+      description: "Verify and check legal citations",
+      icon: CheckCircle,
+      route: "/citation-checker",
+      useChat: true
+    },
+    {
+      title: "Client Brief Summary Tool",
+      description: "Summarize client briefs and documents",
+      icon: ClipboardList,
+      route: "/summarizer",
+      useChat: true
+    },
+    {
+      title: "Hearing/Deadline Tracker",
+      description: "Track court dates and deadlines",
+      icon: Calendar,
+      route: null,
+      useChat: true
+    }
+  ];
 
-  const handleRoleSelect = (r: string) => setRole(r);
+  const studentFeatures = [
+    {
+      title: "Legal Q&A (NyayaBot)",
+      description: "Student-friendly legal question answering",
+      icon: HelpCircle,
+      route: "/legal-qna",
+      useChat: true
+    },
+    {
+      title: "Topic-Wise Quiz Generator",
+      description: "Generate quizzes on legal topics",
+      icon: Target,
+      route: null,
+      useChat: true
+    },
+    {
+      title: "Case Brief Generator",
+      description: "Generate comprehensive case briefs",
+      icon: Archive,
+      route: null,
+      useChat: true
+    },
+    {
+      title: "Flashcards (Legal Terms)",
+      description: "Create flashcards for legal terminology",
+      icon: Flashlight,
+      route: null,
+      useChat: true
+    },
+    {
+      title: "Syllabus Tracker",
+      description: "Track your law school syllabus progress",
+      icon: TrendingUp,
+      route: null,
+      useChat: true
+    },
+    {
+      title: "Law News Digest",
+      description: "Stay updated with latest legal news",
+      icon: Globe,
+      route: null,
+      useChat: true
+    },
+    {
+      title: "Doubt Forum (Ask Senior)",
+      description: "Get mentorship from senior law students",
+      icon: Users,
+      route: null,
+      useChat: true
+    },
+    {
+      title: "Mock Test Generator",
+      description: "Generate practice tests for exams",
+      icon: MessageSquare,
+      route: null,
+      useChat: true
+    },
+    {
+      title: "Study Plan Generator",
+      description: "Create personalized study plans",
+      icon: Calendar,
+      route: null,
+      useChat: true
+    },
+    {
+      title: "Case Explainer",
+      description: "Get simplified explanations of legal cases",
+      icon: BookOpen,
+      route: null,
+      useChat: true
+    }
+  ];
 
-  const handleDocUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files ? Array.from(e.target.files) : [];
-    setDocFiles(files);
-    if (files.length) {
-      toast({ title: "Files uploaded!", description: `You uploaded ${files.length} document(s).` });
-      // In real app, process via Groq or pass to summarizer/explainer
+  const handleFeatureClick = (feature: any) => {
+    if (feature.useChat) {
+      setSelectedFeature(feature.title);
+    } else if (feature.route) {
+      navigate(feature.route);
     }
   };
 
-  const startSummarize = () => {
-    toast({
-      title: "Summarize Documents",
-      description: "Feature coming soon. For now, use the Summarizer or NyayaBot tool for single docs."
-    });
+  const handleBack = () => {
+    if (selectedFeature) {
+      setSelectedFeature(null);
+    } else {
+      setSelectedRole(null);
+    }
   };
 
-  // Show onboarding if no role, else dashboard
+  // Show role selection screen
+  if (!selectedRole) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-12">
+            <div className="flex items-center justify-center mb-6">
+              <Scale className="w-12 h-12 text-blue-600 mr-4" />
+              <h1 className="text-4xl font-bold text-gray-900">LegalOps AI</h1>
+            </div>
+            <p className="text-xl text-gray-600 mb-8">
+              Your AI-powered legal assistant for Indian law
+            </p>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-8">
+              Please select your role to get started
+            </h2>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-8 max-w-3xl mx-auto">
+            <Card 
+              className="cursor-pointer hover:shadow-lg transition-shadow border-2 hover:border-blue-300"
+              onClick={() => setSelectedRole("lawyer")}
+            >
+              <CardHeader className="text-center pb-4">
+                <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Scale className="w-10 h-10 text-blue-600" />
+                </div>
+                <CardTitle className="text-2xl font-bold text-gray-800">
+                  Practicing Lawyer
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="text-center">
+                <p className="text-gray-600 mb-4">
+                  Access professional legal tools for practice, client work, and case management
+                </p>
+                <ul className="text-sm text-gray-500 space-y-1">
+                  <li>• Contract generation</li>
+                  <li>• Case law research</li>
+                  <li>• Legal drafting tools</li>
+                  <li>• Client brief summaries</li>
+                </ul>
+              </CardContent>
+            </Card>
+
+            <Card 
+              className="cursor-pointer hover:shadow-lg transition-shadow border-2 hover:border-green-300"
+              onClick={() => setSelectedRole("student")}
+            >
+              <CardHeader className="text-center pb-4">
+                <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <BookOpen className="w-10 h-10 text-green-600" />
+                </div>
+                <CardTitle className="text-2xl font-bold text-gray-800">
+                  Law Student
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="text-center">
+                <p className="text-gray-600 mb-4">
+                  Study tools and resources designed for law school success
+                </p>
+                <ul className="text-sm text-gray-500 space-y-1">
+                  <li>• Quiz generation</li>
+                  <li>• Case brief summaries</li>
+                  <li>• Study plan creation</li>
+                  <li>• Legal flashcards</li>
+                </ul>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show feature chat if a feature is selected
+  if (selectedFeature && selectedRole) {
+    return (
+      <RoleFeatureChat 
+        featureName={selectedFeature}
+        role={selectedRole}
+        onBack={handleBack}
+      />
+    );
+  }
+
+  // Show features dashboard based on selected role
+  const features = selectedRole === "lawyer" ? lawyerFeatures : studentFeatures;
+  const roleTitle = selectedRole === "lawyer" ? "Practicing Lawyer" : "Law Student";
+  const roleColor = selectedRole === "lawyer" ? "blue" : "green";
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-yellow-50 to-blue-100 dark:from-blue-900 dark:to-yellow-900 py-10 px-4 flex flex-col">
-      {/* Greeting / Onboarding */}
-      {!role && (
-        <div className="max-w-xl mx-auto py-10 text-center">
-          <h1 className="text-3xl md:text-4xl font-extrabold mb-3 text-blue-900 dark:text-yellow-100">👋 Hello! I’m <span className="text-blue-700 dark:text-yellow-200">LegalOps AI</span></h1>
-          <p className="text-lg text-blue-600 dark:text-yellow-100 mb-7 font-medium">
-            Your intelligent legal assistant built to help both practicing lawyers and law students.<br />
-            <span className="inline-block mt-2 text-base">Choose your role to unlock tailored legal tools!</span>
-          </p>
-          <div className="flex flex-col gap-4 items-center">
-            <div className="flex gap-6 justify-center">
-              {roleOptions.map(opt => (
-                <Button
-                  key={opt.value}
-                  size="lg"
-                  className="px-10 text-base font-bold"
-                  onClick={() => handleRoleSelect(opt.value)}
-                >
-                  {opt.label}
-                </Button>
-              ))}
+    <div className="min-h-screen bg-gray-50 p-6">
+      <div className="max-w-7xl mx-auto">
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" onClick={handleBack}>
+              ← Back
+            </Button>
+            <div className="flex items-center gap-3">
+              <Scale className={`w-8 h-8 text-${roleColor}-600`} />
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900">LegalOps AI</h1>
+                <p className={`text-${roleColor}-600 font-medium`}>{roleTitle} Dashboard</p>
+              </div>
             </div>
           </div>
         </div>
-      )}
 
-      {/* Role-based Dashboard */}
-      {role && (
-        <div className="max-w-4xl mx-auto w-full">
-          <div className="mb-5 text-sm flex flex-wrap gap-4 items-center justify-between">
-            <span className="bg-blue-100 dark:bg-blue-900 py-1 px-3 rounded">
-              {role === "lawyer" ? "Practicing Lawyer" : "Law Student"} Mode
-            </span>
-            <label className="block">
-              <span className="mr-1 font-medium">
-                <Languages className="inline-block w-4 h-4 -mt-1 mr-1" /> Language:
-              </span>
-              <select value={lang} className="rounded px-2 py-1 border ml-1" onChange={e => setLang(e.target.value)}>
-                {languages.map(l => (
-                  <option key={l.code} value={l.code}>{l.label}</option>
-                ))}
-              </select>
-            </label>
-          </div>
-
-          {/* Document Upload */}
-          <Card className="mb-7">
-            <CardHeader>
-              <CardTitle className="flex gap-2 items-center">
-                <UploadCloud className="w-6 h-6" />
-                Upload Legal Documents
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <input
-                type="file"
-                accept=".pdf,.doc,.docx,.txt"
-                multiple
-                onChange={handleDocUpload}
-                className="file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 dark:file:bg-blue-900 dark:file:text-yellow-100"
-              />
-              {docFiles.length > 0 && (
-                <div className="mt-3 text-sm text-gray-700 dark:text-gray-100">
-                  {docFiles.length} document(s) ready.
-                  <Button className="ml-4" size="sm" onClick={startSummarize}>
-                    Summarize
-                  </Button>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Tools */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {(role === "lawyer" ? lawyerTools : studentTools).map(tool => {
-              // Map dashboard tool names to routes
-              const nameToRoute: Record<string, string> = {
-                "Contract Generator": "/contract-generator",
-                "Legal Q&A (NyayaBot)": "/legal-qna",
-                "Case Law Finder": "/case-law-finder",
-                "Section Explainer": "/section-explainer",
-                "Bare Act Navigator": "/bare-act-navigator",
-                "Legal Draft Templates": "/legal-draft-templates",
-                "Voice Dictation → Legal Format": "/voice-dictation",
-                "Citation Checker": "/citation-checker",
-                "Client Brief Summary Tool": "/summarizer",
-                // Student tools below
-                "Topic-Wise Quiz Generator": "#", // Not implemented
-                "Case Brief Generator": "#",
-                "Flashcards (Legal Terms)": "#",
-                "Syllabus Tracker": "#",
-                "Law News Digest": "#",
-                "Doubt Forum (Ask Senior)": "#",
-                "Mock Test Generator": "#",
-                "Study Plan Generator": "#",
-                "Case Explainer": "/summarizer",
-              };
-              const route = nameToRoute[tool.name] || tool.route || "#";
-              return (
-                <Card
-                  key={tool.name}
-                  className={
-                    "transition-all " +
-                    (tool.comingSoon
-                      ? "opacity-50 grayscale pointer-events-none"
-                      : "hover:scale-[1.03] cursor-pointer")
-                  }
-                  onClick={() => {
-                    if (!tool.comingSoon && route && route !== "#") {
-                      navigate(route);
-                    }
-                  }}
-                >
-                  <CardHeader className="flex-row items-center gap-3">
-                    {tool.icon}
-                    <CardTitle className="text-lg font-semibold">{tool.name}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-base font-normal">{tool.description}</div>
-                    {tool.comingSoon && <div className="mt-2 text-xs text-gray-500 italic">Coming soon</div>}
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-          <div className="mt-8 text-xs text-gray-700 dark:text-gray-200 text-center">
-            {disclaimer}
-          </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {features.map((feature, index) => {
+            const IconComponent = feature.icon;
+            return (
+              <Card 
+                key={index}
+                className="cursor-pointer hover:shadow-lg transition-all hover:scale-105 border border-gray-200"
+                onClick={() => handleFeatureClick(feature)}
+              >
+                <CardHeader className="pb-4">
+                  <div className={`w-12 h-12 bg-${roleColor}-100 rounded-lg flex items-center justify-center mb-3`}>
+                    <IconComponent className={`w-6 h-6 text-${roleColor}-600`} />
+                  </div>
+                  <CardTitle className="text-lg font-semibold text-gray-800">
+                    {feature.title}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-600 text-sm leading-relaxed">
+                    {feature.description}
+                  </p>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
-      )}
+      </div>
     </div>
   );
 };

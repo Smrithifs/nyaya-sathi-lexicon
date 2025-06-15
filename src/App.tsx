@@ -17,6 +17,7 @@ import LegalDraftTemplates from "./pages/LegalDraftTemplates";
 import VoiceDictation from "./pages/VoiceDictation";
 import MultiLanguageSupport from "./pages/MultiLanguageSupport";
 import CitationChecker from "./pages/CitationChecker";
+import RoleFeatureChat from "./pages/RoleFeatureChat";
 
 const queryClient = new QueryClient();
 
