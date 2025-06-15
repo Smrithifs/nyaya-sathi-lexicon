@@ -1,19 +1,28 @@
 
 import React, { useRef, useEffect } from "react";
 
-// Animated flowing lines background, inspired by modern SaaS hero layouts (NO circles)
+// Animated flowing blue waves background, darker and more vibrant
 function lerp(a: number, b: number, t: number) {
   return a + (b - a) * t;
 }
 
-const NUM_LINES = 6;
-const POINTS_PER_LINE = 32;
+const NUM_WAVES = 5;
+const POINTS_PER_WAVE = 40;
+
+// Utility to make smooth color gradients for vibrant blues and hints of purple
+function getWaveGradient(ctx: CanvasRenderingContext2D, width: number, i: number) {
+  const grad = ctx.createLinearGradient(0, 0, width, 0);
+  grad.addColorStop(0, `rgba(${32 + i*12},${54 + i*18},${125 + i*22},0.93)`);
+  grad.addColorStop(0.7, `rgba(${44 + i*18},${95 + i*14},${199 + i*35},0.84)`);
+  grad.addColorStop(1, `rgba(${71 + i*12},${68 + i*9},${180 + i*20},0.85)`);
+  return grad;
+}
 
 const LandingBackground: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animState = useRef({
     lastTime: 0,
-    drift: Math.random() * 1000,
+    drift: Math.random() * 800,
     mouseX: 0.5,
   });
 
@@ -28,7 +37,7 @@ const LandingBackground: React.FC = () => {
       height = window.innerHeight;
       canvas.width = width * dpr;
       canvas.height = height * dpr;
-      ctx.setTransform(1, 0, 0, 1, 0, 0); // Reset/clear transform before re-scaling
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
       ctx.scale(dpr, dpr);
     }
     setupCanvas();
@@ -41,35 +50,38 @@ const LandingBackground: React.FC = () => {
 
     function draw(time: number) {
       ctx.clearRect(0, 0, width, height);
-      // Soft dark gradient background
-      const bgGrad = ctx.createLinearGradient(0, 0, width, height);
-      bgGrad.addColorStop(0, "#18181f");
-      bgGrad.addColorStop(1, "#22222a");
+
+      // Rich, vibrant dark blue gradient background
+      const bgGrad = ctx.createLinearGradient(0, 0, 0, height);
+      bgGrad.addColorStop(0, "#152044");
+      bgGrad.addColorStop(0.4, "#191a34");
+      bgGrad.addColorStop(0.7, "#192258");
+      bgGrad.addColorStop(1, "#121429");
       ctx.fillStyle = bgGrad;
       ctx.fillRect(0, 0, width, height);
-      // Animated glowing lines
-      for (let i = 0; i < NUM_LINES; i++) {
-        const yFrac = (i + 1) / (NUM_LINES + 1);
-        const amp = lerp(9, 26, i / (NUM_LINES - 1));
-        const freq = lerp(0.8, 1.7, i / (NUM_LINES - 1));
-        const phase = animState.current.drift + i * 40;
+
+      // Animated glowing colorful wave lines
+      for (let i = 0; i < NUM_WAVES; i++) {
+        const yFrac = 0.23 + 0.13 * i;
+        const amp = lerp(22, 65, i / (NUM_WAVES - 1));
+        const freq = lerp(1, 2.1, i / (NUM_WAVES - 1));
+        const wavePhase = animState.current.drift + i * 22;
         ctx.save();
         ctx.beginPath();
-        for (let j = 0; j < POINTS_PER_LINE; j++) {
-          const t = j / (POINTS_PER_LINE - 1);
+        for (let j = 0; j < POINTS_PER_WAVE; j++) {
+          const t = j / (POINTS_PER_WAVE - 1);
           const px = lerp(0, width, t);
-          const sway = Math.sin(t * Math.PI * freq + time / (1400 + i * 270) + phase) 
-            * lerp(amp * 0.6, amp * 1.4, animState.current.mouseX);
-          // Small random offset to detune perfect lines, for intrigue
-          const perlin = Math.sin(time/1300 + i*2 + j*2.7) * 3;
+          const sway = Math.sin(t * Math.PI * freq + time / (1800 + i * 250) + wavePhase)
+            * lerp(amp * 0.8, amp * 1.35, 0.45 + 0.40 * animState.current.mouseX);
+          const perlin = Math.sin(time/1700 + i*2 + j*2.6) * 4;
           const py = yFrac * height + sway + perlin;
           if (j === 0) ctx.moveTo(px, py);
           else ctx.lineTo(px, py);
         }
-        ctx.lineWidth = lerp(1, 2.5, i / (NUM_LINES - 1));
-        ctx.shadowColor = "#fff";
-        ctx.shadowBlur = lerp(10, 22, i / (NUM_LINES - 1));
-        ctx.strokeStyle = `rgba(255,255,255,${lerp(0.07, 0.15, i / (NUM_LINES - 1))})`;
+        ctx.shadowColor = ["#6bcafe","#61b3d6","#538be2","#5d69cd","#8e9ef2"][i % 5];
+        ctx.shadowBlur = 22 + i * 6;
+        ctx.lineWidth = lerp(2.2, 4.4, i / (NUM_WAVES - 1));
+        ctx.strokeStyle = getWaveGradient(ctx, width, i);
         ctx.stroke();
         ctx.restore();
       }
@@ -92,7 +104,7 @@ const LandingBackground: React.FC = () => {
         width: "100vw",
         height: "100vh",
         objectFit: "cover",
-        background: "#191921",
+        background: "radial-gradient(at 70% 10%, #2c65ba 0%, #191a34 80%)",
         transition: "background .8s"
       }}
       aria-hidden="true"
@@ -101,3 +113,4 @@ const LandingBackground: React.FC = () => {
 };
 
 export default LandingBackground;
+
