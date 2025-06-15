@@ -3,6 +3,7 @@ import { groqCompletion } from "@/utils/groqApi";
 import { Button } from "@/components/ui/button";
 import { Copy, Check, ArrowLeft } from "lucide-react";
 import Flashcard from "@/components/Flashcard";
+import { useToast } from "@/hooks/use-toast";
 
 // Define the GROQ API key as requested
 const GROQ_API_KEY = "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";
@@ -54,6 +55,15 @@ const RoleFeatureChat: React.FC<RoleFeatureChatProps> = ({ featureName, role, on
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
   const [regenerating, setRegenerating] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // New state for file upload
+  const [attachedFile, setAttachedFile] = useState<File | null>(null);
+  const [fileContent, setFileContent] = useState<string | null>(null);
+  const { toast } = useToast();
+
+  // Supported features for document upload
+  const supportsDocumentUpload =
+    featureName === "Legal Q&A (NyayaBot)" && role === "lawyer";
 
   function getSystemPrompt() {
     if (featureName === "Legal Q&A (NyayaBot)" && role === "student") {
@@ -151,6 +161,61 @@ const RoleFeatureChat: React.FC<RoleFeatureChatProps> = ({ featureName, role, on
     );
   }
 
+  // Read file contents
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setAttachedFile(file);
+
+    const fileType = file.type;
+    if (
+      fileType === "application/pdf" ||
+      file.name.endsWith(".pdf")
+    ) {
+      // PDF parsing (lazy-load pdfjs)
+      const pdfjsLib = await import("pdfjs-dist/build/pdf");
+      const pdfjsWorker = await import("pdfjs-dist/build/pdf.worker.entry");
+      pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker;
+      const arrayBuffer = await file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      let text = "";
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const content = await page.getTextContent();
+        text += content.items.map((item: any) => item.str).join(" ") + "\n";
+      }
+      setFileContent(text);
+      toast({ title: "PDF loaded", description: "Document is ready to send." });
+    } else if (
+      fileType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
+      file.name.endsWith(".docx")
+    ) {
+      // Word docx parsing (lazy-load mammoth)
+      const mammoth = await import("mammoth");
+      const arrayBuffer = await file.arrayBuffer();
+      const { value } = await mammoth.convertToHtml({ arrayBuffer });
+      setFileContent(value.replace(/<[^>]*>/g, "")); // Strip HTML to plain text
+      toast({ title: "Word document loaded", description: "Document is ready to send." });
+    } else if (
+      fileType.startsWith("text/") ||
+      file.name.endsWith(".txt")
+    ) {
+      // Plain text file
+      const text = await file.text();
+      setFileContent(text);
+      toast({ title: "Text file loaded", description: "Document is ready to send." });
+    } else {
+      setAttachedFile(null);
+      setFileContent(null);
+      toast({ title: "Unsupported file", description: "Please upload PDF, DOCX, or TXT files.", variant: "destructive" });
+    }
+  };
+
+  const handleRemoveFile = () => {
+    setAttachedFile(null);
+    setFileContent(null);
+  };
+
   // Simple markdown-like converter for AI (code block, bold, list, line breaks)
   function renderAiMarkup(text: string) {
     let html = text
@@ -175,15 +240,21 @@ const RoleFeatureChat: React.FC<RoleFeatureChatProps> = ({ featureName, role, on
 
   async function handleSend(e: React.FormEvent) {
     e.preventDefault();
-    if (!input.trim() || loading) return;
-    const newMsg: Message = { sender: "user", text: input };
+    if ((!input.trim() && !fileContent) || loading) return;
+    let userInput = input;
+    if (fileContent) {
+      userInput += `\n\n---\nAttached Document Content (for summarization/explanation):\n${fileContent}\n---\n`;
+    }
+    const newMsg: Message = { sender: "user", text: userInput };
     setMessages((msgs) => [...msgs, newMsg]);
     setInput("");
     setLoading(true);
+    setAttachedFile(null);
+    setFileContent(null);
     try {
       const context = messages
         .map(m => (m.sender === "user" ? `User: ${m.text}` : `AI: ${m.text}`))
-        .join("\n") + `\nUser: ${input}`;
+        .join("\n") + `\nUser: ${userInput}`;
 
       const aiReply = await groqCompletion({
         apiKey: GROQ_API_KEY,
@@ -301,24 +372,51 @@ const RoleFeatureChat: React.FC<RoleFeatureChatProps> = ({ featureName, role, on
       {/* Input box (always visible, sticky bottom, above action buttons; z-30 ensures priority) */}
       <form
         onSubmit={handleSend}
-        className="fixed bottom-[56px] left-0 w-full flex items-end gap-2 px-2 py-4 border-t bg-white z-30"
+        className="fixed bottom-[56px] left-0 w-full flex flex-col md:flex-row items-end gap-2 px-2 py-4 border-t bg-white z-30"
         style={{
           minHeight: 88,
           maxWidth: "100vw",
         }}
       >
-        <input
-          className="flex-1 h-[52px] max-h-[90px] text-lg bg-[#f7f7fa] text-gray-950 rounded-xl px-4 py-3 border border-gray-200 focus:outline-none transition"
-          placeholder="Type your query or details here…"
-          value={input}
-          onChange={e => setInput(e.target.value)}
-          disabled={loading}
-          autoFocus
-        />
+        <div className="flex-1 flex flex-col">
+          <input
+            className="w-full h-[52px] max-h-[90px] text-lg bg-[#f7f7fa] text-gray-950 rounded-xl px-4 py-3 border border-gray-200 focus:outline-none transition mb-2"
+            placeholder="Type your query or details here…"
+            value={input}
+            onChange={e => setInput(e.target.value)}
+            disabled={loading}
+            autoFocus
+          />
+          {/* Show attach file only for supported feature */}
+          {supportsDocumentUpload && (
+            <div className="flex items-center gap-3">
+              <label className="text-sm font-medium block">
+                Attach a document
+                <input
+                  type="file"
+                  accept=".pdf,.docx,.txt"
+                  className="block mt-1"
+                  onChange={handleFileChange}
+                  disabled={loading || !!attachedFile}
+                />
+              </label>
+              {attachedFile && (
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-blue-700 font-bold">
+                    {attachedFile.name}
+                  </span>
+                  <Button type="button" size="sm" variant="ghost" onClick={handleRemoveFile}>
+                    Remove
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
         <Button
           type="submit"
-          disabled={loading || !input.trim()}
-          className="px-6 py-2.5 bg-blue-600 text-white hover:bg-blue-700 rounded-xl"
+          disabled={loading || (!input.trim() && !fileContent)}
+          className="px-6 py-2.5 bg-blue-600 text-white hover:bg-blue-700 rounded-xl mt-2 md:mt-0"
         >
           {loading ? (regenerating ? "Regenerating..." : "Send") : "Send"}
         </Button>
