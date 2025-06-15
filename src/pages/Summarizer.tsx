@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { marked } from "marked";
-import { groqSummarize } from "@/utils/groqApi";
+import { groqCompletion } from "@/utils/groqApi";
 
 // Static Groq API key as supplied by user. Only use in frontend for demo/testing.
 const GROQ_API_KEY = "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";
@@ -38,7 +38,7 @@ DOCUMENT:
 ${input}
       `.trim();
 
-      const summary = await groqSummarize({
+      const summary = await groqCompletion({
         apiKey: GROQ_API_KEY,
         prompt,
         systemInstruction: "You are a professional legal AI assistant for India. Respond in clear, well-formatted markdown."
