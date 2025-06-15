@@ -5,8 +5,9 @@ import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Gavel, Scale, Book, Badge, Users } from "lucide-react";
 import { marked } from "marked";
-import { useGeminiKey } from "@/hooks/useGeminiKey";
-import { geminiTextCompletion } from "@/utils/geminiApi";
+import { groqCompletion } from "@/utils/groqApi";
+
+const GROQ_API_KEY = "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";
 
 const languages = [
   { label: "English", code: "en" },
@@ -20,17 +21,11 @@ const QABot = () => {
   const [answer, setAnswer] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
-  const { data: geminiKey, isLoading: keyLoading, error } = useGeminiKey();
 
   async function handleAsk(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     setAnswer(null);
-    if (!geminiKey) {
-      toast({ title: "Gemini key missing", description: "Could not fetch Gemini API key from Supabase.", variant: "destructive" });
-      setLoading(false);
-      return;
-    }
     try {
       const langStr = lang === "en" ? "English" : lang === "hi" ? "Hindi" : "Kannada";
       const prompt = `
@@ -39,15 +34,15 @@ Language: ${langStr}
 Respond as a professional Indian law assistant. Clearly: 1) state the relevant law/section, 2) give an in-depth but clear explanation grounded in statutes, 3) provide an example with citation if possible, 4) always display a disclaimer that it is not legal advice. Respond in markdown, use bulleting/sections if necessary.
       `.trim();
 
-      const out = await geminiTextCompletion({
-        apiKey: geminiKey,
+      const out = await groqCompletion({
+        apiKey: GROQ_API_KEY,
         prompt,
         systemInstruction: "You are NyayaBot, an Indian law professional answering queries in a friendly, clear, and citation-based manner."
       });
       setAnswer(out);
       toast({ title: "Answer ready!", description: `The response is in ${languages.find(l => l.code === lang)?.label}` });
     } catch (err: any) {
-      toast({ title: "Gemini Error", description: err.message, variant: "destructive" });
+      toast({ title: "Groq Error", description: err.message, variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -112,7 +107,7 @@ Respond as a professional Indian law assistant. Clearly: 1) state the relevant l
                 value={question}
                 onChange={e => setQuestion(e.target.value)}
                 required
-                disabled={loading || keyLoading}
+                disabled={loading}
                 maxLength={512}
               />
               <div className="flex items-center gap-3 flex-wrap">
@@ -122,7 +117,7 @@ Respond as a professional Indian law assistant. Clearly: 1) state the relevant l
                   className="border rounded px-2 py-1 bg-blue-50 dark:bg-blue-900 dark:text-blue-100 border-blue-200 dark:border-blue-700 font-medium"
                   value={lang}
                   onChange={e => setLang(e.target.value)}
-                  disabled={loading || keyLoading}
+                  disabled={loading}
                 >
                   {languages.map(l => (
                     <option key={l.code} value={l.code}>{l.label}</option>
@@ -130,7 +125,7 @@ Respond as a professional Indian law assistant. Clearly: 1) state the relevant l
                 </select>
                 <Button
                   type="submit"
-                  disabled={loading || keyLoading}
+                  disabled={loading}
                   className="flex items-center gap-2 bg-blue-700 hover:bg-blue-800 text-white px-6 rounded shadow transition-all"
                 >
                   <Scale className="w-5 h-5 inline-block -ml-1" />

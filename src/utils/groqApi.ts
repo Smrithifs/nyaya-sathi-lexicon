@@ -3,16 +3,18 @@
  * Utility for calling Groq LLM completions API for text completion.
  * Returns just the content string from the response.
  */
-export async function groqSummarize({
+export async function groqCompletion({
   apiKey,
   prompt,
   systemInstruction,
-  language = "English"
+  language = "English",
+  model = "llama3-70b-8192"
 }: {
   apiKey: string,
   prompt: string,
   systemInstruction?: string,
-  language?: string
+  language?: string,
+  model?: string
 }) {
   const apiUrl = "https://api.groq.com/openai/v1/chat/completions";
   const headers = {
@@ -30,8 +32,7 @@ export async function groqSummarize({
   });
 
   const body = {
-    // Use Llama-3-70b as Groq's best-in-class reasoning model
-    model: "llama3-70b-8192",
+    model,
     messages,
     temperature: 0.2
   };

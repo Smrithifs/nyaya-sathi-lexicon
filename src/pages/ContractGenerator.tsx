@@ -1,12 +1,13 @@
+
 import React, { useState } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
-import OpenAIKeyInput from "../components/OpenAIKeyInput";
 import { marked } from "marked";
-import { useGeminiKey } from "@/hooks/useGeminiKey";
-import { geminiTextCompletion } from "@/utils/geminiApi";
+import { groqCompletion } from "@/utils/groqApi";
+
+const GROQ_API_KEY = "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";
 
 const contractTypes = [
   { label: "NDA (Non-Disclosure Agreement)", value: "nda" },
@@ -27,19 +28,12 @@ const ContractGenerator = () => {
   const [lang, setLang] = useState("en");
   const [output, setOutput] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [keyModal, setKeyModal] = useState(false);
   const { toast } = useToast();
-  const { data: geminiKey, isLoading: keyLoading, error } = useGeminiKey();
 
   async function handleGenerate(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     setOutput(null);
-    if (!geminiKey) {
-      toast({ title: "Gemini key missing", description: "Could not fetch Gemini API key from Supabase.", variant: "destructive" });
-      setLoading(false);
-      return;
-    }
     try {
       const typeStr = {
         nda: "Non-Disclosure Agreement",
@@ -68,8 +62,8 @@ Make sure to include: dates, parties, purpose, main legal provisions, typical fo
 If user specifies a language (hindi/kannada), translate the contract accordingly.
       `.trim();
 
-      const doc = await geminiTextCompletion({
-        apiKey: geminiKey,
+      const doc = await groqCompletion({
+        apiKey: GROQ_API_KEY,
         prompt,
         systemInstruction: "You are a legal contracts assistant for India. Draft detailed, clear, enforceable agreements for clients. Output in markdown, always include all relevant recitals, signatures, and legal structure."
       });
@@ -77,7 +71,7 @@ If user specifies a language (hindi/kannada), translate the contract accordingly
       setOutput(doc);
       toast({ title: "Contract generated!", description: `Document ready in ${languages.find(l => l.code === lang)?.label}` });
     } catch (err: any) {
-      toast({ title: "Gemini Error", description: err.message, variant: "destructive" });
+      toast({ title: "Groq Error", description: err.message, variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -98,7 +92,7 @@ If user specifies a language (hindi/kannada), translate the contract accordingly
                 onChange={e => setPartyA(e.target.value)}
                 placeholder="Name of 1st party"
                 required
-                disabled={loading || keyLoading}
+                disabled={loading}
               />
             </div>
             <div>
@@ -108,7 +102,7 @@ If user specifies a language (hindi/kannada), translate the contract accordingly
                 onChange={e => setPartyB(e.target.value)}
                 placeholder="Name of 2nd party"
                 required
-                disabled={loading || keyLoading}
+                disabled={loading}
               />
             </div>
             <div>
@@ -118,7 +112,7 @@ If user specifies a language (hindi/kannada), translate the contract accordingly
                 value={contractDate}
                 onChange={e => setContractDate(e.target.value)}
                 required
-                disabled={loading || keyLoading}
+                disabled={loading}
               />
             </div>
             <div>
@@ -127,7 +121,7 @@ If user specifies a language (hindi/kannada), translate the contract accordingly
                 value={contractType}
                 onChange={e => setContractType(e.target.value)}
                 className="border rounded px-2 py-1 w-full"
-                disabled={loading || keyLoading}
+                disabled={loading}
               >
                 {contractTypes.map(ct =>
                   <option key={ct.value} value={ct.value}>{ct.label}</option>
@@ -140,7 +134,7 @@ If user specifies a language (hindi/kannada), translate the contract accordingly
                 value={lang}
                 onChange={e => setLang(e.target.value)}
                 className="border rounded px-2 py-1 w-full"
-                disabled={loading || keyLoading}
+                disabled={loading}
               >
                 {languages.map(l =>
                   <option key={l.code} value={l.code}>{l.label}</option>
@@ -149,7 +143,7 @@ If user specifies a language (hindi/kannada), translate the contract accordingly
             </div>
           </div>
           <div className="flex gap-4 mt-2">
-            <Button type="submit" className="w-full md:w-auto" disabled={loading || keyLoading}>
+            <Button type="submit" className="w-full md:w-auto" disabled={loading}>
               {loading ? "Generating..." : "Generate Contract"}
             </Button>
           </div>
