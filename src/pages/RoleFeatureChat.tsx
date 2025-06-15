@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from "react";
 import { groqCompletion } from "@/utils/groqApi";
 import { Button } from "@/components/ui/button";
@@ -62,16 +61,11 @@ const RoleFeatureChat: React.FC<RoleFeatureChatProps> = ({ featureName, role, on
 
   // Markdown to HTML converter (no **, bold for key sections)
   function renderMessage(text: string) {
-    // Convert simple patterns for bolding (Title: etc.)
     let html = text
-      .replace(/\*\*/g, "") // Remove all ** (GPT bold remnants)
-      // Bold things like "Facts:", "Judgment:" at line start
+      .replace(/\*\*/g, "")
       .replace(/^([A-Z][\w\s/]+:)/gm, "<b>$1</b>")
-      // List formatting
       .replace(/\n\* (.+?)(?=\n|$)/g, "<li>$1</li>")
-      // Double newline = paragraph
       .replace(/\n{2,}/g, "<br/><br/>")
-      // Single newline = line break
       .replace(/\n/g, "<br/>");
     // Wrap lists in <ul>
     html = html.replace(/(<li>[\s\S]*?<\/li>)/g, '<ul class="pl-4 list-disc">$1</ul>');
@@ -118,12 +112,10 @@ const RoleFeatureChat: React.FC<RoleFeatureChatProps> = ({ featureName, role, on
   // Handle copy to clipboard for AI message
   const handleCopy = async (text: string, idx: number) => {
     try {
-      await navigator.clipboard.writeText(text.replace(/\*\*/g, "")); // remove markdown bold
+      await navigator.clipboard.writeText(text.replace(/\*\*/g, ""));
       setCopiedIdx(idx);
       setTimeout(() => setCopiedIdx(null), 1400);
-    } catch (e) {
-      // Ignore for now
-    }
+    } catch (e) {}
   };
 
   // Find if it's the welcome message (no copy in that case)
@@ -131,9 +123,9 @@ const RoleFeatureChat: React.FC<RoleFeatureChatProps> = ({ featureName, role, on
     idx === 0 && msg.sender === "ai";
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col w-full h-full bg-[#f6f7fc] overflow-y-auto">
-      {/* Header */}
-      <div className="flex items-center gap-2 px-6 py-4 border-b border-gray-200 bg-white/95 shadow-sm min-h-[70px]">
+    <div className="fixed inset-0 z-50 flex flex-col w-full h-full bg-white">
+      {/* Header: back button and feature name, sticky */}
+      <div className="sticky top-0 left-0 z-10 flex items-center gap-2 px-6 py-4 border-b border-gray-200 bg-white">
         <Button
           onClick={onBack}
           variant="ghost"
@@ -146,37 +138,39 @@ const RoleFeatureChat: React.FC<RoleFeatureChatProps> = ({ featureName, role, on
         <span className="ml-2 text-2xl font-bold text-gray-800 font-serif">{featureName}</span>
       </div>
 
-      {/* Main chat area, centered in a white card */}
-      <div className="flex justify-center w-full h-full overflow-y-auto py-10 px-2 flex-1">
-        <div className="w-full max-w-3xl min-h-[66vh] flex flex-col">
-          <div
-            ref={containerRef}
-            className="flex-1 flex flex-col gap-7"
-            style={{ width: "100%" }}
-          >
-            {messages.map((msg, idx) => (
+      {/* Main chat area, stretch to fill */}
+      <div className="flex flex-col flex-1 min-h-0 w-full max-w-3xl mx-auto px-2 md:px-0">
+        {/* Chat messages - scrollable */}
+        <div
+          ref={containerRef}
+          className="flex-1 overflow-y-auto py-8 px-2 md:px-0 flex flex-col gap-5"
+          style={{ minHeight: 0 }}
+        >
+          {messages.map((msg, idx) => (
+            <div
+              key={idx}
+              className={
+                "relative group flex"
+                + (msg.sender === "user" ? " justify-end" : " justify-start")
+              }
+            >
               <div
-                key={idx}
-                className="relative flex justify-start items-center"
-                style={{ width: "100%" }}
+                className={
+                  "whitespace-pre-line rounded-xl px-5 py-4 text-[1.09rem] leading-relaxed max-w-2xl w-full"
+                  + (msg.sender === "ai"
+                    ? " bg-[#f7f7fa] text-gray-900 border border-gray-200"
+                    : " bg-blue-50 text-blue-950 border border-blue-200 text-right font-medium")
+                }
+                style={{ position: "relative" }}
               >
-                {/* Card style for message */}
-                <div
-                  className={
-                    "bg-white text-gray-900 font-medium px-6 py-4 rounded-xl border border-gray-200 shadow"
-                    + (msg.sender === "ai" ? "" : " ml-auto text-right bg-blue-50 border-blue-200")
-                  }
-                  style={{ width: "100%", maxWidth: "100%" }}
-                >
-                  {msg.sender === "ai"
-                    ? renderMessage(msg.text)
-                    : <span className="font-semibold">{msg.text}</span>
-                  }
-                </div>
+                {msg.sender === "ai"
+                  ? renderMessage(msg.text)
+                  : <span>{msg.text}</span>
+                }
                 {/* Copy button for AI responses except welcome */}
                 {(msg.sender === "ai" && !isWelcomeMessage(msg, idx)) && (
                   <button
-                    className="absolute top-2 right-2 bg-gray-100 hover:bg-gray-200 rounded-lg p-1.5 shadow text-gray-500 transition-all"
+                    className="absolute top-2 right-2 bg-gray-100 hover:bg-gray-200 rounded-lg p-1 shadow text-gray-500 transition-all md:opacity-0 md:group-hover:opacity-100 opacity-100"
                     title={copiedIdx === idx ? "Copied" : "Copy"}
                     onClick={() => handleCopy(msg.text, idx)}
                   >
@@ -188,47 +182,44 @@ const RoleFeatureChat: React.FC<RoleFeatureChatProps> = ({ featureName, role, on
                   </button>
                 )}
               </div>
-            ))}
-          </div>
-          {/* Input area */}
-          <form
-            onSubmit={handleSend}
-            className="flex gap-2 items-center mt-7 bg-white border border-gray-200 rounded-xl shadow px-4 py-3"
-            style={{ minHeight: "64px" }}
-          >
-            <input
-              className="w-full bg-transparent text-gray-950 rounded-md px-3 py-2 focus:outline-none"
-              placeholder="Type your query or details here…"
-              value={input}
-              onChange={e => setInput(e.target.value)}
-              disabled={loading}
-              autoFocus
-            />
-            <Button
-              type="submit"
-              disabled={loading || !input.trim()}
-              className="px-6 py-2.5 bg-blue-600 text-white hover:bg-blue-700"
-            >
-              {loading ? "Thinking..." : "Send"}
-            </Button>
-          </form>
+            </div>
+          ))}
         </div>
+        {/* Input bar at bottom */}
+        <form
+          onSubmit={handleSend}
+          className="flex gap-2 items-center px-2 py-5 border-t border-gray-100 bg-white"
+        >
+          <input
+            className="w-full bg-[#f7f7fa] text-gray-950 rounded-md px-4 py-3 border border-gray-200 focus:outline-none"
+            placeholder="Type your query or details here…"
+            value={input}
+            onChange={e => setInput(e.target.value)}
+            disabled={loading}
+            autoFocus
+            spellCheck
+          />
+          <Button
+            type="submit"
+            disabled={loading || !input.trim()}
+            className="px-6 py-2.5 bg-blue-600 text-white hover:bg-blue-700 rounded-md"
+          >
+            {loading ? "Thinking..." : "Send"}
+          </Button>
+        </form>
       </div>
     </div>
   );
-}
+};
 
 function getWelcomePrompt(feature: string, role: "lawyer" | "student") {
-  // Used on init/new feature select
   if (feature === "Legal Q&A (NyayaBot)" && role === "student") {
     return "You are using LegalOps AI — a highly responsive legal assistant for Indian law students. This feature: Legal Q&A (NyayaBot). Please provide your input, or ask a question.";
   }
   if (feature === "Legal Q&A (NyayaBot)" && role === "lawyer") {
     return "You are using LegalOps AI — a highly responsive legal assistant for Indian lawyers. This feature: Legal Q&A (NyayaBot). Please provide your input, or ask a question.";
   }
-  // Custom per-feature
   return `You are using the feature: ${feature}. Please provide input to proceed.`;
 }
 
 export default RoleFeatureChat;
-
