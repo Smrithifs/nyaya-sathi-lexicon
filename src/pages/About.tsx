@@ -9,7 +9,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import SectionReveal from "../components/SectionReveal";
 import { Button } from "@/components/ui/button";
-import RoleFeatureChat from "./RoleFeatureChat";
+import { useNavigate } from "react-router-dom";
 
 const lawyerTools = [
   { name: "Contract Generator", icon: <FileEdit className="w-7 h-7 text-blue-600" /> },
@@ -24,6 +24,7 @@ const lawyerTools = [
   { name: "Client Brief Summary Tool", icon: <Brain className="w-7 h-7 text-indigo-700" /> },
   { name: "Hearing/Deadline Tracker", icon: <Users className="w-7 h-7 text-orange-700" /> }
 ];
+
 const studentTools = [
   { name: "Topic-Wise Quiz Generator", icon: <Brain className="w-7 h-7 text-blue-600" /> },
   { name: "Case Brief Generator", icon: <Layers className="w-7 h-7 text-gray-700" /> },
@@ -45,13 +46,11 @@ const whyLegalOpsItems = [
   { bold: "Ready for modern practice:", text: " Spend less time on admin, more time acting on what matters." }
 ];
 
-const roleColumnStyles = "flex-1 min-w-[220px] max-w-xs bg-gradient-to-br from-blue-900/70 to-blue-700/60 hover:from-blue-700/80 hover:to-yellow-400/95 border border-white/10 rounded-xl shadow-lg px-7 py-10 m-4 text-white text-center flex flex-col gap-3 cursor-pointer transition-all duration-300 hover:shadow-2xl hover:scale-105 outline-none focus:ring-2 focus:ring-blue-300";
-const selectedRoleStyles = "ring-4 ring-yellow-300 border-yellow-300";
+const roleColumnStyles = "flex-1 min-w-[220px] max-w-xs bg-gradient-to-br from-blue-900/70 to-blue-700/60 border border-white/10 rounded-xl shadow-lg px-7 py-10 m-4 text-white text-center flex flex-col gap-3 transition-all duration-300";
 const roleIconCommon = "mx-auto mb-2 rounded-full bg-white/10 p-4 w-16 h-16 flex items-center justify-center";
 
 const About = () => {
-  const [role, setRole] = useState<"lawyer" | "student" | null>(null);
-  const [selectedFeature, setSelectedFeature] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   return (
     <div className="relative min-h-screen flex flex-col items-center bg-transparent">
@@ -103,82 +102,77 @@ const About = () => {
           </section>
         </SectionReveal>
 
-        {/* Features Section + Role Selector */}
+        {/* Features Section + Role Display */}
         <SectionReveal className="w-full">
           <section className="w-full max-w-6xl mx-auto px-2 pb-20 flex flex-col items-center">
             <h2 className="text-3xl md:text-4xl font-bold text-white mb-12 font-serif mt-4 text-center">
               Explore Our Features
             </h2>
-            {/* Floating role selection columns */}
+            {/* Non-interactive role display columns */}
             <div className="w-full flex flex-wrap justify-center gap-6 mb-10">
-              <div
-                tabIndex={0}
-                className={`${roleColumnStyles} ${role === "lawyer" ? selectedRoleStyles : ""}`}
-                onClick={() => { setRole("lawyer"); setSelectedFeature(null); }}
-                onKeyDown={e => (e.key === "Enter" || e.key === " ") && setRole("lawyer")}
-                aria-label="Practicing Lawyer"
-              >
-                <div className={`${roleIconCommon}  bg-blue-500/20`}>
+              <div className={roleColumnStyles}>
+                <div className={`${roleIconCommon} bg-blue-500/20`}>
                   <Gavel className="w-10 h-10 text-yellow-200" />
                 </div>
                 <div className="text-xl font-bold mb-2 font-serif">Practicing Lawyer</div>
                 <div className="text-base text-white/80">Access tools designed for professionals—contracts, advanced Q&amp;A, citation checker, and more.</div>
               </div>
-              <div
-                tabIndex={0}
-                className={`${roleColumnStyles} ${role === "student" ? selectedRoleStyles : ""}`}
-                onClick={() => { setRole("student"); setSelectedFeature(null); }}
-                onKeyDown={e => (e.key === "Enter" || e.key === " ") && setRole("student")}
-                aria-label="Law Student"
-              >
-                <div className={`${roleIconCommon}  bg-yellow-500/20`}>
+              <div className={roleColumnStyles}>
+                <div className={`${roleIconCommon} bg-yellow-500/20`}>
                   <BookOpen className="w-10 h-10 text-blue-300" />
                 </div>
                 <div className="text-xl font-bold mb-2 font-serif">Law Student</div>
                 <div className="text-base text-white/80">Get learning aids—case briefings, study plans, quizzes and doubt forum built just for you.</div>
               </div>
             </div>
-            {/* Show relevant features based on role */}
-            {role && (
-              <div className="w-full flex flex-col items-center animate-fade-in">
-                {!selectedFeature ? (
-                  <>
-                    <div className="mb-6 flex justify-center">
-                      <Button variant="ghost" className="text-white/70 underline underline-offset-2" onClick={() => setRole(null)}>
-                        ← Change role
-                      </Button>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-7 w-full">
-                      {(role === "lawyer" ? lawyerTools : studentTools).map((tool) => (
-                        <Card
-                          key={tool.name}
-                          onClick={() => setSelectedFeature(tool.name)}
-                          className="flex flex-col bg-black/30 backdrop-blur-lg border border-white/15 text-white shadow-lg group transition-all duration-300 hover:scale-105 hover:border-yellow-200 cursor-pointer max-w-xs mx-auto focus:ring-2 focus:ring-yellow-300"
-                          tabIndex={0}
-                          role="button"
-                        >
-                          <CardHeader className="items-center text-center">
-                            <div className="p-4 bg-white/10 rounded-full mb-4 transition-all duration-300 group-hover:bg-white/20">
-                              {tool.icon}
-                            </div>
-                            <CardTitle className="text-lg font-bold text-white font-serif">{tool.name}</CardTitle>
-                          </CardHeader>
-                        </Card>
-                      ))}
-                    </div>
-                    <div className="text-xs text-gray-300 mt-6 text-center italic w-full">
-                      This is not a substitute for professional legal advice.
-                    </div>
-                  </>
-                ) : (
-                  <RoleFeatureChat
-                    featureName={selectedFeature}
-                    role={role}
-                    onBack={() => setSelectedFeature(null)}
-                  />
-                )}
+
+            {/* Display both tool sets for preview */}
+            <div className="w-full flex flex-col items-center animate-fade-in">
+              <h3 className="text-2xl font-bold text-white mb-6 font-serif">Lawyer Tools</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-7 w-full mb-12">
+                {lawyerTools.map((tool) => (
+                  <Card
+                    key={tool.name}
+                    className="flex flex-col bg-black/30 backdrop-blur-lg border border-white/15 text-white shadow-lg max-w-xs mx-auto"
+                  >
+                    <CardHeader className="items-center text-center">
+                      <div className="p-4 bg-white/10 rounded-full mb-4">
+                        {tool.icon}
+                      </div>
+                      <CardTitle className="text-lg font-bold text-white font-serif">{tool.name}</CardTitle>
+                    </CardHeader>
+                  </Card>
+                ))}
               </div>
-            )}
+
+              <h3 className="text-2xl font-bold text-white mb-6 font-serif">Student Tools</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-7 w-full mb-8">
+                {studentTools.map((tool) => (
+                  <Card
+                    key={tool.name}
+                    className="flex flex-col bg-black/30 backdrop-blur-lg border border-white/15 text-white shadow-lg max-w-xs mx-auto"
+                  >
+                    <CardHeader className="items-center text-center">
+                      <div className="p-4 bg-white/10 rounded-full mb-4">
+                        {tool.icon}
+                      </div>
+                      <CardTitle className="text-lg font-bold text-white font-serif">{tool.name}</CardTitle>
+                    </CardHeader>
+                  </Card>
+                ))}
+              </div>
+
+              <Button 
+                onClick={() => navigate("/features")}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg font-semibold rounded-xl shadow-lg"
+              >
+                Try These Features →
+              </Button>
+
+              <div className="text-xs text-gray-300 mt-6 text-center italic w-full">
+                This is not a substitute for professional legal advice.
+              </div>
+            </div>
           </section>
         </SectionReveal>
       </main>
