@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
@@ -31,6 +30,12 @@ const features: { title: string; href: string; description: string; icon: React.
     href: "/summarizer",
     description: "Turn long documents into clear summaries.",
     icon: <BookText className="w-5 h-5" />,
+  },
+  {
+    title: "All LegalOps Features",
+    href: "/features",
+    description: "Role-detection, tools, and document upload.",
+    icon: <Bot className="w-5 h-5" />,
   },
 ];
 

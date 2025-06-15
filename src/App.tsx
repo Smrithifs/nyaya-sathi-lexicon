@@ -20,11 +20,12 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<LegalOpsHome />} />
+          <Route path="/" element={<Index />} />
           <Route path="/about" element={<About />} />
           <Route path="/contract-generator" element={<ContractGenerator />} />
           <Route path="/qabot" element={<QABot />} />
           <Route path="/summarizer" element={<Summarizer />} />
+          <Route path="/features" element={<LegalOpsHome />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
