@@ -7,7 +7,10 @@ const Index = () => (
   <div className="relative min-h-screen flex flex-col items-center justify-center bg-black overflow-hidden">
     <LandingBackground />
     <main className="relative z-10 flex flex-col min-h-screen items-center justify-center w-full pt-32 pb-12 px-4">
-      <LawSymbol className="w-24 h-24 mb-8 animate-scale-in" />
+      {/* Symbol perfectly centered above heading */}
+      <div className="flex flex-col items-center">
+        <LawSymbol className="w-24 h-24 mb-8 animate-scale-in" />
+      </div>
       <h1 className="font-serif text-7xl md:text-8xl font-extrabold text-white text-center tracking-tight drop-shadow-[0_4px_24px_#4852B7aa] animate-fade-in select-none">
         LegalOps
       </h1>

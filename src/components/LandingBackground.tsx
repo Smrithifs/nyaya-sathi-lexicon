@@ -1,11 +1,13 @@
-
 import React, { useRef, useEffect } from "react";
 
-// Wave colors: dark blue over black
+// More lines, all dark blue variants for a "dense" smooth effect
 const LINES = [
-  { amplitude: 44, freq: 1, phase: 0, color: "rgba(23,62,124,0.76)", width: 3 },
-  { amplitude: 27, freq: 1.3, phase: Math.PI / 3, color: "rgba(36,81,177,0.4)", width: 2 },
-  { amplitude: 19, freq: 0.9, phase: Math.PI / 1.6, color: "rgba(24,53,112,0.42)", width: 1.5 },
+  { amplitude: 44, freq: 1, phase: 0, color: "rgba(23,62,124,0.78)", width: 3.5 },
+  { amplitude: 28, freq: 1.18, phase: Math.PI / 5, color: "rgba(36,81,177,0.43)", width: 2.7 },
+  { amplitude: 21, freq: 0.92, phase: Math.PI / 1.8, color: "rgba(24,53,112,0.42)", width: 2 },
+  { amplitude: 15, freq: 1.34, phase: Math.PI / 1.2, color: "rgba(23,62,124,0.23)", width: 1.7 },
+  { amplitude: 12, freq: 0.72, phase: Math.PI/2.1, color: "rgba(25,64,130,0.15)", width: 1 },
+  { amplitude: 9, freq: 1.5, phase: Math.PI/3.3, color: "rgba(19,46,87,0.13)", width: 0.8 },
 ];
 
 // Draw a smooth sin or cos line for animation
@@ -20,11 +22,11 @@ function drawTrigLine(
   const baseY = height * 0.64;
   for (let x = 0; x <= width; x += 2) {
     const t = x / width;
-    // Animate with sin and cos oscillation for smooth undulation
+    // Smoother by limiting amplitude modulation for all, NOT crooked
     const y =
       baseY +
       Math.sin(t * opts.freq * Math.PI * 2 + opts.phase + opts.anim * 0.72) * opts.amplitude +
-      Math.cos(t * opts.freq * Math.PI * 2 - opts.phase + opts.anim * 0.43) * (opts.amplitude * 0.4);
+      Math.cos(t * opts.freq * Math.PI * 2 - opts.phase + opts.anim * 0.43) * (opts.amplitude * 0.27);
 
     if (x === 0) {
       ctx.moveTo(x, y);
@@ -65,7 +67,7 @@ const LandingBackground: React.FC = () => {
       // Black background
       ctx.fillStyle = "#0c1020";
       ctx.fillRect(0, 0, width, height);
-      // Draw smooth animated wave lines (sin & cos)
+      // Draw smooth animated wave lines
       for (let i = 0; i < LINES.length; i++) {
         drawTrigLine(ctx, width, height, {
           ...LINES[i],
