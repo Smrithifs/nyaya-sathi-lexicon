@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -22,167 +21,168 @@ import {
   Target,
   TrendingUp,
   MessageSquare,
-  Globe
+  Globe,
+  ArrowLeft
 } from "lucide-react";
 import RoleFeatureChat from "./RoleFeatureChat";
+
+const lawyerFeatures = [
+  {
+    title: "Contract Generator",
+    description: "Generate professional legal contracts with AI assistance",
+    icon: FileText,
+    route: "/contract-generator",
+    useChat: false
+  },
+  {
+    title: "Legal Q&A (NyayaBot)",
+    description: "Get instant answers to Indian legal questions",
+    icon: HelpCircle,
+    route: "/legal-qna",
+    useChat: true
+  },
+  {
+    title: "Case Law Finder",
+    description: "Search and find relevant case law and precedents",
+    icon: Search,
+    route: "/case-law-finder",
+    useChat: true
+  },
+  {
+    title: "Section Explainer",
+    description: "Get detailed explanations of legal sections",
+    icon: BookOpen,
+    route: "/section-explainer",
+    useChat: true
+  },
+  {
+    title: "Bare Act Navigator",
+    description: "Navigate through legal acts efficiently",
+    icon: Navigation,
+    route: "/bare-act-navigator",
+    useChat: true
+  },
+  {
+    title: "Legal Draft Templates",
+    description: "Generate professional legal document templates",
+    icon: PenTool,
+    route: "/legal-draft-templates",
+    useChat: true
+  },
+  {
+    title: "Voice Dictation → Legal Format",
+    description: "Convert voice recordings to legal documents",
+    icon: Mic,
+    route: "/voice-dictation",
+    useChat: true
+  },
+  {
+    title: "Multi-Language Support",
+    description: "Translate legal documents and responses",
+    icon: Languages,
+    route: "/multi-language-support",
+    useChat: true
+  },
+  {
+    title: "Citation Checker",
+    description: "Verify and check legal citations",
+    icon: CheckCircle,
+    route: "/citation-checker",
+    useChat: true
+  },
+  {
+    title: "Client Brief Summary Tool",
+    description: "Summarize client briefs and documents",
+    icon: ClipboardList,
+    route: "/summarizer",
+    useChat: true
+  },
+  {
+    title: "Hearing/Deadline Tracker",
+    description: "Track court dates and deadlines",
+    icon: Calendar,
+    route: null,
+    useChat: true
+  }
+];
+
+const studentFeatures = [
+  {
+    title: "Legal Q&A (NyayaBot)",
+    description: "Student-friendly legal question answering",
+    icon: HelpCircle,
+    route: "/legal-qna",
+    useChat: true
+  },
+  {
+    title: "Topic-Wise Quiz Generator",
+    description: "Generate quizzes on legal topics",
+    icon: Target,
+    route: null,
+    useChat: true
+  },
+  {
+    title: "Case Brief Generator",
+    description: "Generate comprehensive case briefs",
+    icon: Archive,
+    route: null,
+    useChat: true
+  },
+  {
+    title: "Flashcards (Legal Terms)",
+    description: "Create flashcards for legal terminology",
+    icon: Flashlight,
+    route: null,
+    useChat: true
+  },
+  {
+    title: "Syllabus Tracker",
+    description: "Track your law school syllabus progress",
+    icon: TrendingUp,
+    route: null,
+    useChat: true
+  },
+  {
+    title: "Law News Digest",
+    description: "Stay updated with latest legal news",
+    icon: Globe,
+    route: null,
+    useChat: true
+  },
+  {
+    title: "Doubt Forum (Ask Senior)",
+    description: "Get mentorship from senior law students",
+    icon: Users,
+    route: null,
+    useChat: true
+  },
+  {
+    title: "Mock Test Generator",
+    description: "Generate practice tests for exams",
+    icon: MessageSquare,
+    route: null,
+    useChat: true
+  },
+  {
+    title: "Study Plan Generator",
+    description: "Create personalized study plans",
+    icon: Calendar,
+    route: null,
+    useChat: true
+  },
+  {
+    title: "Case Explainer",
+    description: "Get simplified explanations of legal cases",
+    icon: BookOpen,
+    route: null,
+    useChat: true
+  }
+];
 
 const LegalOpsHome = () => {
   const navigate = useNavigate();
   const [selectedRole, setSelectedRole] = useState<"lawyer" | "student" | null>(null);
   const [selectedFeature, setSelectedFeature] = useState<string | null>(null);
-
-  const lawyerFeatures = [
-    {
-      title: "Contract Generator",
-      description: "Generate professional legal contracts with AI assistance",
-      icon: FileText,
-      route: "/contract-generator",
-      useChat: false
-    },
-    {
-      title: "Legal Q&A (NyayaBot)",
-      description: "Get instant answers to Indian legal questions",
-      icon: HelpCircle,
-      route: "/legal-qna",
-      useChat: true
-    },
-    {
-      title: "Case Law Finder",
-      description: "Search and find relevant case law and precedents",
-      icon: Search,
-      route: "/case-law-finder",
-      useChat: true
-    },
-    {
-      title: "Section Explainer",
-      description: "Get detailed explanations of legal sections",
-      icon: BookOpen,
-      route: "/section-explainer",
-      useChat: true
-    },
-    {
-      title: "Bare Act Navigator",
-      description: "Navigate through legal acts efficiently",
-      icon: Navigation,
-      route: "/bare-act-navigator",
-      useChat: true
-    },
-    {
-      title: "Legal Draft Templates",
-      description: "Generate professional legal document templates",
-      icon: PenTool,
-      route: "/legal-draft-templates",
-      useChat: true
-    },
-    {
-      title: "Voice Dictation → Legal Format",
-      description: "Convert voice recordings to legal documents",
-      icon: Mic,
-      route: "/voice-dictation",
-      useChat: true
-    },
-    {
-      title: "Multi-Language Support",
-      description: "Translate legal documents and responses",
-      icon: Languages,
-      route: "/multi-language-support",
-      useChat: true
-    },
-    {
-      title: "Citation Checker",
-      description: "Verify and check legal citations",
-      icon: CheckCircle,
-      route: "/citation-checker",
-      useChat: true
-    },
-    {
-      title: "Client Brief Summary Tool",
-      description: "Summarize client briefs and documents",
-      icon: ClipboardList,
-      route: "/summarizer",
-      useChat: true
-    },
-    {
-      title: "Hearing/Deadline Tracker",
-      description: "Track court dates and deadlines",
-      icon: Calendar,
-      route: null,
-      useChat: true
-    }
-  ];
-
-  const studentFeatures = [
-    {
-      title: "Legal Q&A (NyayaBot)",
-      description: "Student-friendly legal question answering",
-      icon: HelpCircle,
-      route: "/legal-qna",
-      useChat: true
-    },
-    {
-      title: "Topic-Wise Quiz Generator",
-      description: "Generate quizzes on legal topics",
-      icon: Target,
-      route: null,
-      useChat: true
-    },
-    {
-      title: "Case Brief Generator",
-      description: "Generate comprehensive case briefs",
-      icon: Archive,
-      route: null,
-      useChat: true
-    },
-    {
-      title: "Flashcards (Legal Terms)",
-      description: "Create flashcards for legal terminology",
-      icon: Flashlight,
-      route: null,
-      useChat: true
-    },
-    {
-      title: "Syllabus Tracker",
-      description: "Track your law school syllabus progress",
-      icon: TrendingUp,
-      route: null,
-      useChat: true
-    },
-    {
-      title: "Law News Digest",
-      description: "Stay updated with latest legal news",
-      icon: Globe,
-      route: null,
-      useChat: true
-    },
-    {
-      title: "Doubt Forum (Ask Senior)",
-      description: "Get mentorship from senior law students",
-      icon: Users,
-      route: null,
-      useChat: true
-    },
-    {
-      title: "Mock Test Generator",
-      description: "Generate practice tests for exams",
-      icon: MessageSquare,
-      route: null,
-      useChat: true
-    },
-    {
-      title: "Study Plan Generator",
-      description: "Create personalized study plans",
-      icon: Calendar,
-      route: null,
-      useChat: true
-    },
-    {
-      title: "Case Explainer",
-      description: "Get simplified explanations of legal cases",
-      icon: BookOpen,
-      route: null,
-      useChat: true
-    }
-  ];
 
   const handleFeatureClick = (feature: any) => {
     if (feature.useChat) {
@@ -195,8 +195,10 @@ const LegalOpsHome = () => {
   const handleBack = () => {
     if (selectedFeature) {
       setSelectedFeature(null);
-    } else {
+    } else if (selectedRole) {
       setSelectedRole(null);
+    } else {
+      navigate("/");
     }
   };
 
@@ -205,6 +207,17 @@ const LegalOpsHome = () => {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
         <div className="max-w-4xl mx-auto">
+          <div className="flex items-center justify-between mb-8">
+            <Button 
+              variant="ghost" 
+              onClick={() => navigate("/")}
+              className="flex items-center gap-2"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Back to Home
+            </Button>
+          </div>
+          
           <div className="text-center mb-12">
             <div className="flex items-center justify-center mb-6">
               <Scale className="w-12 h-12 text-blue-600 mr-4" />
