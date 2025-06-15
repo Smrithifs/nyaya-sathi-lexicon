@@ -1,78 +1,95 @@
 
 import React, { useRef, useEffect } from "react";
 
-// A minimal animated bokeh/dots canvas for a classy black-and-white interactive effect
-const DOTS = 50;
-const colors = ["#fff", "#ddd", "#bbb", "#444", "#111"];
-function randomBetween(a: number, b: number) {
-  return Math.random() * (b - a) + a;
+// Abstract flowing lines background, interactive on mousemove (black/white)
+function lerp(a: number, b: number, t: number) {
+  return a + (b - a) * t;
 }
-type Dot = { x: number; y: number; r: number; dx: number; dy: number; color: string };
+
+const NUM_LINES = 5;
+const POINTS_PER_LINE = 26;
 
 const LandingBackground: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const animState = useRef({
+    mouseX: 0.5,
+    lastTime: 0,
+    waves: Array.from({ length: NUM_LINES }, (_, i) => ({
+      yOffset: (i + 1) / (NUM_LINES + 1),
+      amp: 30 + 22 * i,
+      freq: 1.2 + 0.1 * i,
+      phase: Math.random() * 1000,
+    })),
+  });
 
   useEffect(() => {
     let running = true;
-    const ctx = canvasRef.current?.getContext("2d");
-    const dpr = window.devicePixelRatio || 1;
-    let width = window.innerWidth;
-    let height = window.innerHeight;
-    canvasRef.current!.width = width * dpr;
-    canvasRef.current!.height = height * dpr;
-    ctx?.scale(dpr, dpr);
+    const canvas = canvasRef.current!;
+    const ctx = canvas.getContext("2d")!;
+    let width = window.innerWidth, height = window.innerHeight, dpr = window.devicePixelRatio || 1;
+    canvas.width = width * dpr;
+    canvas.height = height * dpr;
+    ctx.scale(dpr, dpr);
 
-    // Generate dots
-    let dots: Dot[] = Array.from({ length: DOTS }).map(() => ({
-      x: randomBetween(0, width),
-      y: randomBetween(0, height),
-      r: randomBetween(16, 48),
-      dx: randomBetween(-0.12, 0.12),
-      dy: randomBetween(-0.1, 0.1),
-      color: colors[Math.floor(Math.random() * colors.length)],
-    }));
-
-    function draw() {
-      if (!ctx) return;
-      ctx.clearRect(0, 0, width, height);
-
-      for (let dot of dots) {
-        ctx.globalAlpha = 0.13;
-        ctx.beginPath();
-        ctx.arc(dot.x, dot.y, dot.r, 0, 2 * Math.PI);
-        ctx.fillStyle = dot.color;
-        ctx.fill();
-        ctx.globalAlpha = 1;
-        // Move dot, bounce at edge
-        dot.x += dot.dx;
-        dot.y += dot.dy;
-        if (dot.x < -dot.r) dot.x = width + dot.r;
-        if (dot.x > width + dot.r) dot.x = -dot.r;
-        if (dot.y < -dot.r) dot.y = height + dot.r;
-        if (dot.y > height + dot.r) dot.y = -dot.r;
-      }
-      if (running) requestAnimationFrame(draw);
-    }
-    draw();
-
-    function handleResize() {
+    function resize() {
       width = window.innerWidth;
       height = window.innerHeight;
-      canvasRef.current!.width = width * dpr;
-      canvasRef.current!.height = height * dpr;
-      ctx?.scale(dpr, dpr);
-      dots = dots.map(dot => ({
-        ...dot,
-        x: randomBetween(0, width),
-        y: randomBetween(0, height)
-      }));
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+      ctx.scale(dpr, dpr);
     }
-    window.addEventListener("resize", handleResize);
+
+    window.addEventListener("resize", resize);
+
+    function handleMove(e: MouseEvent) {
+      animState.current.mouseX = e.clientX / width;
+    }
+    window.addEventListener("mousemove", handleMove);
+
+    function draw(time: number) {
+      ctx.clearRect(0, 0, width, height);
+      ctx.save();
+      ctx.globalAlpha = 1;
+      // bg gradient
+      const grad = ctx.createLinearGradient(0, 0, width, height);
+      grad.addColorStop(0, "#141416");
+      grad.addColorStop(1, "#22222a");
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, width, height);
+
+      // Draw flowing lines
+      for (let i = 0; i < NUM_LINES; i++) {
+        const { yOffset, amp, freq, phase } = animState.current.waves[i];
+        ctx.save();
+        ctx.beginPath();
+        for (let j = 0; j < POINTS_PER_LINE; j++) {
+          const t = j / (POINTS_PER_LINE - 1);
+          // Wave formula, influence amplitude by mouse position
+          const offset =
+            Math.sin(t * Math.PI * freq + (time / 2200) * (1 + i * 0.1) + phase) *
+            lerp(amp * 0.5, amp * 1.5, animState.current.mouseX);
+          const px = lerp(0, width, t);
+          const py = yOffset * height + offset;
+          if (j === 0) ctx.moveTo(px, py);
+          else ctx.lineTo(px, py);
+        }
+        ctx.lineWidth = lerp(1.3, 2.8, i / (NUM_LINES - 1));
+        ctx.strokeStyle = `rgba(255,255,255,${lerp(0.15, 0.33, i / (NUM_LINES - 1))})`;
+        ctx.shadowBlur = 8 + i * 2;
+        ctx.shadowColor = "#fff";
+        ctx.stroke();
+        ctx.restore();
+      }
+      ctx.restore();
+      if (running) requestAnimationFrame(draw);
+    }
+    draw(0);
+
     return () => {
       running = false;
-      window.removeEventListener("resize", handleResize);
+      window.removeEventListener("resize", resize);
+      window.removeEventListener("mousemove", handleMove);
     };
-    // eslint-disable-next-line
   }, []);
 
   return (
@@ -83,7 +100,7 @@ const LandingBackground: React.FC = () => {
         width: "100vw",
         height: "100vh",
         objectFit: "cover",
-        background: "radial-gradient(circle at 30% 70%, #111 60%, #222 100%)",
+        background: "#191921",
         transition: "background .8s",
       }}
       aria-hidden="true"
