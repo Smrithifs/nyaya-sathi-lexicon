@@ -1,10 +1,6 @@
 
 import { useQuery } from "@tanstack/react-query";
-import { createClient } from "@supabase/supabase-js";
-
-const supabaseUrl = "https://xxecwllzdsjqemgsylqa.supabase.co";
-const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh4ZWN3bGx6ZHNqcWVtZ3N5bHFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTAwMDAwNDQsImV4cCI6MjA2NTU3NjA0NH0.ruLzev0_Yn6xbMdXy6q05FfZt6Gu4cSiM16GHnFOanE";
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+import { supabase } from "@/integrations/supabase/client";
 
 export function useGeminiKey() {
   return useQuery({
@@ -14,9 +10,10 @@ export function useGeminiKey() {
         .from("api key")
         .select('"api key"')
         .limit(1)
-        .single();
+        .maybeSingle(); // Avoid .single() in case table is empty
       if (error) throw new Error("Error fetching Gemini key");
-      return data?.["api key"] as string;
+      // Return the value of the "api key" column, or null if not found
+      return data?.["api key"] as string | null;
     }
   });
 }
