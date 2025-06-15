@@ -2,10 +2,12 @@
 import React from "react";
 import LandingBackground from "../components/LandingBackground";
 import LawSymbol from "../components/LawSymbol";
+import TopNav from "../components/TopNav";
 
 const Index = () => (
   <div className="relative min-h-screen flex flex-col items-center justify-center bg-black overflow-hidden">
     <LandingBackground />
+    <TopNav />
     <main className="relative z-10 flex flex-col min-h-screen items-center justify-center w-full pt-32 pb-12 px-4">
       {/* Symbol perfectly centered above heading */}
       <div className="flex flex-col items-center">

@@ -6,8 +6,14 @@ const LINES = [
   { amplitude: 28, freq: 1.18, phase: Math.PI / 5, color: "rgba(36,81,177,0.43)", width: 2.7 },
   { amplitude: 21, freq: 0.92, phase: Math.PI / 1.8, color: "rgba(24,53,112,0.42)", width: 2 },
   { amplitude: 15, freq: 1.34, phase: Math.PI / 1.2, color: "rgba(23,62,124,0.23)", width: 1.7 },
-  { amplitude: 12, freq: 0.72, phase: Math.PI/2.1, color: "rgba(25,64,130,0.15)", width: 1 },
-  { amplitude: 9, freq: 1.5, phase: Math.PI/3.3, color: "rgba(19,46,87,0.13)", width: 0.8 },
+  { amplitude: 12, freq: 0.72, phase: Math.PI / 2.1, color: "rgba(25,64,130,0.15)", width: 1 },
+  { amplitude: 9, freq: 1.5, phase: Math.PI / 3.3, color: "rgba(19,46,87,0.13)", width: 0.8 },
+  // Added more lines for a denser effect
+  { amplitude: 50, freq: 0.8, phase: Math.PI / 4, color: "rgba(20,50,100,0.5)", width: 3 },
+  { amplitude: 35, freq: 1.2, phase: Math.PI / 1.5, color: "rgba(30,70,150,0.3)", width: 2 },
+  { amplitude: 18, freq: 1.6, phase: Math.PI / 2.5, color: "rgba(22,60,120,0.2)", width: 1.5 },
+  { amplitude: 10, freq: 2.0, phase: Math.PI / 6, color: "rgba(25,64,130,0.1)", width: 0.7 },
+  { amplitude: 38, freq: 0.6, phase: Math.PI / 1.1, color: "rgba(36,81,177,0.25)", width: 2.2 },
 ];
 
 // Draw a smooth sin or cos line for animation
