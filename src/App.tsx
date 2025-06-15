@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -10,6 +9,7 @@ import About from "./pages/About";
 import ContractGenerator from "./pages/ContractGenerator";
 import QABot from "./pages/QABot";
 import Summarizer from "./pages/Summarizer";
+import LegalOpsHome from "./pages/LegalOpsHome";
 
 const queryClient = new QueryClient();
 
@@ -20,7 +20,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Index />} />
+          <Route path="/" element={<LegalOpsHome />} />
           <Route path="/about" element={<About />} />
           <Route path="/contract-generator" element={<ContractGenerator />} />
           <Route path="/qabot" element={<QABot />} />
