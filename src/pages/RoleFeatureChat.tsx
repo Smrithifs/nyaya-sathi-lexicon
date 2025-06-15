@@ -172,10 +172,28 @@ const RoleFeatureChat: React.FC<RoleFeatureChatProps> = ({ featureName, role, on
       fileType === "application/pdf" ||
       file.name.endsWith(".pdf")
     ) {
-      // PDF parsing (lazy-load pdfjs, use legacy/UMD import for Vite)
-      const pdfjsLib = await import("pdfjs-dist/legacy/build/pdf");
-      pdfjsLib.GlobalWorkerOptions.workerSrc =
-        "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.2.67/pdf.worker.min.js";
+      // --- PATCH FOR TS + VITE + PDFJS-LEGACY ---
+      let pdfjsLib: any;
+      try {
+        // @ts-ignore
+        pdfjsLib = require("pdfjs-dist/legacy/build/pdf");
+      } catch {
+        try {
+          // Dynamic import as fallback (when require is not available)
+          // @ts-ignore
+          pdfjsLib = (await import("pdfjs-dist/legacy/build/pdf")) as any;
+        } catch (err) {
+          setAttachedFile(null);
+          setFileContent(null);
+          toast({ title: "PDF error", description: "PDF.js could not be loaded.", variant: "destructive" });
+          return;
+        }
+      }
+      // Set workerSrc for browser loading
+      if (pdfjsLib.GlobalWorkerOptions) {
+        pdfjsLib.GlobalWorkerOptions.workerSrc =
+          "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.2.67/pdf.worker.min.js";
+      }
       const arrayBuffer = await file.arrayBuffer();
       const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
       let text = "";
