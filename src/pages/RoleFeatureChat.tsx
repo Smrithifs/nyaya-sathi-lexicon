@@ -172,8 +172,8 @@ const RoleFeatureChat: React.FC<RoleFeatureChatProps> = ({ featureName, role, on
       fileType === "application/pdf" ||
       file.name.endsWith(".pdf")
     ) {
-      // PDF parsing (lazy-load pdfjs, use ESM import for Vite)
-      const pdfjsLib = await import("pdfjs-dist/esm/build/pdf");
+      // PDF parsing (lazy-load pdfjs, use legacy import for Vite/CRA)
+      const pdfjsLib = await import("pdfjs-dist/legacy/build/pdf");
       // Set the workerSrc from CDN (safe for Vite)
       pdfjsLib.GlobalWorkerOptions.workerSrc =
         "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.2.67/pdf.worker.min.js";
