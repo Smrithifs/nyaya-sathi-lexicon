@@ -5,8 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { marked } from "marked";
-import { useGeminiKey } from "@/hooks/useGeminiKey";
-import { geminiTextCompletion } from "@/utils/geminiApi";
+import { openaiSummarize } from "@/utils/openaiApi";
+
+// Static OpenAI key as supplied by user. Only use in frontend for demo/testing.
+const OPENAI_API_KEY = "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";
 
 const languages = [
   { label: "English", code: "en" },
@@ -20,37 +22,31 @@ const Summarizer = () => {
   const [lang, setLang] = useState("en");
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
-  const { data: geminiKey, isLoading: keyLoading, error } = useGeminiKey();
 
   async function handleSummarize(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     setOutput(null);
-    if (!geminiKey) {
-      toast({ title: "Gemini key missing", description: "Could not fetch Gemini API key from Supabase.", variant: "destructive" });
-      setLoading(false);
-      return;
-    }
     try {
       const langStr = lang === "en" ? "English" : lang === "hi" ? "Hindi" : "Kannada";
       const prompt = `
 Summarize the following legal document into concise bullet points (6-8), identify at least 3 key clauses with brief explanations, and provide a plain-language summary for a layperson.
-If the user requests a non-English language, translate all outputs accordingly. Make the summary strictly relevant, actionable, and never hallucinate information. 
+If the user requests a non-English language, translate all outputs accordingly. Make the summary strictly relevant, actionable, and never hallucinate information.
 LANGUAGE: ${langStr}
 
 DOCUMENT:
 ${input}
       `.trim();
 
-      const summary = await geminiTextCompletion({
-        apiKey: geminiKey,
+      const summary = await openaiSummarize({
+        apiKey: OPENAI_API_KEY,
         prompt,
         systemInstruction: "You are a professional legal AI assistant for India. Respond in clear, well-formatted markdown."
       });
       setOutput(summary);
       toast({ title: "Summarization complete!", description: `Your summary is available in ${languages.find(l => l.code === lang)?.label}` });
     } catch (err: any) {
-      toast({ title: "Gemini Error", description: err.message, variant: "destructive" });
+      toast({ title: "OpenAI Error", description: err.message, variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -69,7 +65,7 @@ ${input}
             value={input}
             onChange={e => setInput(e.target.value)}
             required
-            disabled={loading || keyLoading}
+            disabled={loading}
           />
           <div className="flex items-center gap-4 mt-2">
             <label htmlFor="lang" className="font-medium text-sm">Output Language:</label>
@@ -78,13 +74,13 @@ ${input}
               className="border rounded px-2 py-1"
               value={lang}
               onChange={e => setLang(e.target.value)}
-              disabled={loading || keyLoading}
+              disabled={loading}
             >
               {languages.map(l => (
                 <option key={l.code} value={l.code}>{l.label}</option>
               ))}
             </select>
-            <Button type="submit" disabled={loading || keyLoading}>
+            <Button type="submit" disabled={loading}>
               {loading ? "Summarizing..." : "Summarize Document"}
             </Button>
           </div>
