@@ -1,3 +1,4 @@
+const GROQ_API_KEY = "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";
 import React, { useState, useRef, useEffect } from "react";
 import { groqCompletion } from "@/utils/groqApi";
 import { Button } from "@/components/ui/button";
