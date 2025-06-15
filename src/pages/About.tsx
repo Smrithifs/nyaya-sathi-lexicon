@@ -1,4 +1,3 @@
-
 import React from "react";
 import LandingBackground from "../components/LandingBackground";
 import TopNav from "../components/TopNav";
@@ -43,7 +42,7 @@ const features = [
 
 const About = () => (
   <div className="relative min-h-screen flex flex-col items-center bg-transparent">
-    <LandingBackground variant="about" />
+    <LandingBackground />
     <TopNav />
     <main className="relative z-10 w-full flex flex-col items-center">
       <section className="max-w-3xl w-full mx-auto px-6 pt-28 pb-14 text-center">
