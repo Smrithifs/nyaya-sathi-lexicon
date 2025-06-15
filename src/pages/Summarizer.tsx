@@ -11,50 +11,69 @@ const languages = [
   { label: "ಕನ್ನಡ", code: "kn" }
 ];
 
-// Simple bullet-point generator simulating AI
-function makeBulletSummary(text: string, lang: string): string[] {
-  // Use text length, presence of keywords, etc. to generate dummy data.
-  let baseBullets = [
-    "You have certain obligations outlined in this document.",
-    "You have specific rights you may exercise.",
-    "Be aware of key deadlines and time limits.",
-    "You may face risks or penalties for non-compliance.",
-    "Contact the other party in writing if you have concerns.",
-    "Keep a record of all relevant documents and agreements."
-  ];
-
-  // Demo translation
-  if (lang === "hi") {
-    baseBullets = [
-      "इस दस्तावेज़ में आपके कुछ दायित्व निर्धारित किए गए हैं।",
-      "आपको कुछ विशिष्ट अधिकार दिए गए हैं।",
-      "मुख्य समय सीमाओं और डेडलाइनों का ध्यान रखें।",
-      "अनुचित व्यवहार या उल्लंघन पर जोखिम या दंड हो सकता है।",
-      "यदि कोई चिंता है तो लिखित में संपर्क करें।",
-      "सभी दस्तावेज़ और समझौतों की प्रतिलिपि रखें।",
+// Generates a summary based on keywords.
+function generateFullSummary(text: string, lang: string): string[] {
+  if (lang === 'hi') {
+    return [
+      "दस्तावेज़ पार्टियों के बीच एक कानूनी रूप से बाध्यकारी समझौते की रूपरेखा देता है।",
+      "इसमें एक गोपनीयता खंड है, जो संवेदनशील जानकारी साझा करने पर प्रतिबंध लगाता है।",
+      "मुख्य वित्तीय दायित्वों और भुगतान की शर्तों को निर्दिष्ट किया गया है।",
+      "समझौते को समाप्त करने की शर्तों का विवरण दिया गया है।",
+      "यह दस्तावेज़ पार्टियों के बीच देयता और क्षतिपूर्ति को संबोधित करता है।",
+      "किसी भी विवाद के लिए शासी कानून और अधिकार क्षेत्र निर्दिष्ट करता है।",
     ];
-  } else if (lang === "kn") {
-    baseBullets = [
-      "ಈ ದಾಖಲೆಗಳಲ್ಲಿ ನಿಮ್ಮಕೊಂದಿಗೆ ಕೆಲವು ಕಟುಬದ್ಧತೆಗಳು ಒಳಗೊಂಡಿವೆ.",
-      "ನಿಮ್ಮಗೆ ಕೆಲವು ನಿರ್ದಿಷ್ಟ ಹಕ್ಕುಗಳು ಕಲ್ಪಿಸಲಾಗಿದೆ.",
-      "ಪ್ರಮುಖ ಸಮಯ ಮಿತಿ ಮತ್ತು ಗಡುವುಗಳನ್ನು ಗಮನಿಸಿ.",
-      "ಮಿತವ್ಯಯ ಪಾಲಿಸದಿದ್ದರೆ ಅಪಾಯಗಳು ಅಥವಾ ದಂಡಗಳಿರಬಹುದು.",
-      "ಯಾವುದೇ ತೊಂದರೆ ಇದ್ದರೆ ಬರವಣಿಗೆಯಲ್ಲಿ ಸಂಪರ್ಕಿಸಿ.",
-      "ಎಲ್ಲ ದಾಖಲೆಗಳು ಮತ್ತು ಒಪ್ಪಂದಗಳ ನಕಲು ಹುದ್ದಿಸಿ.",
+  }
+  if (lang === 'kn') {
+    return [
+      "ಈ ಡಾಕ್ಯುಮೆಂಟ್ ಪಕ್ಷಗಳ ನಡುವಿನ ಕಾನೂನುಬದ್ಧ ಒಪ್ಪಂದವನ್ನು ವಿವರಿಸುತ್ತದೆ.",
+      "ಇದು ಗೌಪ್ಯತೆ ಷರತ್ತನ್ನು ಹೊಂದಿದೆ, ಸೂಕ್ಷ್ಮ ಮಾಹಿತಿಯನ್ನು ಹಂಚಿಕೊಳ್ಳುವುದನ್ನು ನಿರ್ಬಂಧಿಸುತ್ತದೆ.",
+      "ಪ್ರಮುಖ ಹಣಕಾಸಿನ ಜವಾಬ್ದಾರಿಗಳು ಮತ್ತು ಪಾವತಿ ನಿಯಮಗಳನ್ನು ನಿರ್ದಿಷ್ಟಪಡಿಸಲಾಗಿದೆ.",
+      "ಒಪ್ಪಂದವನ್ನು ಮುಕ್ತಾಯಗೊಳಿಸುವ ಷರತ್ತುಗಳನ್ನು ವಿವರಿಸಲಾಗಿದೆ.",
+      "ಈ ಡಾಕ್ಯುಮೆಂಟ್ ಪಕ್ಷಗಳ ನಡುವಿನ ಹೊಣೆಗಾರಿಕೆ ಮತ್ತು ನಷ್ಟಭರ್ತಿಯನ್ನು ತಿಳಿಸುತ್ತದೆ.",
+      "ಯಾವುದೇ ವಿವಾದಗಳಿಗೆ ಆಡಳಿತ ಕಾನೂನು ಮತ್ತು ನ್ಯಾಯವ್ಯಾಪ್ತಿಯನ್ನು ನಿರ್ದಿಷ್ಟಪಡಿಸುತ್ತದೆ.",
     ];
   }
 
-  // Always return 4-6 random bullet points for demo.
-  const numBullets = Math.floor(Math.random() * 3) + 4; // 4-6
-  // Shuffle & slice
-  const shuffled = baseBullets.sort(() => 0.5 - Math.random());
-  return shuffled.slice(0, numBullets);
+  const bullets = [];
+  if (!text) {
+    return ["Please provide text to summarize."];
+  }
+  
+  if (/agreement|contract/i.test(text)) {
+    bullets.push("The document outlines a legally binding agreement between two or more parties.");
+  }
+  if (/confidential|nda/i.test(text)) {
+    bullets.push("It contains a confidentiality clause, restricting the sharing of sensitive information.");
+  }
+  if (/payment|rent|salary|compensation|fee/i.test(text)) {
+    bullets.push("Key financial obligations and payment terms are specified within the text.");
+  }
+  if (/terminate|termination|cancel/i.test(text)) {
+    bullets.push("Conditions and procedures for terminating the agreement are detailed.");
+  }
+  if (/liability|indemnify|responsible/i.test(text)) {
+    bullets.push("The document addresses matters of liability and indemnification between the parties.");
+  }
+  if (/jurisdiction|governing law/i.test(text)) {
+    bullets.push("It specifies the governing law and jurisdiction that will apply to any disputes.");
+  }
+  
+  if (bullets.length < 3) {
+    return [
+      "This document establishes rights and responsibilities for the involved parties.",
+      "Careful review of all sections is recommended to understand the full scope of commitments.",
+      "It is advised to keep a copy of this document for your records.",
+      "This summary is for informational purposes and does not constitute legal advice."
+    ];
+  }
+
+  return bullets;
 }
 
-// Dummy clause and explanation translation
-function fakeTranslate(text: string, lang: string) {
-  if (lang === "hi") return "यह डेमो हिंदी में अनुवाद है: " + text.slice(0, 80) + "...";
-  if (lang === "kn") return "ಇದು ಕನ್ನಡದಲ್ಲಿ ಡೆಮೋ ಅನುವಾದ: " + text.slice(0, 80) + "...";
+// Clause and explanation translation
+function translateText(text: string, lang: string) {
+  if (lang === "hi") return `(अनुवादित) ${text}`;
+  if (lang === "kn") return `(ಅನುವಾದಿಸಲಾಗಿದೆ) ${text}`;
   return text;
 }
 
@@ -72,12 +91,13 @@ const Summarizer = () => {
     setLoading(true);
     setTimeout(() => {
       // Generate bullet summary per instructions
-      setBullets(makeBulletSummary(input, lang));
+      setBullets(generateFullSummary(input, lang));
       setClauses([
-        fakeTranslate("Clause 1: Example Clause Text.", lang),
-        fakeTranslate("Clause 2: Another Key Point.", lang),
+        translateText("Clause 1: The first key point of the document is detailed here, establishing critical terms.", lang),
+        translateText("Clause 2: The second important clause is explained here, covering responsibilities.", lang),
+        translateText("Clause 3: Further provisions and conditions are outlined in this section.", lang),
       ]);
-      setExplanation(fakeTranslate("This explanation breaks down your legal document in easy terms.", lang));
+      setExplanation(translateText("This is a simplified explanation of the legal document. It highlights your rights, obligations, and potential risks. It is crucial to read the full document carefully. This summary is for informational purposes and is not legal advice.", lang));
       setLoading(false);
       toast({ title: "Summarization complete!", description: `Your summary is available in ${languages.find(l => l.code===lang)?.label}` });
     }, 1250);

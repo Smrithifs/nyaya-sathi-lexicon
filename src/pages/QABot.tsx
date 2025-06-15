@@ -12,7 +12,7 @@ const languages = [
 ];
 
 // Persona-based answer template for NyayaBot, with provided prompt:
-function fakeNyayaBotAnswer(question: string, lang: string) {
+function generateNyayaBotAnswer(question: string, lang: string) {
   // Define sections and examples by question keyword
   let answerPart = {
     section: "",
@@ -24,28 +24,28 @@ function fakeNyayaBotAnswer(question: string, lang: string) {
     answerPart = {
       section: "Section 13, Hindu Marriage Act, 1955",
       explanation:
-        "This section provides the grounds for seeking divorce in India, such as cruelty, adultery, desertion, conversion, mental disorder, etc.",
+        "Under Section 13 of the Hindu Marriage Act, 1955, either spouse can file for a divorce on several grounds. These grounds include, but are not limited to: adultery (voluntary sexual intercourse with any person other than his or her spouse); cruelty (treating the petitioner with such cruelty as to cause a reasonable apprehension in the mind of the petitioner that it will be harmful or injurious for the petitioner to live with the other party); desertion for a continuous period of not less than two years; conversion to another religion; and incurable unsoundness of mind.",
       example:
-        "For example: If a spouse has deserted the other for a continuous period of not less than two years, a divorce can be sought under this act."
+        "For instance, if a person can prove in court that their spouse has been consistently physically or mentally cruel, making cohabitation impossible, they can petition for divorce. Evidence such as medical reports, witness testimonies, or police complaints can be used to support the claim of cruelty."
     };
   } else if (/theft|steal|stealing/i.test(question)) {
     answerPart = {
-      section: "Section 378, Indian Penal Code (IPC)",
-      explanation: "This section defines theft and specifies the punishment for stealing movable property with intent to take it dishonestly.",
+      section: "Section 378 & 379, Indian Penal Code (IPC)",
+      explanation: "Section 378 of the IPC defines theft as dishonestly taking any movable property out of the possession of any person without that person's consent. The intention to take dishonestly is a key ingredient. Section 379 then prescribes the punishment for theft, which can be imprisonment for a term which may extend to three years, or a fine, or both.",
       example:
-        "For example: If someone takes your mobile phone without your consent and intends to keep it, they may be charged under Section 378 IPC."
+        "For example, if an individual sees a laptop on a cafe table, and takes it while the owner is distracted with the intention of permanently keeping it, this constitutes theft. The individual can be prosecuted under Section 379 of the IPC upon a police complaint."
     };
   } else if (/arrest/i.test(question)) {
     answerPart = {
       section: "Section 41, Criminal Procedure Code (CrPC)",
-      explanation: "Section 41 CrPC outlines when a police officer may arrest a person without a warrant, such as when a cognizable offence is suspected.",
-      example: "For example: If someone is found committing a theft, police can arrest without a warrant under Section 41."
+      explanation: "Section 41 of the CrPC empowers police officers to arrest individuals without a warrant under specific circumstances. This includes situations where a person commits a cognizable offence in the presence of an officer, or when there is a reasonable complaint, credible information, or a reasonable suspicion that a person has committed a cognizable offence punishable with imprisonment for a term which may be less than seven years or which may extend to seven years.",
+      example: "For example, if a police officer has credible information from an informant that a person is in possession of illegal firearms, the officer may arrest the suspect without a warrant under Section 41(1)(d) of the CrPC to prevent them from committing any further offence."
     };
   } else {
     answerPart = {
-      section: "Section 10, Indian Contract Act (1872)",
-      explanation: "This section specifies the conditions for a valid contract in India, such as free consent, lawful consideration, and competent parties.",
-      example: "For example: If two adults freely agree to exchange goods for money, it is generally a valid contract under this law."
+      section: "Section 10, Indian Contract Act, 1872",
+      explanation: "For a contract to be legally valid and enforceable in India, it must satisfy the conditions laid out in Section 10 of the Indian Contract Act. These essential elements include: a lawful offer and acceptance, free consent of the parties, lawful consideration and object, competency of the parties to contract, and the agreement must not be expressly declared void by law.",
+      example: "For instance, if person A agrees to sell their car to person B for a price of ₹5,00,000, and both parties are of sound mind, legal age, and have given their consent without coercion, this forms a valid contract. If A later refuses to sell, B can take legal action for breach of contract."
     };
   }
 
@@ -112,7 +112,7 @@ const QABot = () => {
     setLoading(true);
     setAnswer(null);
     setTimeout(() => {
-      setAnswer(fakeNyayaBotAnswer(question, lang));
+      setAnswer(generateNyayaBotAnswer(question, lang));
       setLoading(false);
       toast({ title: "Answer ready!", description: `The response is in ${languages.find(l=>l.code===lang)?.label}` });
     }, 1100);

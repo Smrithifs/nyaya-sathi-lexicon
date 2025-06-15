@@ -16,12 +16,95 @@ const languages = [
   { label: "ಕನ್ನಡ", code: "kn" }
 ];
 
-function fakeGeneratedContract({ partyA, partyB, date, type, lang }:
+function generateContract({ partyA, partyB, date, type, lang }:
   { partyA: string, partyB: string, date: string, type: string, lang: string }) {
-  let doc = `This is a demo ${type === "nda" ? "NDA" : type === "rental" ? "Rental Agreement" : "Employment Contract"} between ${partyA} and ${partyB}, dated ${date}. [Full legal content not shown in demo.]`;
-  if (lang === "hi") doc = `यह एक डेमो ${contractTypes.find(c=>c.value===type)?.label || ""} है: ${partyA} और ${partyB}, दिनांक ${date} के बीच।`;
-  if (lang === "kn") doc = `ಇದು ಡೆಮೋ ${contractTypes.find(c=>c.value===type)?.label || ""} ಆಗಿದೆ: ${partyA} ಮತ್ತು ${partyB}, ದಿನಾಂಕ ${date} ನಡುವೆ.`;
-  return doc;
+  
+  let title = "";
+  let content = "";
+
+  switch (type) {
+    case "nda":
+      title = "Non-Disclosure Agreement";
+      content = `
+This Non-Disclosure Agreement (the "Agreement") is entered into as of ${date} by and between ${partyA} ("Disclosing Party") and ${partyB} ("Receiving Party").
+
+1.  **Confidential Information.** "Confidential Information" means any information disclosed by the Disclosing Party to the Receiving Party, either directly or indirectly, in writing, orally or by inspection of tangible objects, which is designated as "Confidential," "Proprietary," or some similar designation.
+
+2.  **Obligations.** The Receiving Party agrees to hold the Confidential Information in strict confidence and not to disclose such Confidential Information to any third party without the prior written consent of the Disclosing Party.
+
+3.  **Term.** The obligations of this Agreement shall survive for a period of five (5) years from the date of disclosure of the Confidential Information.
+
+IN WITNESS WHEREOF, the parties have executed this Agreement as of the date first written above.
+
+DISCLOSING PARTY:
+____________________
+${partyA}
+
+RECEIVING PARTY:
+____________________
+${partyB}
+      `;
+      break;
+    case "rental":
+      title = "Rental Agreement";
+      content = `
+This Rental Agreement (the "Agreement") is made and entered into on ${date}, by and between ${partyA} (the "Landlord") and ${partyB} (the "Tenant").
+
+1.  **Property.** Landlord, in consideration of the rent to be paid by Tenant, leases to Tenant the property located at [PROPERTY ADDRESS TO BE INSERTED].
+
+2.  **Term.** The term of this lease is for a period of 12 months, beginning on ${date} and ending on the corresponding date of the next year.
+
+3.  **Rent.** Tenant agrees to pay Landlord as rent for the Property the sum of [RENT AMOUNT] per month, due on the first day of each month.
+
+4.  **Security Deposit.** Upon execution of this Agreement, Tenant shall deposit with Landlord the sum of [DEPOSIT AMOUNT] as security for the performance of Tenant's obligations hereunder.
+
+IN WITNESS WHEREOF, the parties have executed this Agreement.
+
+LANDLORD:
+____________________
+${partyA}
+
+TENANT:
+____________________
+${partyB}
+      `;
+      break;
+    case "employment":
+      title = "Employment Contract";
+      content = `
+This Employment Agreement (the "Agreement") is made effective as of ${date}, by and between ${partyA} ("Employer") and ${partyB} ("Employee").
+
+1.  **Position.** Employer hereby employs Employee in the capacity of [JOB TITLE TO BE INSERTED]. Employee shall perform such duties as are customarily performed by an employee in such capacity.
+
+2.  **Term.** The employment under this Agreement shall be "at-will," meaning that either Employer or Employee may terminate the employment relationship at any time, with or without cause or notice.
+
+3.  **Compensation.** As compensation for the services provided by Employee under this Agreement, Employer shall pay Employee an annual salary of [SALARY AMOUNT TO BE INSERTED].
+
+4.  **Confidentiality.** Employee acknowledges that they will have access to confidential information of the Employer and agrees to maintain the confidentiality of such information during and after the term of employment.
+
+IN WITNESS WHEREOF, the parties have executed this Agreement.
+
+EMPLOYER:
+____________________
+${partyA}
+
+EMPLOYEE:
+____________________
+${partyB}
+      `;
+      break;
+    default:
+      content = "Invalid contract type selected.";
+  }
+
+  if (lang === "hi") {
+    return `शीर्षक: ${title}\n\nयह एक अनुबंध है जो ${partyA} और ${partyB} के बीच ${date} को हुआ है।\n\n(यह एक सरलीकृत हिंदी अनुवाद है। पूर्ण कानूनी पाठ के लिए, कृपया मूल अंग्रेजी संस्करण देखें।)\n\n${content}`;
+  }
+  if (lang === "kn") {
+    return `ಶೀರ್ಷಿಕೆ: ${title}\n\nಇದು ${partyA} ಮತ್ತು ${partyB} ನಡುವೆ ${date} ರಂದು ಮಾಡಲಾದ ಒಪ್ಪಂದವಾಗಿದೆ.\n\n(ಇದು ಸರಳೀಕೃತ ಕನ್ನಡ ಅನುವಾದವಾಗಿದೆ। ಸಂಪೂರ್ಣ ಕಾನೂನು ಪಠ್ಯಕ್ಕಾಗಿ, ದಯವಿಟ್ಟು ಮೂಲ ಇಂಗ್ಲಿಷ್ ಆವೃತ್ತಿಯನ್ನು ನೋಡಿ.)\n\n${content}`;
+  }
+  
+  return `Title: ${title}\n\n${content}`;
 }
 
 const ContractGenerator = () => {
@@ -38,7 +121,7 @@ const ContractGenerator = () => {
     e.preventDefault();
     setLoading(true);
     setTimeout(() => {
-      setOutput(fakeGeneratedContract({
+      setOutput(generateContract({
         partyA, partyB, date: contractDate, type: contractType, lang
       }));
       setLoading(false);
@@ -129,4 +212,3 @@ const ContractGenerator = () => {
 };
 
 export default ContractGenerator;
-
