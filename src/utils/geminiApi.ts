@@ -11,9 +11,9 @@ export async function geminiTextCompletion({
   const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`;
   const messages = [];
   if (systemInstruction) {
-    messages.push({ role: "user", parts: [systemInstruction] });
+    messages.push({ role: "user", parts: [{ text: systemInstruction }] });
   }
-  messages.push({ role: "user", parts: [prompt] });
+  messages.push({ role: "user", parts: [{ text: prompt }] });
 
   const body = { contents: messages };
   const res = await fetch(apiUrl, {
