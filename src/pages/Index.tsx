@@ -1,6 +1,7 @@
 
 import React from "react";
 import LandingBackground from "../components/LandingBackground";
+import LadyJusticeIcon from "../components/LadyJusticeIcon";
 
 const Index = () => (
   <div className="relative min-h-screen flex flex-col items-center justify-center bg-transparent overflow-hidden">
@@ -12,13 +13,9 @@ const Index = () => (
       <div className="mt-7 text-2xl md:text-3xl text-blue-100/90 font-semibold text-center animate-fade-in">
         Where law meets technology
       </div>
-      {/* Lady Justice image, centered */}
-      <img
-        src="/lovable-uploads/362a5a40-46a3-4cb0-a833-bbfc134de9a1.png"
-        alt="Lady Justice statue"
-        className="mt-10 rounded-xl max-w-[320px] md:max-w-[410px] w-full shadow-lg animate-scale-in border-2 border-blue-100/20"
-        style={{ background: "rgba(34, 44, 79, 0.12)" }}
-      />
+      <div className="mt-12 flex items-center justify-center w-full">
+        <LadyJusticeIcon className="mx-auto w-56 md:w-80 drop-shadow-lg animate-scale-in" />
+      </div>
     </main>
   </div>
 );
