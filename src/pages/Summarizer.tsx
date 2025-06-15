@@ -5,10 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { marked } from "marked";
-import { openaiSummarize } from "@/utils/openaiApi";
+import { groqSummarize } from "@/utils/groqApi";
 
-// Static OpenAI key as supplied by user. Only use in frontend for demo/testing.
-const OPENAI_API_KEY = "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";
+// Static Groq API key as supplied by user. Only use in frontend for demo/testing.
+const GROQ_API_KEY = "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";
 
 const languages = [
   { label: "English", code: "en" },
@@ -38,15 +38,15 @@ DOCUMENT:
 ${input}
       `.trim();
 
-      const summary = await openaiSummarize({
-        apiKey: OPENAI_API_KEY,
+      const summary = await groqSummarize({
+        apiKey: GROQ_API_KEY,
         prompt,
         systemInstruction: "You are a professional legal AI assistant for India. Respond in clear, well-formatted markdown."
       });
       setOutput(summary);
       toast({ title: "Summarization complete!", description: `Your summary is available in ${languages.find(l => l.code === lang)?.label}` });
     } catch (err: any) {
-      toast({ title: "OpenAI Error", description: err.message, variant: "destructive" });
+      toast({ title: "Groq Error", description: err.message, variant: "destructive" });
     } finally {
       setLoading(false);
     }
