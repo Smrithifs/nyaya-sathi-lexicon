@@ -1,8 +1,10 @@
+
 import React from "react";
 import LandingBackground from "../components/LandingBackground";
 import TopNav from "../components/TopNav";
-import { FileText, Bot, BookText } from "lucide-react";
+import { FileText, Bot, BookText, CheckCircle2 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 
 const features = [
   {
@@ -40,53 +42,89 @@ const features = [
   },
 ];
 
+const whyLegalOpsItems = [
+    { bold: "Draft perfect contracts:", text: " Generate NDAs, Service Agreements, Leases, and more—customized, error-free, in minutes." },
+    { bold: "Instant law-based answers:", text: " NyayaBot references IPC, CrPC, and statutes. Never offers unsupported guesses or risky advice." },
+    { bold: "Summarize legalese clearly:", text: " Converts complex documents to actionable bullet points—no more overwhelm." },
+    { bold: "100% secure & private:", text: " Your inputs are never stored. Try every feature, free—no registration required." },
+    { bold: "Ready for modern practice:", text: " Spend less time on admin, more time acting on what matters." }
+];
+
+
 const About = () => (
   <div className="relative min-h-screen flex flex-col items-center bg-transparent">
     <LandingBackground />
     <TopNav />
-    <main className="relative z-10 w-full flex flex-col items-center">
-      <section className="max-w-3xl w-full mx-auto px-6 pt-28 pb-14 text-center">
-        <h1 className="text-4xl md:text-5xl font-extrabold font-serif tracking-tight text-white mb-7 drop-shadow">
+    <main className="relative z-10 w-full flex flex-col items-center px-4">
+      {/* Hero Section */}
+      <section className="w-full text-center pt-28 pb-16">
+        <h1 className="text-4xl md:text-6xl font-extrabold font-serif tracking-tight text-white mb-6 drop-shadow-lg animate-fade-in">
           About LegalOps
         </h1>
-        <div className="text-xl text-white/90 leading-relaxed mb-4 font-medium">
+        <p className="max-w-4xl mx-auto text-xl md:text-2xl text-white/90 leading-relaxed font-medium animate-fade-in" style={{ animationDelay: '200ms' }}>
           Power up your legal practice with intelligent, automated tools—built by lawyers, for lawyers.
-        </div>
-        <div className="text-lg text-white/85 font-light leading-relaxed mb-7">
-          LegalOps is designed for Indian lawyers, firms, and enterprises seeking <span className="font-semibold text-white">speed, precision, and control</span>.<br className="hidden md:block"/>
-          We blend deep legal expertise with cutting-edge AI to help you draft, review, and understand legal documents—<b>faster and smarter than ever before.</b>
-        </div>
-        <div className="rounded-xl bg-[#23233c]/90 px-6 py-8 mt-2 shadow-lg flex flex-col items-center gap-3 border border-white/10 text-left max-w-2xl mx-auto">
-          <h2 className="text-2xl font-bold text-blue-200 mb-2 font-serif text-center">Why choose LegalOps?</h2>
-          <ul className="list-disc pl-6 pr-0 text-base md:text-lg text-white/80 space-y-2">
-            <li><b>Draft perfect contracts:</b> Generate NDAs, Service Agreements, Leases, and more—customized, error-free, in minutes.</li>
-            <li><b>Instant law-based answers:</b> NyayaBot references IPC, CrPC, and statutes. Never offers unsupported guesses or risky advice.</li>
-            <li><b>Summarize legalese clearly:</b> Converts complex documents to actionable bullet points—no more overwhelm.</li>
-            <li><b>100% secure &amp; private:</b> Your inputs are never stored. Try every feature, free—no registration required.</li>
-            <li><b>Ready for modern practice:</b> Spend less time on admin, more time acting on what matters.</li>
-          </ul>
+        </p>
+      </section>
+
+      {/* Mission/Vision Section */}
+      <section className="max-w-4xl w-full mx-auto pb-16 animate-fade-in" style={{ animationDelay: '400ms' }}>
+        <div className="bg-black/20 backdrop-blur-md rounded-2xl p-8 md:p-12 border border-white/10 shadow-xl">
+          <h2 className="text-3xl font-bold text-blue-200 mb-6 font-serif text-center">Our Mission</h2>
+          <p className="text-lg text-white/85 leading-relaxed text-left md:text-center">
+            LegalOps is designed for Indian lawyers, firms, and enterprises seeking <span className="font-semibold text-white">speed, precision, and control</span>. We blend deep legal expertise with cutting-edge AI to help you draft, review, and understand legal documents—<b>faster and smarter than ever before.</b> Our goal is to handle the repetitive, time-consuming tasks, so you can focus on high-value legal work that truly matters.
+          </p>
         </div>
       </section>
-      <section className="w-full md:max-w-4xl mx-auto px-2 pb-20 flex flex-col items-center">
-        <h2 className="text-2xl md:text-3xl font-bold text-white mb-8 font-serif mt-4 text-center">
-          Our Features
+
+      {/* Why Choose Us Section */}
+      <section className="max-w-4xl w-full mx-auto pb-16 animate-fade-in" style={{ animationDelay: '600ms' }}>
+        <Card className="bg-gradient-to-br from-[#23233c]/90 to-[#1a1a2e]/90 backdrop-blur-lg border-white/10 text-white shadow-2xl">
+          <CardHeader>
+            <CardTitle className="text-3xl font-bold text-blue-200 font-serif text-center">Why Choose LegalOps?</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ul className="space-y-4">
+              {whyLegalOpsItems.map((item, index) => (
+                  <li key={index} className="flex items-start gap-4">
+                    <CheckCircle2 className="w-6 h-6 text-green-400 mt-1 flex-shrink-0" />
+                    <span className="text-lg text-white/90">
+                      <b>{item.bold}</b>{item.text}
+                    </span>
+                  </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+      </section>
+
+      {/* Features Section */}
+      <section className="w-full max-w-6xl mx-auto px-2 pb-20 flex flex-col items-center">
+        <h2 className="text-3xl md:text-4xl font-bold text-white mb-12 font-serif mt-4 text-center animate-fade-in" style={{ animationDelay: '800ms' }}>
+          Explore Our Features
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full">
-          {features.map(f => (
-            <div
+          {features.map((f, i) => (
+            <Card
               key={f.label}
-              className="flex flex-col items-center rounded-2xl border border-white/15 bg-white/3 shadow-lg p-6 group transition hover:scale-105 hover:bg-white/10"
+              className="flex flex-col bg-black/30 backdrop-blur-lg border border-white/15 text-white shadow-lg group transition-all duration-300 hover:scale-105 hover:border-white/30 animate-fade-in"
+              style={{ animationDelay: `${1000 + i * 200}ms` }}
             >
-              {f.icon}
-              <div className="text-lg font-bold text-white mb-1 text-center">{f.label}</div>
-              <div className="text-sm text-white/70 mt-2 text-center">{f.desc}</div>
-              <Link
-                to={f.link}
-                className="mt-4 inline-block px-4 py-2 rounded bg-blue-700 hover:bg-blue-900 text-white text-sm font-bold transition-all shadow"
-              >
-                Try Now
-              </Link>
-            </div>
+              <CardHeader className="items-center text-center">
+                <div className="p-4 bg-white/10 rounded-full mb-4 transition-all duration-300 group-hover:bg-white/20">{f.icon}</div>
+                <CardTitle className="text-xl font-bold text-white">{f.label}</CardTitle>
+              </CardHeader>
+              <CardContent className="text-center flex-grow px-6">
+                <div className="text-base text-white/80">{f.desc}</div>
+              </CardContent>
+              <CardFooter className="justify-center pt-4 pb-6">
+                <Link
+                  to={f.link}
+                  className="inline-block px-6 py-3 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-base font-semibold transition-all shadow-md hover:shadow-lg group-hover:scale-105"
+                >
+                  Try Now
+                </Link>
+              </CardFooter>
+            </Card>
           ))}
         </div>
       </section>
