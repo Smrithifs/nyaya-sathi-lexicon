@@ -66,7 +66,7 @@ const QABot = () => {
                 <option key={l.code} value={l.code}>{l.label}</option>
               ))}
             </select>
-            <Button type="submit" loading={loading}>
+            <Button type="submit" disabled={loading}>
               {loading ? "Thinking..." : "Get Answer"}
             </Button>
           </div>
@@ -83,3 +83,4 @@ const QABot = () => {
 };
 
 export default QABot;
+

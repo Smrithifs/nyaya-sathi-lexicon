@@ -69,7 +69,7 @@ const Summarizer = () => {
                 <option key={l.code} value={l.code}>{l.label}</option>
               ))}
             </select>
-            <Button type="submit" loading={loading}>
+            <Button type="submit" disabled={loading}>
               {loading ? "Summarizing..." : "Get Summary"}
             </Button>
           </div>
@@ -98,3 +98,4 @@ const Summarizer = () => {
 };
 
 export default Summarizer;
+

@@ -112,7 +112,7 @@ const ContractGenerator = () => {
             </div>
           </div>
           <div className="flex gap-4 mt-2">
-            <Button type="submit" loading={loading} className="w-full md:w-auto">
+            <Button type="submit" className="w-full md:w-auto" disabled={loading}>
               {loading ? "Generating..." : "Generate Contract"}
             </Button>
           </div>
@@ -129,3 +129,4 @@ const ContractGenerator = () => {
 };
 
 export default ContractGenerator;
+
