@@ -31,7 +31,11 @@ const Summarizer = () => {
       const langStr = lang === "en" ? "English" : lang === "hi" ? "Hindi" : "Kannada";
       const prompt = `
 Summarize the following legal document into concise bullet points (6-8), identify at least 3 key clauses with brief explanations, and provide a plain-language summary for a layperson.
-If the user requests a non-English language, translate all outputs accordingly. Make the summary strictly relevant, actionable, and never hallucinate information.
+
+- The plain-language summary should be up to 200 words.
+- If the user requests a non-English language, translate all outputs accordingly.
+- Make the summary strictly relevant, actionable, and never hallucinate information.
+
 LANGUAGE: ${langStr}
 
 DOCUMENT:
