@@ -6,6 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
 import { marked } from "marked";
 import { groqCompletion } from "@/utils/groqApi";
+import { useNavigate } from "react-router-dom";
 
 const GROQ_API_KEY = "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";
 
@@ -21,6 +22,7 @@ const languages = [
 ];
 
 const ContractGenerator = () => {
+  const navigate = useNavigate();
   const [partyA, setPartyA] = useState("");
   const [partyB, setPartyB] = useState("");
   const [contractDate, setContractDate] = useState("");
@@ -78,83 +80,89 @@ If user specifies a language (hindi/kannada), translate the contract accordingly
   }
 
   return (
-    <Card className="w-full max-w-2xl mx-auto shadow-lg border border-input">
-      <CardHeader>
-        <CardTitle className="text-2xl font-bold">Contract Generator</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleGenerate} className="space-y-4">
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <div>
-              <label className="text-sm font-medium mb-1 block">Party A</label>
-              <Input
-                value={partyA}
-                onChange={e => setPartyA(e.target.value)}
-                placeholder="Name of 1st party"
-                required
-                disabled={loading}
-              />
+    <div className="p-6 min-h-screen bg-white flex flex-col">
+      <div className="flex items-center gap-4 mb-8">
+        <Button variant="ghost" onClick={() => navigate("/features")}>
+          ← Back to Dashboard
+        </Button>
+        <h1 className="text-2xl font-bold">Contract Generator</h1>
+      </div>
+
+      <Card className="w-full max-w-2xl mx-auto shadow-lg border border-input">
+        <CardContent className="pt-6">
+          <form onSubmit={handleGenerate} className="space-y-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div>
+                <label className="text-sm font-medium mb-1 block">Party A</label>
+                <Input
+                  value={partyA}
+                  onChange={e => setPartyA(e.target.value)}
+                  placeholder="Name of 1st party"
+                  required
+                  disabled={loading}
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-1 block">Party B</label>
+                <Input
+                  value={partyB}
+                  onChange={e => setPartyB(e.target.value)}
+                  placeholder="Name of 2nd party"
+                  required
+                  disabled={loading}
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-1 block">Date</label>
+                <Input
+                  type="date"
+                  value={contractDate}
+                  onChange={e => setContractDate(e.target.value)}
+                  required
+                  disabled={loading}
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-1 block">Type of Contract</label>
+                <select
+                  value={contractType}
+                  onChange={e => setContractType(e.target.value)}
+                  className="border rounded px-2 py-1 w-full"
+                  disabled={loading}
+                >
+                  {contractTypes.map(ct =>
+                    <option key={ct.value} value={ct.value}>{ct.label}</option>
+                  )}
+                </select>
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-1 block">Output Language</label>
+                <select
+                  value={lang}
+                  onChange={e => setLang(e.target.value)}
+                  className="border rounded px-2 py-1 w-full"
+                  disabled={loading}
+                >
+                  {languages.map(l =>
+                    <option key={l.code} value={l.code}>{l.label}</option>
+                  )}
+                </select>
+              </div>
             </div>
-            <div>
-              <label className="text-sm font-medium mb-1 block">Party B</label>
-              <Input
-                value={partyB}
-                onChange={e => setPartyB(e.target.value)}
-                placeholder="Name of 2nd party"
-                required
-                disabled={loading}
-              />
+            <div className="flex gap-4 mt-2">
+              <Button type="submit" className="w-full md:w-auto" disabled={loading}>
+                {loading ? "Generating..." : "Generate Contract"}
+              </Button>
             </div>
-            <div>
-              <label className="text-sm font-medium mb-1 block">Date</label>
-              <Input
-                type="date"
-                value={contractDate}
-                onChange={e => setContractDate(e.target.value)}
-                required
-                disabled={loading}
-              />
+          </form>
+          {output && (
+            <div className="mt-8 border-t pt-6 prose prose-base max-w-none break-words">
+              <div dangerouslySetInnerHTML={{ __html: marked(output) }} />
             </div>
-            <div>
-              <label className="text-sm font-medium mb-1 block">Type of Contract</label>
-              <select
-                value={contractType}
-                onChange={e => setContractType(e.target.value)}
-                className="border rounded px-2 py-1 w-full"
-                disabled={loading}
-              >
-                {contractTypes.map(ct =>
-                  <option key={ct.value} value={ct.value}>{ct.label}</option>
-                )}
-              </select>
-            </div>
-            <div>
-              <label className="text-sm font-medium mb-1 block">Output Language</label>
-              <select
-                value={lang}
-                onChange={e => setLang(e.target.value)}
-                className="border rounded px-2 py-1 w-full"
-                disabled={loading}
-              >
-                {languages.map(l =>
-                  <option key={l.code} value={l.code}>{l.label}</option>
-                )}
-              </select>
-            </div>
-          </div>
-          <div className="flex gap-4 mt-2">
-            <Button type="submit" className="w-full md:w-auto" disabled={loading}>
-              {loading ? "Generating..." : "Generate Contract"}
-            </Button>
-          </div>
-        </form>
-        {output && (
-          <div className="mt-8 border-t pt-6 prose prose-base max-w-none break-words">
-            <div dangerouslySetInnerHTML={{ __html: marked(output) }} />
-          </div>
-        )}
-      </CardContent>
-    </Card>
+          )}
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 
