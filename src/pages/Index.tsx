@@ -1,12 +1,13 @@
 
 import React from "react";
 import LandingBackground from "../components/LandingBackground";
+import LandingNav from "../components/LandingNav";
 import { Scale } from "lucide-react";
 
 const Index = () => {
   // Landing splash for root route
   return (
-    <div className="relative min-h-screen flex items-center justify-center overflow-hidden">
+    <div className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden">
       <LandingBackground />
       <div className="relative z-10 flex flex-col items-center">
         <div className="mb-4 animate-fade-in">
@@ -23,8 +24,8 @@ const Index = () => {
         <p className="mt-4 text-xl md:text-2xl text-white/70 font-medium animate-fade-in" style={{ animationDelay: "0.3s" }}>
           Where Law Meets Technology
         </p>
+        <LandingNav />
       </div>
-      {/* Optional: Copyright */}
       <footer className="absolute bottom-6 left-0 right-0 text-center z-10">
         <span className="text-xs text-white/40">© {new Date().getFullYear()} LegalOps. All rights reserved.</span>
       </footer>
