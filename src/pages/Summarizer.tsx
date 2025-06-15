@@ -1,10 +1,10 @@
-
 import React, { useState } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import OpenAIKeyInput from "../components/OpenAIKeyInput";
+import { marked } from "marked";
 
 const languages = [
   { label: "English", code: "en" },
@@ -115,7 +115,7 @@ const Summarizer = () => {
           {output && (
             <div className="mt-8 space-y-6 border-t pt-6 prose prose-base max-w-none break-words">
               {/* Renders markdown output from OpenAI */}
-              <div dangerouslySetInnerHTML={{ __html: window.marked ? (window as any).marked(output) : output.replace(/\n/g, "<br/>") }} />
+              <div dangerouslySetInnerHTML={{ __html: marked(output) }} />
             </div>
           )}
         </CardContent>

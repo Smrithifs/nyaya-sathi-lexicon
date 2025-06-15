@@ -5,6 +5,7 @@ import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Gavel, Scale, Book, Badge, Users } from "lucide-react";
 import OpenAIKeyInput from "../components/OpenAIKeyInput";
+import { marked } from "marked";
 
 const languages = [
   { label: "English", code: "en" },
@@ -168,7 +169,7 @@ const QABot = () => {
                 </div>
                 <div className="rounded-xl py-6 px-7 bg-gradient-to-br from-yellow-50 via-blue-50 to-yellow-100 dark:from-blue-900 dark:via-blue-950 dark:to-yellow-900 border-2 border-yellow-300 dark:border-yellow-800 shadow-inner leading-relaxed space-y-2 text-base whitespace-pre-line text-blue-900 dark:text-yellow-100 font-serif relative prose prose-base max-w-none">
                   {/* Markdown render of answer */}
-                  <div dangerouslySetInnerHTML={{ __html: window.marked ? (window as any).marked(answer) : answer.replace(/\n/g, "<br/>") }} />
+                  <div dangerouslySetInnerHTML={{ __html: marked(answer) }} />
                   <div className="absolute -right-7 -bottom-5 rotate-12">
                     <Gavel size={30} className="text-blue-400 dark:text-blue-300 opacity-60" />
                   </div>

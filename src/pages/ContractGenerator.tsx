@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
 import OpenAIKeyInput from "../components/OpenAIKeyInput";
+import { marked } from "marked";
 
 const contractTypes = [
   { label: "NDA (Non-Disclosure Agreement)", value: "nda" },
@@ -185,7 +186,7 @@ const ContractGenerator = () => {
           {output && (
             <div className="mt-8 border-t pt-6 prose prose-base max-w-none break-words">
               {/* Renders markdown output from OpenAI */}
-              <div dangerouslySetInnerHTML={{ __html: window.marked ? (window as any).marked(output) : output.replace(/\n/g, "<br/>") }} />
+              <div dangerouslySetInnerHTML={{ __html: marked(output) }} />
             </div>
           )}
         </CardContent>
