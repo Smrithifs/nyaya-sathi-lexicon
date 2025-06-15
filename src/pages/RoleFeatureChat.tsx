@@ -110,8 +110,6 @@ const RoleFeatureChat: React.FC<RoleFeatureChatProps> = ({ featureName, role, on
     }
 
     // Markup for messages – chat bubbles (user right, ai left, visually distinct)
-    const isAi = msg.sender === "ai";
-    const isWelcome = idx === 0 && isAi;
     return (
       <div key={idx} className={`flex w-full ${isAi ? "justify-start" : "justify-end"}`}>
         <div
