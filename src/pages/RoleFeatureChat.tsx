@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from "react";
 import { groqCompletion } from "@/utils/groqApi";
 import { Button } from "@/components/ui/button";
@@ -50,6 +51,7 @@ const RoleFeatureChat: React.FC<RoleFeatureChatProps> = ({ featureName, role, on
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
+  const [regenerating, setRegenerating] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   function getSystemPrompt() {
@@ -59,22 +61,76 @@ const RoleFeatureChat: React.FC<RoleFeatureChatProps> = ({ featureName, role, on
     return systemPrompts[featureName] || "You are LegalOps AI.";
   }
 
-  // Markdown to HTML converter (no **, bold for key sections)
-  function renderMessage(text: string) {
+  // Markup for messages – chat bubbles (user right, ai left, visually distinct)
+  function renderMessage(msg: Message, idx: number) {
+    const isAi = msg.sender === "ai";
+    const isWelcome = idx === 0 && isAi;
+    return (
+      <div key={idx} className={`flex w-full ${isAi ? "justify-start" : "justify-end"}`}>
+        <div
+          className={
+            "relative group max-w-[90vw] md:max-w-2xl w-fit break-words shadow border " +
+            (isAi
+              ? "bg-[#f7f7fa] text-gray-900 border-gray-200 ml-0 mr-auto rounded-2xl rounded-bl-md"
+              : "bg-blue-600 text-white border-blue-100 ml-auto mr-0 rounded-2xl rounded-br-md"
+            )
+          }
+          style={{
+            padding: "1.1rem 1.3rem",
+            marginTop: idx === 0 ? "0.4rem" : "0.8rem",
+            fontSize: "1.13rem",
+            position: "relative",
+            minWidth: isAi ? 200 : 120,
+          }}
+        >
+          {isAi ? (
+            <span dangerouslySetInnerHTML={{ __html: renderAiMarkup(msg.text) }} />
+          ) : (
+            <span>{msg.text}</span>
+          )}
+          {isAi && !isWelcome && (
+            <button
+              className="absolute top-2 right-2 bg-gray-100 hover:bg-gray-200 rounded-lg p-1 shadow text-gray-500 transition-all opacity-100"
+              title={copiedIdx === idx ? "Copied" : "Copy"}
+              onClick={() => handleCopy(msg.text, idx)}
+            >
+              {copiedIdx === idx ? (
+                <Check className="w-4 h-4 text-green-600" />
+              ) : (
+                <Copy className="w-4 h-4" />
+              )}
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // Simple markdown-like converter for AI (code block, bold, list, line breaks)
+  function renderAiMarkup(text: string) {
     let html = text
-      .replace(/\*\*/g, "")
-      .replace(/^([A-Z][\w\s/]+:)/gm, "<b>$1</b>")
+      // basic bold
+      .replace(/\*\*(.*?)\*\*/g, "<b>$1</b>")
+      // code blocks
+      .replace(/```([\s\S]+?)```/g, '<pre class="bg-gray-950 text-green-200 rounded-md overflow-x-auto p-3 my-2 text-sm">$1</pre>')
+      // inline code
+      .replace(/`([^`]+?)`/g, '<code class="bg-gray-200 text-gray-900 rounded px-1.5 py-0.5 text-xs">$1</code>')
+      // section header
+      .replace(/^([A-Z][\w\s/]+:)/gm, '<b>$1</b>')
+      // unordered list items
       .replace(/\n\* (.+?)(?=\n|$)/g, "<li>$1</li>")
+      // double newlines = break
       .replace(/\n{2,}/g, "<br/><br/>")
+      // single newline
       .replace(/\n/g, "<br/>");
-    // Wrap lists in <ul>
-    html = html.replace(/(<li>[\s\S]*?<\/li>)/g, '<ul class="pl-4 list-disc">$1</ul>');
-    return <span dangerouslySetInnerHTML={{ __html: html }} />;
+    // Wrap <li> in <ul> if any
+    html = html.replace(/(<li>[\s\S]*?<\/li>)/g, '<ul class="pl-6 list-disc mb-1">$1</ul>');
+    return html;
   }
 
   async function handleSend(e: React.FormEvent) {
     e.preventDefault();
-    if (!input.trim()) return;
+    if (!input.trim() || loading) return;
     const newMsg: Message = { sender: "user", text: input };
     setMessages((msgs) => [...msgs, newMsg]);
     setInput("");
@@ -82,8 +138,7 @@ const RoleFeatureChat: React.FC<RoleFeatureChatProps> = ({ featureName, role, on
     try {
       const context = messages
         .map(m => (m.sender === "user" ? `User: ${m.text}` : `AI: ${m.text}`))
-        .join("\n")
-        + `\nUser: ${input}`;
+        .join("\n") + `\nUser: ${input}`;
 
       const aiReply = await groqCompletion({
         apiKey: GROQ_API_KEY,
@@ -102,112 +157,128 @@ const RoleFeatureChat: React.FC<RoleFeatureChatProps> = ({ featureName, role, on
     }
   }
 
+  // Regenerate (repeat last user input)
+  async function handleRegenerate() {
+    // Only allow if not currently generating and there is a user message to regen
+    const lastUser = [...messages].reverse().find(m => m.sender === "user");
+    if (!lastUser) return;
+    setRegenerating(true);
+    setLoading(true);
+    try {
+      const context = messages
+        .filter((_, i, arr) => i < arr.lastIndexOf(lastUser)) // cut at previous user input
+        .map(m => (m.sender === "user" ? `User: ${m.text}` : `AI: ${m.text}`))
+        .join("\n") + `\nUser: ${lastUser.text}`;
+      const aiReply = await groqCompletion({
+        apiKey: GROQ_API_KEY,
+        prompt: context,
+        systemInstruction: getSystemPrompt(),
+        language: "English"
+      });
+      // slice to just before last user, replay to that point then new user message, then new AI answer
+      const baseMsgs = messages.slice(0, messages.lastIndexOf(lastUser) + 1);
+      setMessages([...baseMsgs, { sender: "ai", text: aiReply }]);
+    } catch {
+      setMessages((msgs) => [
+        ...msgs,
+        { sender: "ai", text: "Sorry, regeneration failed. Please try again!" }
+      ]);
+    } finally {
+      setLoading(false);
+      setRegenerating(false);
+    }
+  }
+
   // Scroll to bottom on new message
   useEffect(() => {
     if (containerRef.current) {
-      containerRef.current.scrollTop = containerRef.current.scrollHeight + 40;
+      containerRef.current.scrollTop = containerRef.current.scrollHeight + 180;
     }
-  }, [messages.length]);
+  }, [messages.length, loading]);
 
-  // Handle copy to clipboard for AI message
+  // Copy button for AI message (no copy for welcome)
   const handleCopy = async (text: string, idx: number) => {
     try {
+      // Remove markdown for clipboard
       await navigator.clipboard.writeText(text.replace(/\*\*/g, ""));
       setCopiedIdx(idx);
-      setTimeout(() => setCopiedIdx(null), 1400);
+      setTimeout(() => setCopiedIdx(null), 1300);
     } catch (e) {}
   };
 
-  // Find if it's the welcome message (no copy in that case)
+  // Copy/call logic – user can't copy welcome
   const isWelcomeMessage = (msg: Message, idx: number) =>
     idx === 0 && msg.sender === "ai";
 
+  // Only show Regenerate/Back buttons if there's at least one AI response (not just welcome)
+  const aiRespCount = messages.filter(
+    (m, idx) => m.sender === "ai" && !isWelcomeMessage(m, idx)
+  ).length;
+  const canRegenerate = messages.some((m, i) => m.sender === "user" && (i <= messages.length - 2));
+
   return (
-    <div className="fixed inset-0 z-50 flex flex-col w-full h-full bg-white">
-      {/* Header: back button and feature name, sticky */}
-      <div className="sticky top-0 left-0 z-10 flex items-center gap-2 px-6 py-4 border-b border-gray-200 bg-white">
+    <div className="fixed inset-0 z-[100] flex flex-col w-full h-full bg-white transition-none select-none">
+      {/* Sticky Back Button */}
+      <div className="sticky top-0 left-0 w-full z-20 bg-white/60 backdrop-blur flex items-center px-2 py-2 border-b border-gray-100">
         <Button
           onClick={onBack}
           variant="ghost"
           size="sm"
-          className="flex items-center gap-1 text-gray-700 font-medium px-3 text-base"
+          className="flex items-center gap-1 font-medium text-base"
         >
           <ArrowLeft className="w-5 h-5" />
           Back
         </Button>
-        <span className="ml-2 text-2xl font-bold text-gray-800 font-serif">{featureName}</span>
+        <span className="ml-2 text-lg md:text-2xl font-bold text-gray-800 font-serif">{featureName}</span>
       </div>
-
-      {/* Main chat area, stretch to fill */}
-      <div className="flex flex-col flex-1 min-h-0 w-full max-w-3xl mx-auto px-2 md:px-0">
-        {/* Chat messages - scrollable */}
-        <div
-          ref={containerRef}
-          className="flex-1 overflow-y-auto py-8 px-2 md:px-0 flex flex-col gap-5"
-          style={{ minHeight: 0 }}
+      {/* Chat area */}
+      <div className="flex-1 overflow-y-auto flex flex-col py-5 px-2 gap-0" ref={containerRef} style={{ background: "#fff" }}>
+        {messages.map(renderMessage)}
+      </div>
+      {/* Input area */}
+      <form
+        onSubmit={handleSend}
+        className="w-full flex items-end gap-2 px-2 py-4 border-t bg-white"
+        style={{ minHeight: 92 }}
+      >
+        <input
+          className="flex-1 h-[52px] max-h-[90px] text-lg bg-[#f7f7fa] text-gray-950 rounded-xl px-4 py-3 border border-gray-200 focus:outline-none transition"
+          placeholder="Type your query or details here…"
+          value={input}
+          onChange={e => setInput(e.target.value)}
+          disabled={loading}
+          autoFocus
+        />
+        <Button
+          type="submit"
+          disabled={loading || !input.trim()}
+          className="px-6 py-2.5 bg-blue-600 text-white hover:bg-blue-700 rounded-xl"
         >
-          {messages.map((msg, idx) => (
-            <div
-              key={idx}
-              className={
-                "relative group flex"
-                + (msg.sender === "user" ? " justify-end" : " justify-start")
-              }
-            >
-              <div
-                className={
-                  "whitespace-pre-line rounded-xl px-5 py-4 text-[1.09rem] leading-relaxed max-w-2xl w-full"
-                  + (msg.sender === "ai"
-                    ? " bg-[#f7f7fa] text-gray-900 border border-gray-200"
-                    : " bg-blue-50 text-blue-950 border border-blue-200 text-right font-medium")
-                }
-                style={{ position: "relative" }}
-              >
-                {msg.sender === "ai"
-                  ? renderMessage(msg.text)
-                  : <span>{msg.text}</span>
-                }
-                {/* Copy button for AI responses except welcome */}
-                {(msg.sender === "ai" && !isWelcomeMessage(msg, idx)) && (
-                  <button
-                    className="absolute top-2 right-2 bg-gray-100 hover:bg-gray-200 rounded-lg p-1 shadow text-gray-500 transition-all md:opacity-0 md:group-hover:opacity-100 opacity-100"
-                    title={copiedIdx === idx ? "Copied" : "Copy"}
-                    onClick={() => handleCopy(msg.text, idx)}
-                  >
-                    {copiedIdx === idx ? (
-                      <Check className="w-4 h-4 text-green-600" />
-                    ) : (
-                      <Copy className="w-4 h-4" />
-                    )}
-                  </button>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-        {/* Input bar at bottom */}
-        <form
-          onSubmit={handleSend}
-          className="flex gap-2 items-center px-2 py-5 border-t border-gray-100 bg-white"
-        >
-          <input
-            className="w-full bg-[#f7f7fa] text-gray-950 rounded-md px-4 py-3 border border-gray-200 focus:outline-none"
-            placeholder="Type your query or details here…"
-            value={input}
-            onChange={e => setInput(e.target.value)}
-            disabled={loading}
-            autoFocus
-            spellCheck
-          />
+          {loading ? (regenerating ? "Regenerating..." : "Thinking…") : "Send"}
+        </Button>
+      </form>
+      {/* Actions at bottom: Regenerate/Back (show only after at least 1 completed AI reply)  */}
+      {aiRespCount > 0 && (
+        <div className="sticky bottom-0 left-0 w-full z-20 flex flex-row items-center justify-center gap-4 py-2 border-t bg-white shadow-2xl">
           <Button
-            type="submit"
-            disabled={loading || !input.trim()}
-            className="px-6 py-2.5 bg-blue-600 text-white hover:bg-blue-700 rounded-md"
+            type="button"
+            variant="outline"
+            className="text-blue-700 font-bold"
+            disabled={!canRegenerate || regenerating || loading}
+            onClick={handleRegenerate}
           >
-            {loading ? "Thinking..." : "Send"}
+            🔁 Regenerate
           </Button>
-        </form>
-      </div>
+          <Button
+            type="button"
+            variant="outline"
+            className="text-gray-700 font-bold"
+            onClick={onBack}
+          >
+            🔙 Back to Feature List
+          </Button>
+        </div>
+      )}
     </div>
   );
 };
