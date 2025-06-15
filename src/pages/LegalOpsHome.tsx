@@ -257,22 +257,56 @@ const LegalOpsHome = () => {
 
           {/* Tools */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {(role === "lawyer" ? lawyerTools : studentTools).map(tool => (
-              <Card
-                key={tool.name}
-                className={"transition-all " + (tool.comingSoon ? "opacity-50 grayscale pointer-events-none" : "hover:scale-[1.03] cursor-pointer")}
-                onClick={() => tool.route && navigate(tool.route)}
-              >
-                <CardHeader className="flex-row items-center gap-3">
-                  {tool.icon}
-                  <CardTitle className="text-lg font-semibold">{tool.name}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-base font-normal">{tool.description}</div>
-                  {tool.comingSoon && <div className="mt-2 text-xs text-gray-500 italic">Coming soon</div>}
-                </CardContent>
-              </Card>
-            ))}
+            {(role === "lawyer" ? lawyerTools : studentTools).map(tool => {
+              // Map dashboard tool names to routes
+              const nameToRoute: Record<string, string> = {
+                "Contract Generator": "/contract-generator",
+                "Legal Q&A (NyayaBot)": "/legal-qna",
+                "Case Law Finder": "/case-law-finder",
+                "Section Explainer": "/section-explainer",
+                "Bare Act Navigator": "/bare-act-navigator",
+                "Legal Draft Templates": "/legal-draft-templates",
+                "Voice Dictation → Legal Format": "/voice-dictation",
+                "Citation Checker": "/citation-checker",
+                "Client Brief Summary Tool": "/summarizer",
+                // Student tools below
+                "Topic-Wise Quiz Generator": "#", // Not implemented
+                "Case Brief Generator": "#",
+                "Flashcards (Legal Terms)": "#",
+                "Syllabus Tracker": "#",
+                "Law News Digest": "#",
+                "Doubt Forum (Ask Senior)": "#",
+                "Mock Test Generator": "#",
+                "Study Plan Generator": "#",
+                "Case Explainer": "/summarizer",
+              };
+              const route = nameToRoute[tool.name] || tool.route || "#";
+              return (
+                <Card
+                  key={tool.name}
+                  className={
+                    "transition-all " +
+                    (tool.comingSoon
+                      ? "opacity-50 grayscale pointer-events-none"
+                      : "hover:scale-[1.03] cursor-pointer")
+                  }
+                  onClick={() => {
+                    if (!tool.comingSoon && route && route !== "#") {
+                      navigate(route);
+                    }
+                  }}
+                >
+                  <CardHeader className="flex-row items-center gap-3">
+                    {tool.icon}
+                    <CardTitle className="text-lg font-semibold">{tool.name}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-base font-normal">{tool.description}</div>
+                    {tool.comingSoon && <div className="mt-2 text-xs text-gray-500 italic">Coming soon</div>}
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
           <div className="mt-8 text-xs text-gray-700 dark:text-gray-200 text-center">
             {disclaimer}

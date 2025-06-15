@@ -10,6 +10,13 @@ import ContractGenerator from "./pages/ContractGenerator";
 import QABot from "./pages/QABot";
 import Summarizer from "./pages/Summarizer";
 import LegalOpsHome from "./pages/LegalOpsHome";
+import CaseLawFinder from "./pages/CaseLawFinder";
+import SectionExplainer from "./pages/SectionExplainer";
+import BareActNavigator from "./pages/BareActNavigator";
+import LegalDraftTemplates from "./pages/LegalDraftTemplates";
+import VoiceDictation from "./pages/VoiceDictation";
+import MultiLanguageSupport from "./pages/MultiLanguageSupport";
+import CitationChecker from "./pages/CitationChecker";
 
 const queryClient = new QueryClient();
 
@@ -23,9 +30,17 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/about" element={<About />} />
           <Route path="/contract-generator" element={<ContractGenerator />} />
-          <Route path="/qabot" element={<QABot />} />
+          <Route path="/legal-qna" element={<QABot />} />
           <Route path="/summarizer" element={<Summarizer />} />
           <Route path="/features" element={<LegalOpsHome />} />
+          {/* New dedicated feature routes */}
+          <Route path="/case-law-finder" element={<CaseLawFinder />} />
+          <Route path="/section-explainer" element={<SectionExplainer />} />
+          <Route path="/bare-act-navigator" element={<BareActNavigator />} />
+          <Route path="/legal-draft-templates" element={<LegalDraftTemplates />} />
+          <Route path="/voice-dictation" element={<VoiceDictation />} />
+          <Route path="/multi-language-support" element={<MultiLanguageSupport />} />
+          <Route path="/citation-checker" element={<CitationChecker />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
