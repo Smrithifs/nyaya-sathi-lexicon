@@ -172,13 +172,10 @@ const RoleFeatureChat: React.FC<RoleFeatureChatProps> = ({ featureName, role, on
       fileType === "application/pdf" ||
       file.name.endsWith(".pdf")
     ) {
-      // PDF parsing (lazy-load pdfjs-dist, use default import for Vite)
-      const pdfjsLib = await import("pdfjs-dist");
-      // Set the workerSrc from CDN (should be optional in newer versions, but keep for safety)
-      if (pdfjsLib.GlobalWorkerOptions) {
-        pdfjsLib.GlobalWorkerOptions.workerSrc =
-          "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.2.67/pdf.worker.min.js";
-      }
+      // PDF parsing (lazy-load pdfjs, use legacy/UMD import for Vite)
+      const pdfjsLib = await import("pdfjs-dist/legacy/build/pdf");
+      pdfjsLib.GlobalWorkerOptions.workerSrc =
+        "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.2.67/pdf.worker.min.js";
       const arrayBuffer = await file.arrayBuffer();
       const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
       let text = "";
