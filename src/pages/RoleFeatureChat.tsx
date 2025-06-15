@@ -1,10 +1,8 @@
-
 import React, { useState, useRef, useEffect } from "react";
 import { groqCompletion } from "@/utils/groqApi";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-
-const GROQ_API_KEY = "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";
+import { marked } from "marked";
 
 // Maps for system prompts per-feature:
 const systemPrompts: Record<string, string> = {
@@ -62,6 +60,24 @@ const RoleFeatureChat: React.FC<RoleFeatureChatProps> = ({ featureName, role, on
 This feature: ${feature}. Please provide your input, or ask a question.`;
   }
 
+  // Utility to render markdown, stripping ** for bold and converting to HTML with <b>
+  function renderMessage(text: string) {
+    // Convert markdown bold **Title:** to <b>Title:</b>
+    // Remove ** wrapping for bold, replace with <b>
+    let html = text
+      // replace **Section X** and **Label:** with <b>
+      .replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')
+      // Optionally: inline "* " to <li> for basic bullets
+      .replace(/\n\* (.+?)(?=\n|$)/g, '<li>$1</li>')
+      // keep double newlines as <br/>
+      .replace(/\n{2,}/g, "<br/><br/>")
+      // single newline to <br>
+      .replace(/\n/g, "<br/>");
+    // Wrap <li> bullets in <ul>
+    html = html.replace(/(<li>[\s\S]*?<\/li>)/g, '<ul class="pl-4 list-disc">$1</ul>');
+    return <span dangerouslySetInnerHTML={{ __html: html }} />;
+  }
+
   async function handleSend(e: React.FormEvent) {
     e.preventDefault();
     if (!input.trim()) return;
@@ -70,7 +86,6 @@ This feature: ${feature}. Please provide your input, or ask a question.`;
     setInput("");
     setLoading(true);
     try {
-      // Concat last few exchanges to build context.
       const context = messages
         .map(m => (m.sender === "user" ? `User: ${m.text}` : `AI: ${m.text}`))
         .join("\n")
@@ -90,14 +105,12 @@ This feature: ${feature}. Please provide your input, or ask a question.`;
       ]);
     } finally {
       setLoading(false);
-      // scroll to bottom for new message
       setTimeout(() => {
         containerRef.current?.scrollTo(0, containerRef.current.scrollHeight);
       }, 100);
     }
   }
 
-  // Scroll to bottom when messages change
   useEffect(() => {
     if (containerRef.current) {
       containerRef.current.scrollTop = containerRef.current.scrollHeight + 40;
@@ -120,17 +133,25 @@ This feature: ${feature}. Please provide your input, or ask a question.`;
             key={idx}
             className={
               msg.sender === "ai"
-                ? "text-left bg-blue-50/10 text-blue-100 px-4 py-3 rounded-lg mb-2 whitespace-pre-line"
-                : "text-right bg-yellow-100/20 text-yellow-200 px-4 py-3 rounded-lg mb-2 whitespace-pre-line"
+                ? "text-left bg-white text-gray-900 font-medium px-4 py-3 rounded-lg mb-2 shadow-sm"
+                : "text-right bg-yellow-50 text-yellow-800 font-medium px-4 py-3 rounded-lg mb-2 shadow-sm"
+            }
+            style={
+              msg.sender === "user"
+                ? { background: "#fffce0", color: "#826300" }
+                : undefined
             }
           >
-            {msg.text}
+            {msg.sender === "ai"
+              ? renderMessage(msg.text)
+              : <span className="font-semibold">{msg.text}</span>
+            }
           </div>
         ))}
       </div>
-      <form onSubmit={handleSend} className="flex gap-2 px-4 pb-4 pt-1 border-t border-white/10 items-center">
+      <form onSubmit={handleSend} className="flex gap-2 px-4 pb-4 pt-1 border-t border-white/10 items-center bg-white">
         <input
-          className="w-full bg-gray-900/80 text-white rounded-md px-3 py-2 border border-white/10 focus:outline-none"
+          className="w-full bg-white text-gray-950 rounded-md px-3 py-2 border border-gray-200 focus:outline-none"
           placeholder="Type your query or details here…"
           value={input}
           onChange={e => setInput(e.target.value)}
