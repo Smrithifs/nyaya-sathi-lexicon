@@ -1,27 +1,55 @@
 
 import React, { useRef, useEffect } from "react";
 
-// Animated flowing blue waves background, darker and more vibrant
-function lerp(a: number, b: number, t: number) {
-  return a + (b - a) * t;
+const NUM_WAVES = 4;
+const AMPLITUDE = [19, 34, 52, 68]; // Vary for depth
+const COLORS = [
+  "rgba(44,105,199,0.22)",
+  "rgba(58,134,255,0.19)",
+  "rgba(44,105,199,0.15)",
+  "rgba(86,124,196,0.18)"
+];
+
+// Draw a smooth bezier-based horizontal wave
+function drawSmoothWave(ctx: CanvasRenderingContext2D, width: number, height: number, opts: {
+  color: string,    // fill color
+  offsetY: number,  // % from top
+  amplitude: number,
+  freq: number,
+  phase: number
+}) {
+  ctx.save();
+  ctx.beginPath();
+  const n = 5; // segments for Bezier
+  const yBase = opts.offsetY * height;
+  ctx.moveTo(0, yBase);
+
+  for (let i = 0; i <= n; i++) {
+    const t = i / n;
+    const x = t * width;
+    // Bezier curve: use sine for smooth up/down
+    const phase = opts.phase + t * opts.freq * Math.PI * 2;
+    const y =
+      yBase +
+      Math.sin(phase) * opts.amplitude *
+      (0.7 + 0.3 * Math.cos(t * Math.PI * 2 + opts.phase * 0.5));
+    ctx.lineTo(x, y);
+  }
+  // Down to bottom, then back
+  ctx.lineTo(width, height);
+  ctx.lineTo(0, height);
+  ctx.closePath();
+  ctx.fillStyle = opts.color;
+  ctx.globalAlpha = 1;
+  ctx.shadowColor = opts.color.replace(/,[^)]+\)/, ",.5)"); // soft glow
+  ctx.shadowBlur = 12;
+  ctx.fill();
+  ctx.restore();
 }
 
-const NUM_WAVES = 5;
-const POINTS_PER_WAVE = 40;
-
-// Utility to make smooth color gradients for vibrant blues and hints of purple
-function getWaveGradient(ctx: CanvasRenderingContext2D, width: number, i: number) {
-  const grad = ctx.createLinearGradient(0, 0, width, 0);
-  grad.addColorStop(0, `rgba(${32 + i*12},${54 + i*18},${125 + i*22},0.93)`);
-  grad.addColorStop(0.7, `rgba(${44 + i*18},${95 + i*14},${199 + i*35},0.84)`);
-  grad.addColorStop(1, `rgba(${71 + i*12},${68 + i*9},${180 + i*20},0.85)`);
-  return grad;
-}
-
-const LandingBackground: React.FC = () => {
+const LandingBackground: React.FC<{ variant?: "about" | "default" }> = ({ variant = "default" }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animState = useRef({
-    lastTime: 0,
     drift: Math.random() * 800,
     mouseX: 0.5,
   });
@@ -50,40 +78,30 @@ const LandingBackground: React.FC = () => {
 
     function draw(time: number) {
       ctx.clearRect(0, 0, width, height);
+      // Main BG
+      const topGrad = ctx.createLinearGradient(0, 0, 0, height);
+      if (variant === "about") {
+        topGrad.addColorStop(0, "#20204a");
+        topGrad.addColorStop(0.5, "#222a52");
+        topGrad.addColorStop(1, "#1d1b38");
+      } else {
+        topGrad.addColorStop(0, "#191c3a");
+        topGrad.addColorStop(0.4, "#162a54");
+        topGrad.addColorStop(1, "#13152d");
+      }
+      ctx.fillStyle = topGrad;
+      ctx.fillRect(0,0,width,height);
 
-      // Rich, vibrant dark blue gradient background
-      const bgGrad = ctx.createLinearGradient(0, 0, 0, height);
-      bgGrad.addColorStop(0, "#152044");
-      bgGrad.addColorStop(0.4, "#191a34");
-      bgGrad.addColorStop(0.7, "#192258");
-      bgGrad.addColorStop(1, "#121429");
-      ctx.fillStyle = bgGrad;
-      ctx.fillRect(0, 0, width, height);
-
-      // Animated glowing colorful wave lines
+      // Smooth flowing waves, from back to front
       for (let i = 0; i < NUM_WAVES; i++) {
-        const yFrac = 0.23 + 0.13 * i;
-        const amp = lerp(22, 65, i / (NUM_WAVES - 1));
-        const freq = lerp(1, 2.1, i / (NUM_WAVES - 1));
-        const wavePhase = animState.current.drift + i * 22;
-        ctx.save();
-        ctx.beginPath();
-        for (let j = 0; j < POINTS_PER_WAVE; j++) {
-          const t = j / (POINTS_PER_WAVE - 1);
-          const px = lerp(0, width, t);
-          const sway = Math.sin(t * Math.PI * freq + time / (1800 + i * 250) + wavePhase)
-            * lerp(amp * 0.8, amp * 1.35, 0.45 + 0.40 * animState.current.mouseX);
-          const perlin = Math.sin(time/1700 + i*2 + j*2.6) * 4;
-          const py = yFrac * height + sway + perlin;
-          if (j === 0) ctx.moveTo(px, py);
-          else ctx.lineTo(px, py);
-        }
-        ctx.shadowColor = ["#6bcafe","#61b3d6","#538be2","#5d69cd","#8e9ef2"][i % 5];
-        ctx.shadowBlur = 22 + i * 6;
-        ctx.lineWidth = lerp(2.2, 4.4, i / (NUM_WAVES - 1));
-        ctx.strokeStyle = getWaveGradient(ctx, width, i);
-        ctx.stroke();
-        ctx.restore();
+        const frac = (i+1)/NUM_WAVES;
+        drawSmoothWave(ctx, width, height, {
+          color: COLORS[i % COLORS.length],
+          offsetY: 0.50 + 0.09*i + Math.sin(time/3200 + i)*0.025,
+          amplitude: AMPLITUDE[i]* (variant === "about" ? 0.75 : 1),
+          freq: 1.40 + i*0.19 + animState.current.mouseX*0.25,
+          phase: time/1900 + i*1.7 + animState.current.mouseX*1.7
+        });
       }
       if (running) requestAnimationFrame(draw);
     }
@@ -94,7 +112,7 @@ const LandingBackground: React.FC = () => {
       window.removeEventListener("resize", setupCanvas);
       window.removeEventListener("mousemove", handleMove);
     };
-  }, []);
+  }, [variant]);
 
   return (
     <canvas
@@ -104,7 +122,9 @@ const LandingBackground: React.FC = () => {
         width: "100vw",
         height: "100vh",
         objectFit: "cover",
-        background: "radial-gradient(at 70% 10%, #2c65ba 0%, #191a34 80%)",
+        background: variant === "about"
+          ? "radial-gradient(circle at 60% 12%, #2e407f 0%, #1b1b3f 70%)"
+          : "radial-gradient(circle at 80% 4%, #2c65ba 0%, #191a34 80%)",
         transition: "background .8s"
       }}
       aria-hidden="true"
@@ -113,4 +133,3 @@ const LandingBackground: React.FC = () => {
 };
 
 export default LandingBackground;
-
