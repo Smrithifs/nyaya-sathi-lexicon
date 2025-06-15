@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from "react";
 import { groqCompletion } from "@/utils/groqApi";
 import { Button } from "@/components/ui/button";
@@ -59,18 +60,12 @@ const RoleFeatureChat: React.FC<RoleFeatureChatProps> = ({ featureName, role, on
     return systemPrompts[featureName] || "You are LegalOps AI.";
   }
 
-  function getWelcomePrompt(feature: string, role: "lawyer" | "student") {
-    return `You are using LegalOps AI — a highly responsive legal assistant for Indian ${role === "lawyer" ? "lawyers" : "law students"}.
-This feature: ${feature}. Please provide your input, or ask a question.`;
-  }
-
-  // Utility to render markdown and highlight important sections (bold headings) in AI responses
+  // Markdown to HTML converter (no **, bold for key sections)
   function renderMessage(text: string) {
-    // Remove ** syntax and render pseudo-markdown headings and bolds
+    // Convert simple patterns for bolding (Title: etc.)
     let html = text
-      // Replace **Title:** or **Section X** with <b>Title:</b>
-      .replace(/\*\*(.+?)\*\*/g, "<b>$1</b>")
-      // Headings: "Facts:", "Issues:", "Judgment:" etc. (if starts line), make bold
+      .replace(/\*\*/g, "") // Remove all ** (GPT bold remnants)
+      // Bold things like "Facts:", "Judgment:" at line start
       .replace(/^([A-Z][\w\s/]+:)/gm, "<b>$1</b>")
       // List formatting
       .replace(/\n\* (.+?)(?=\n|$)/g, "<li>$1</li>")
@@ -131,84 +126,94 @@ This feature: ${feature}. Please provide your input, or ask a question.`;
     }
   };
 
+  // Find if it's the welcome message (no copy in that case)
+  const isWelcomeMessage = (msg: Message, idx: number) =>
+    idx === 0 && msg.sender === "ai";
+
   return (
-    <div className="fixed inset-0 z-50 bg-white flex flex-col w-full h-full min-h-screen">
-      {/* Back Button */}
-      <div className="flex items-center gap-2 px-6 py-4 border-b border-gray-200 bg-white/95 shadow-sm min-h-[60px]">
+    <div className="fixed inset-0 z-50 flex flex-col w-full h-full bg-[#f6f7fc] overflow-y-auto">
+      {/* Header */}
+      <div className="flex items-center gap-2 px-6 py-4 border-b border-gray-200 bg-white/95 shadow-sm min-h-[70px]">
         <Button
           onClick={onBack}
           variant="ghost"
           size="sm"
-          className="flex items-center gap-1 text-gray-700 font-medium px-3"
+          className="flex items-center gap-1 text-gray-700 font-medium px-3 text-base"
         >
           <ArrowLeft className="w-5 h-5" />
           Back
         </Button>
-        <span className="ml-2 text-lg font-bold text-gray-800 font-serif">{featureName}</span>
+        <span className="ml-2 text-2xl font-bold text-gray-800 font-serif">{featureName}</span>
       </div>
 
-      {/* Chat Area */}
-      <div
-        ref={containerRef}
-        className="flex-1 overflow-y-auto px-0 py-6 bg-white"
-        style={{ scrollBehavior: "smooth" }}
-      >
-        <div className="max-w-2xl mx-auto flex flex-col gap-4">
-          {messages.map((msg, idx) => (
-            <div key={idx} className="relative w-full group">
+      {/* Main chat area, centered in a white card */}
+      <div className="flex justify-center w-full h-full overflow-y-auto py-10 px-2 flex-1">
+        <div className="w-full max-w-3xl min-h-[66vh] flex flex-col">
+          <div
+            ref={containerRef}
+            className="flex-1 flex flex-col gap-7"
+            style={{ width: "100%" }}
+          >
+            {messages.map((msg, idx) => (
               <div
-                className={
-                  msg.sender === "ai"
-                    ? "bg-white text-gray-900 font-medium px-5 py-4 rounded-xl rounded-tl-md shadow-sm border border-gray-200 text-left"
-                    : "bg-blue-50 text-blue-900 font-medium px-5 py-4 rounded-xl rounded-tr-md shadow-sm border border-blue-200 text-right"
-                }
-                style={msg.sender === "user"
-                  ? { background: "#f5f7ff", color: "#114088" }
-                  : {}
-                }
+                key={idx}
+                className="relative flex justify-start items-center"
+                style={{ width: "100%" }}
               >
-                {msg.sender === "ai"
-                  ? renderMessage(msg.text)
-                  : <span className="font-semibold">{msg.text}</span>
-                }
-              </div>
-              {/* Show Copy Button for AI messages only */}
-              {msg.sender === "ai" && (
-                <button
-                  className="absolute top-2 right-2 bg-gray-100 hover:bg-gray-200 rounded-lg p-1.5 shadow group/copy text-gray-500 transition-all"
-                  title={copiedIdx === idx ? "Copied" : "Copy"}
-                  onClick={() => handleCopy(msg.text, idx)}
+                {/* Card style for message */}
+                <div
+                  className={
+                    "bg-white text-gray-900 font-medium px-6 py-4 rounded-xl border border-gray-200 shadow"
+                    + (msg.sender === "ai" ? "" : " ml-auto text-right bg-blue-50 border-blue-200")
+                  }
+                  style={{ width: "100%", maxWidth: "100%" }}
                 >
-                  {copiedIdx === idx ? (
-                    <Check className="w-4 h-4 text-green-600" />
-                  ) : (
-                    <Copy className="w-4 h-4" />
-                  )}
-                </button>
-              )}
-            </div>
-          ))}
+                  {msg.sender === "ai"
+                    ? renderMessage(msg.text)
+                    : <span className="font-semibold">{msg.text}</span>
+                  }
+                </div>
+                {/* Copy button for AI responses except welcome */}
+                {(msg.sender === "ai" && !isWelcomeMessage(msg, idx)) && (
+                  <button
+                    className="absolute top-2 right-2 bg-gray-100 hover:bg-gray-200 rounded-lg p-1.5 shadow text-gray-500 transition-all"
+                    title={copiedIdx === idx ? "Copied" : "Copy"}
+                    onClick={() => handleCopy(msg.text, idx)}
+                  >
+                    {copiedIdx === idx ? (
+                      <Check className="w-4 h-4 text-green-600" />
+                    ) : (
+                      <Copy className="w-4 h-4" />
+                    )}
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+          {/* Input area */}
+          <form
+            onSubmit={handleSend}
+            className="flex gap-2 items-center mt-7 bg-white border border-gray-200 rounded-xl shadow px-4 py-3"
+            style={{ minHeight: "64px" }}
+          >
+            <input
+              className="w-full bg-transparent text-gray-950 rounded-md px-3 py-2 focus:outline-none"
+              placeholder="Type your query or details here…"
+              value={input}
+              onChange={e => setInput(e.target.value)}
+              disabled={loading}
+              autoFocus
+            />
+            <Button
+              type="submit"
+              disabled={loading || !input.trim()}
+              className="px-6 py-2.5 bg-blue-600 text-white hover:bg-blue-700"
+            >
+              {loading ? "Thinking..." : "Send"}
+            </Button>
+          </form>
         </div>
       </div>
-
-      {/* Input */}
-      <form
-        onSubmit={handleSend}
-        className="bg-white border-t border-gray-200 px-4 py-4 flex gap-2 items-center shadow"
-        style={{ minHeight: "64px" }}
-      >
-        <input
-          className="w-full bg-white text-gray-950 rounded-md px-3 py-2 border border-gray-300 focus:outline-none"
-          placeholder="Type your query or details here…"
-          value={input}
-          onChange={e => setInput(e.target.value)}
-          disabled={loading}
-          autoFocus
-        />
-        <Button type="submit" disabled={loading || !input.trim()} className="px-5 py-2.5 bg-blue-600 text-white hover:bg-blue-700">
-          {loading ? "Thinking..." : "Send"}
-        </Button>
-      </form>
     </div>
   );
 }
@@ -216,13 +221,14 @@ This feature: ${feature}. Please provide your input, or ask a question.`;
 function getWelcomePrompt(feature: string, role: "lawyer" | "student") {
   // Used on init/new feature select
   if (feature === "Legal Q&A (NyayaBot)" && role === "student") {
-    return "You are using LegalOps AI (Law Student Mode): Ask any law question, and I’ll reply in simple language and analogies. Please enter your question below.";
+    return "You are using LegalOps AI — a highly responsive legal assistant for Indian law students. This feature: Legal Q&A (NyayaBot). Please provide your input, or ask a question.";
   }
   if (feature === "Legal Q&A (NyayaBot)" && role === "lawyer") {
-    return "You are using LegalOps AI (Lawyer Mode): Enter any legal query, and get authoritative answers with sections and Indian law context. Please enter your question below.";
+    return "You are using LegalOps AI — a highly responsive legal assistant for Indian lawyers. This feature: Legal Q&A (NyayaBot). Please provide your input, or ask a question.";
   }
   // Custom per-feature
   return `You are using the feature: ${feature}. Please provide input to proceed.`;
 }
 
 export default RoleFeatureChat;
+
