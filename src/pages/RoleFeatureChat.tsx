@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from "react";
 import { groqCompletion } from "@/utils/groqApi";
 import { Button } from "@/components/ui/button";
@@ -217,9 +216,8 @@ const RoleFeatureChat: React.FC<RoleFeatureChatProps> = ({ featureName, role, on
   const canRegenerate = messages.some((m, i) => m.sender === "user" && (i <= messages.length - 2));
 
   return (
-    // Outermost div fills the viewport with no margins or padding
     <div className="fixed inset-0 w-screen h-screen bg-white flex flex-col z-[100]">
-      {/* Sticky header: now edge-to-edge with no extra space */}
+      {/* Header */}
       <div className="sticky top-0 left-0 w-full z-20 bg-white/95 backdrop-blur flex items-center px-2 py-2 border-b border-gray-100" style={{ minHeight: 60 }}>
         <Button
           onClick={onBack}
@@ -232,13 +230,14 @@ const RoleFeatureChat: React.FC<RoleFeatureChatProps> = ({ featureName, role, on
         </Button>
         <div className="ml-3">
           <div className="text-xl md:text-2xl font-bold text-gray-800 font-serif">{featureName}</div>
-          {/* Optionally add a short description below if needed */}
+          {/* Short description placeholder; you can add if needed */}
         </div>
       </div>
-      {/* Chat area: ensure it expands, is edge-aligned, and scrollable */}
+      {/* Main chat area */}
       <div
         ref={containerRef}
-        className="flex-1 overflow-y-auto flex flex-col px-2 md:px-0 pb-0"
+        className="flex-1 overflow-y-auto flex flex-col px-2 md:px-0 pb-36"
+        // Increased bottom padding (pb-36) ensures input/actions never cover last message
         style={{
           minHeight: 0,
           background: "#fff",
@@ -247,17 +246,16 @@ const RoleFeatureChat: React.FC<RoleFeatureChatProps> = ({ featureName, role, on
           margin: 0,
         }}
       >
-        {/* Center chat in full width using a max-width container */}
         <div className="flex flex-col justify-end w-full items-center md:items-center py-5">
           <div className="w-full max-w-2xl flex flex-col">
             {messages.map(renderMessage)}
           </div>
         </div>
       </div>
-      {/* Input area: always pinned at bottom, no margin/pad */}
+      {/* Input box (always visible, sticky bottom, above action buttons; z-30 ensures priority) */}
       <form
         onSubmit={handleSend}
-        className="w-full flex items-end gap-2 px-2 py-4 border-t bg-white"
+        className="fixed bottom-[56px] left-0 w-full flex items-end gap-2 px-2 py-4 border-t bg-white z-30"
         style={{
           minHeight: 88,
           maxWidth: "100vw",
@@ -276,12 +274,13 @@ const RoleFeatureChat: React.FC<RoleFeatureChatProps> = ({ featureName, role, on
           disabled={loading || !input.trim()}
           className="px-6 py-2.5 bg-blue-600 text-white hover:bg-blue-700 rounded-xl"
         >
-          {loading ? (regenerating ? "Regenerating..." : "Thinking…") : "Send"}
+          {loading ? (regenerating ? "Regenerating..." : "Send")}
         </Button>
       </form>
-      {/* Actions: right at the bottom, edge-to-edge */}
+
+      {/* Regenerate/Back actions: now sticky at bottom, never overlaps input */}
       {aiRespCount > 0 && (
-        <div className="sticky bottom-0 left-0 w-full z-20 flex flex-row items-center justify-center gap-4 py-2 border-t bg-white shadow-2xl">
+        <div className="fixed bottom-0 left-0 w-full z-20 flex flex-row items-center justify-center gap-4 py-3 border-t bg-white shadow-2xl">
           <Button
             type="button"
             variant="outline"
@@ -289,7 +288,7 @@ const RoleFeatureChat: React.FC<RoleFeatureChatProps> = ({ featureName, role, on
             disabled={!canRegenerate || regenerating || loading}
             onClick={handleRegenerate}
           >
-            🔁 Regenerate
+            🔁 Regenerate Response
           </Button>
           <Button
             type="button"
@@ -303,7 +302,7 @@ const RoleFeatureChat: React.FC<RoleFeatureChatProps> = ({ featureName, role, on
       )}
     </div>
   );
-};
+}
 
 function getWelcomePrompt(feature: string, role: "lawyer" | "student") {
   if (feature === "Legal Q&A (NyayaBot)" && role === "student") {
