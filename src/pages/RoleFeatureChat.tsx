@@ -217,29 +217,51 @@ const RoleFeatureChat: React.FC<RoleFeatureChatProps> = ({ featureName, role, on
   const canRegenerate = messages.some((m, i) => m.sender === "user" && (i <= messages.length - 2));
 
   return (
-    <div className="fixed inset-0 z-[100] flex flex-col w-full h-full bg-white transition-none select-none">
-      {/* Sticky Back Button */}
-      <div className="sticky top-0 left-0 w-full z-20 bg-white/60 backdrop-blur flex items-center px-2 py-2 border-b border-gray-100">
+    // Outermost div fills the viewport with no margins or padding
+    <div className="fixed inset-0 w-screen h-screen bg-white flex flex-col z-[100]">
+      {/* Sticky header: now edge-to-edge with no extra space */}
+      <div className="sticky top-0 left-0 w-full z-20 bg-white/95 backdrop-blur flex items-center px-2 py-2 border-b border-gray-100" style={{ minHeight: 60 }}>
         <Button
           onClick={onBack}
           variant="ghost"
           size="sm"
-          className="flex items-center gap-1 font-medium text-base"
+          className="flex items-center gap-1 text-base font-medium"
         >
           <ArrowLeft className="w-5 h-5" />
           Back
         </Button>
-        <span className="ml-2 text-lg md:text-2xl font-bold text-gray-800 font-serif">{featureName}</span>
+        <div className="ml-3">
+          <div className="text-xl md:text-2xl font-bold text-gray-800 font-serif">{featureName}</div>
+          {/* Optionally add a short description below if needed */}
+        </div>
       </div>
-      {/* Chat area */}
-      <div className="flex-1 overflow-y-auto flex flex-col py-5 px-2 gap-0" ref={containerRef} style={{ background: "#fff" }}>
-        {messages.map(renderMessage)}
+      {/* Chat area: ensure it expands, is edge-aligned, and scrollable */}
+      <div
+        ref={containerRef}
+        className="flex-1 overflow-y-auto flex flex-col px-2 md:px-0 pb-0"
+        style={{
+          minHeight: 0,
+          background: "#fff",
+          width: "100vw",
+          maxWidth: "100vw",
+          margin: 0,
+        }}
+      >
+        {/* Center chat in full width using a max-width container */}
+        <div className="flex flex-col justify-end w-full items-center md:items-center py-5">
+          <div className="w-full max-w-2xl flex flex-col">
+            {messages.map(renderMessage)}
+          </div>
+        </div>
       </div>
-      {/* Input area */}
+      {/* Input area: always pinned at bottom, no margin/pad */}
       <form
         onSubmit={handleSend}
         className="w-full flex items-end gap-2 px-2 py-4 border-t bg-white"
-        style={{ minHeight: 92 }}
+        style={{
+          minHeight: 88,
+          maxWidth: "100vw",
+        }}
       >
         <input
           className="flex-1 h-[52px] max-h-[90px] text-lg bg-[#f7f7fa] text-gray-950 rounded-xl px-4 py-3 border border-gray-200 focus:outline-none transition"
@@ -257,7 +279,7 @@ const RoleFeatureChat: React.FC<RoleFeatureChatProps> = ({ featureName, role, on
           {loading ? (regenerating ? "Regenerating..." : "Thinking…") : "Send"}
         </Button>
       </form>
-      {/* Actions at bottom: Regenerate/Back (show only after at least 1 completed AI reply)  */}
+      {/* Actions: right at the bottom, edge-to-edge */}
       {aiRespCount > 0 && (
         <div className="sticky bottom-0 left-0 w-full z-20 flex flex-row items-center justify-center gap-4 py-2 border-t bg-white shadow-2xl">
           <Button
