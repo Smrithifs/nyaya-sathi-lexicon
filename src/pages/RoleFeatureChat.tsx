@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { groqCompletion } from "@/utils/groqApi";
 import { Button } from "@/components/ui/button";
 import { Copy, Check, ArrowLeft } from "lucide-react";
+import Flashcard from "@/components/Flashcard";
 
 // Define the GROQ API key as requested
 const GROQ_API_KEY = "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";
@@ -31,6 +32,7 @@ const systemPrompts: Record<string, string> = {
   "Legal Q&A (NyayaBot)_student": "You are LegalOps AI. Indian student mode: Answer legal queries with simplified language, analogies, and stepwise explanations, avoiding jargon. End with disclaimer.",
   "Case Explainer": "You are LegalOps AI. Ask case name, produce diagram/flow summary, key points, and exam tips. End with disclaimer.",
 };
+const FLASHCARD_FEATURE = "Flashcards (Legal Terms)";
 
 interface RoleFeatureChatProps {
   featureName: string;
@@ -60,8 +62,54 @@ const RoleFeatureChat: React.FC<RoleFeatureChatProps> = ({ featureName, role, on
     return systemPrompts[featureName] || "You are LegalOps AI.";
   }
 
+  // *** FLASHCARD PARSER ***
+  // Only for Flashcards feature and AI message
+  function parseFlashcards(aiText: string): { question: string, answer: string }[] | null {
+    // Look for "**Flashcard" or "Flashcard X" blocks
+    if (featureName !== FLASHCARD_FEATURE) return null;
+    const parts = aiText.split(/\*\*Flashcard \d+\*\*/).filter(Boolean);
+    if (!parts.length) return null;
+    const flashcards = parts.map(block => {
+      // Look for Q: ...\nA: ...
+      const qMatch = block.match(/Q:\s?([^\n]+)\n?/);
+      const aMatch = block.match(/A:\s?([\s\S]+)/);
+      if (!qMatch || !aMatch) return null;
+      return {
+        question: qMatch[1].trim(),
+        answer: aMatch[1].trim().replace(/^<\/ul>/, "").replace(/<br\s*\/?>/g, "\n"),
+      };
+    }).filter(Boolean) as { question: string, answer: string }[];
+    return flashcards.length ? flashcards : null;
+  }
+
   // Markup for messages – chat bubbles (user right, ai left, visually distinct)
   function renderMessage(msg: Message, idx: number) {
+    const isAi = msg.sender === "ai";
+    const isWelcome = idx === 0 && isAi;
+
+    // Only for Flashcard feature and AI msg (not welcome)
+    if (
+      featureName === FLASHCARD_FEATURE &&
+      isAi &&
+      !isWelcome &&
+      parseFlashcards(msg.text)
+    ) {
+      const flashcards = parseFlashcards(msg.text)!;
+      return (
+        <div key={idx} className="flex flex-wrap gap-4 w-full justify-center py-4 animate-fade-in">
+          {flashcards.map((f, i) => (
+            <Flashcard
+              key={i}
+              question={f.question}
+              answer={f.answer}
+              colorIdx={i}
+            />
+          ))}
+        </div>
+      );
+    }
+
+    // Markup for messages – chat bubbles (user right, ai left, visually distinct)
     const isAi = msg.sender === "ai";
     const isWelcome = idx === 0 && isAi;
     return (
