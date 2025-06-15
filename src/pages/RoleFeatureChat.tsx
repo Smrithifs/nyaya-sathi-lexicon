@@ -1,9 +1,10 @@
-const GROQ_API_KEY = "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";
 import React, { useState, useRef, useEffect } from "react";
 import { groqCompletion } from "@/utils/groqApi";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { marked } from "marked";
+import { Copy, Check, ArrowLeft } from "lucide-react";
+
+// Define the GROQ API key as requested
+const GROQ_API_KEY = "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";
 
 // Maps for system prompts per-feature:
 const systemPrompts: Record<string, string> = {
@@ -48,6 +49,7 @@ const RoleFeatureChat: React.FC<RoleFeatureChatProps> = ({ featureName, role, on
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   function getSystemPrompt() {
@@ -56,25 +58,27 @@ const RoleFeatureChat: React.FC<RoleFeatureChatProps> = ({ featureName, role, on
     }
     return systemPrompts[featureName] || "You are LegalOps AI.";
   }
+
   function getWelcomePrompt(feature: string, role: "lawyer" | "student") {
     return `You are using LegalOps AI — a highly responsive legal assistant for Indian ${role === "lawyer" ? "lawyers" : "law students"}.
 This feature: ${feature}. Please provide your input, or ask a question.`;
   }
 
-  // Utility to render markdown, stripping ** for bold and converting to HTML with <b>
+  // Utility to render markdown and highlight important sections (bold headings) in AI responses
   function renderMessage(text: string) {
-    // Convert markdown bold **Title:** to <b>Title:</b>
-    // Remove ** wrapping for bold, replace with <b>
+    // Remove ** syntax and render pseudo-markdown headings and bolds
     let html = text
-      // replace **Section X** and **Label:** with <b>
-      .replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')
-      // Optionally: inline "* " to <li> for basic bullets
-      .replace(/\n\* (.+?)(?=\n|$)/g, '<li>$1</li>')
-      // keep double newlines as <br/>
+      // Replace **Title:** or **Section X** with <b>Title:</b>
+      .replace(/\*\*(.+?)\*\*/g, "<b>$1</b>")
+      // Headings: "Facts:", "Issues:", "Judgment:" etc. (if starts line), make bold
+      .replace(/^([A-Z][\w\s/]+:)/gm, "<b>$1</b>")
+      // List formatting
+      .replace(/\n\* (.+?)(?=\n|$)/g, "<li>$1</li>")
+      // Double newline = paragraph
       .replace(/\n{2,}/g, "<br/><br/>")
-      // single newline to <br>
+      // Single newline = line break
       .replace(/\n/g, "<br/>");
-    // Wrap <li> bullets in <ul>
+    // Wrap lists in <ul>
     html = html.replace(/(<li>[\s\S]*?<\/li>)/g, '<ul class="pl-4 list-disc">$1</ul>');
     return <span dangerouslySetInnerHTML={{ __html: html }} />;
   }
@@ -106,66 +110,108 @@ This feature: ${feature}. Please provide your input, or ask a question.`;
       ]);
     } finally {
       setLoading(false);
-      setTimeout(() => {
-        containerRef.current?.scrollTo(0, containerRef.current.scrollHeight);
-      }, 100);
     }
   }
 
+  // Scroll to bottom on new message
   useEffect(() => {
     if (containerRef.current) {
       containerRef.current.scrollTop = containerRef.current.scrollHeight + 40;
     }
   }, [messages.length]);
 
+  // Handle copy to clipboard for AI message
+  const handleCopy = async (text: string, idx: number) => {
+    try {
+      await navigator.clipboard.writeText(text.replace(/\*\*/g, "")); // remove markdown bold
+      setCopiedIdx(idx);
+      setTimeout(() => setCopiedIdx(null), 1400);
+    } catch (e) {
+      // Ignore for now
+    }
+  };
+
   return (
-    <Card className="w-full max-w-xl mx-auto bg-black/30 border-white/15 p-0 mb-7">
-      <div className="flex items-center justify-between px-4 pt-4 pb-2 border-b border-white/10">
-        <span className="font-bold text-white/90">{featureName}</span>
-        <Button variant="ghost" size="sm" className="text-blue-300 underline" onClick={onBack}>← Back to Features</Button>
+    <div className="fixed inset-0 z-50 bg-white flex flex-col w-full h-full min-h-screen">
+      {/* Back Button */}
+      <div className="flex items-center gap-2 px-6 py-4 border-b border-gray-200 bg-white/95 shadow-sm min-h-[60px]">
+        <Button
+          onClick={onBack}
+          variant="ghost"
+          size="sm"
+          className="flex items-center gap-1 text-gray-700 font-medium px-3"
+        >
+          <ArrowLeft className="w-5 h-5" />
+          Back
+        </Button>
+        <span className="ml-2 text-lg font-bold text-gray-800 font-serif">{featureName}</span>
       </div>
+
+      {/* Chat Area */}
       <div
         ref={containerRef}
-        className="px-4 py-4 max-h-[390px] min-h-[300px] overflow-y-auto space-y-4 bg-transparent"
+        className="flex-1 overflow-y-auto px-0 py-6 bg-white"
         style={{ scrollBehavior: "smooth" }}
       >
-        {messages.map((msg, idx) => (
-          <div
-            key={idx}
-            className={
-              msg.sender === "ai"
-                ? "text-left bg-white text-gray-900 font-medium px-4 py-3 rounded-lg mb-2 shadow-sm"
-                : "text-right bg-yellow-50 text-yellow-800 font-medium px-4 py-3 rounded-lg mb-2 shadow-sm"
-            }
-            style={
-              msg.sender === "user"
-                ? { background: "#fffce0", color: "#826300" }
-                : undefined
-            }
-          >
-            {msg.sender === "ai"
-              ? renderMessage(msg.text)
-              : <span className="font-semibold">{msg.text}</span>
-            }
-          </div>
-        ))}
+        <div className="max-w-2xl mx-auto flex flex-col gap-4">
+          {messages.map((msg, idx) => (
+            <div key={idx} className="relative w-full group">
+              <div
+                className={
+                  msg.sender === "ai"
+                    ? "bg-white text-gray-900 font-medium px-5 py-4 rounded-xl rounded-tl-md shadow-sm border border-gray-200 text-left"
+                    : "bg-blue-50 text-blue-900 font-medium px-5 py-4 rounded-xl rounded-tr-md shadow-sm border border-blue-200 text-right"
+                }
+                style={msg.sender === "user"
+                  ? { background: "#f5f7ff", color: "#114088" }
+                  : {}
+                }
+              >
+                {msg.sender === "ai"
+                  ? renderMessage(msg.text)
+                  : <span className="font-semibold">{msg.text}</span>
+                }
+              </div>
+              {/* Show Copy Button for AI messages only */}
+              {msg.sender === "ai" && (
+                <button
+                  className="absolute top-2 right-2 bg-gray-100 hover:bg-gray-200 rounded-lg p-1.5 shadow group/copy text-gray-500 transition-all"
+                  title={copiedIdx === idx ? "Copied" : "Copy"}
+                  onClick={() => handleCopy(msg.text, idx)}
+                >
+                  {copiedIdx === idx ? (
+                    <Check className="w-4 h-4 text-green-600" />
+                  ) : (
+                    <Copy className="w-4 h-4" />
+                  )}
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
       </div>
-      <form onSubmit={handleSend} className="flex gap-2 px-4 pb-4 pt-1 border-t border-white/10 items-center bg-white">
+
+      {/* Input */}
+      <form
+        onSubmit={handleSend}
+        className="bg-white border-t border-gray-200 px-4 py-4 flex gap-2 items-center shadow"
+        style={{ minHeight: "64px" }}
+      >
         <input
-          className="w-full bg-white text-gray-950 rounded-md px-3 py-2 border border-gray-200 focus:outline-none"
+          className="w-full bg-white text-gray-950 rounded-md px-3 py-2 border border-gray-300 focus:outline-none"
           placeholder="Type your query or details here…"
           value={input}
           onChange={e => setInput(e.target.value)}
           disabled={loading}
           autoFocus
         />
-        <Button type="submit" disabled={loading || !input.trim()} className="px-4 py-2">
+        <Button type="submit" disabled={loading || !input.trim()} className="px-5 py-2.5 bg-blue-600 text-white hover:bg-blue-700">
           {loading ? "Thinking..." : "Send"}
         </Button>
       </form>
-    </Card>
+    </div>
   );
-};
+}
 
 function getWelcomePrompt(feature: string, role: "lawyer" | "student") {
   // Used on init/new feature select
