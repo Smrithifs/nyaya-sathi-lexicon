@@ -274,7 +274,7 @@ const RoleFeatureChat: React.FC<RoleFeatureChatProps> = ({ featureName, role, on
           disabled={loading || !input.trim()}
           className="px-6 py-2.5 bg-blue-600 text-white hover:bg-blue-700 rounded-xl"
         >
-          {loading ? (regenerating ? "Regenerating..." : "Send")}
+          {loading ? (regenerating ? "Regenerating..." : "Send") : "Send"}
         </Button>
       </form>
 
