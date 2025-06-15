@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Gavel, Scale, Book, Badge, Users } from "lucide-react";
+import OpenAIKeyInput from "../components/OpenAIKeyInput";
 
 const languages = [
   { label: "English", code: "en" },
@@ -11,93 +12,37 @@ const languages = [
   { label: "ಕನ್ನಡ", code: "kn" }
 ];
 
-// Persona-based answer template for NyayaBot, with provided prompt:
-function generateNyayaBotAnswer(question: string, lang: string) {
-  // Define sections and examples by question keyword
-  let answerPart = {
-    section: "",
-    explanation: "",
-    example: ""
-  };
+async function fetchQAAIAnswer(question: string, lang: string, openaiKey: string) {
+  const prompt = `
+Question: ${question}
+Language: ${lang === "en" ? "English" : lang === "hi" ? "Hindi" : "Kannada"}
+Respond as a professional Indian law assistant. Clearly: 1) state the relevant law/section, 2) give an in-depth but clear explanation grounded in statutes, 3) provide an example with citation if possible, 4) always display a disclaimer that it is not legal advice. Respond in markdown, use bulleting/sections if necessary.
+`.trim();
 
-  if (/divorce/i.test(question)) {
-    answerPart = {
-      section: "Section 13, Hindu Marriage Act, 1955",
-      explanation:
-        "Under Section 13 of the Hindu Marriage Act, 1955, either spouse can file for a divorce on several grounds. These grounds include, but are not limited to: adultery (voluntary sexual intercourse with any person other than his or her spouse); cruelty (treating the petitioner with such cruelty as to cause a reasonable apprehension in the mind of the petitioner that it will be harmful or injurious for the petitioner to live with the other party); desertion for a continuous period of not less than two years; conversion to another religion; and incurable unsoundness of mind.",
-      example:
-        "For instance, if a person can prove in court that their spouse has been consistently physically or mentally cruel, making cohabitation impossible, they can petition for divorce. Evidence such as medical reports, witness testimonies, or police complaints can be used to support the claim of cruelty."
-    };
-  } else if (/theft|steal|stealing/i.test(question)) {
-    answerPart = {
-      section: "Section 378 & 379, Indian Penal Code (IPC)",
-      explanation: "Section 378 of the IPC defines theft as dishonestly taking any movable property out of the possession of any person without that person's consent. The intention to take dishonestly is a key ingredient. Section 379 then prescribes the punishment for theft, which can be imprisonment for a term which may extend to three years, or a fine, or both.",
-      example:
-        "For example, if an individual sees a laptop on a cafe table, and takes it while the owner is distracted with the intention of permanently keeping it, this constitutes theft. The individual can be prosecuted under Section 379 of the IPC upon a police complaint."
-    };
-  } else if (/arrest/i.test(question)) {
-    answerPart = {
-      section: "Section 41, Criminal Procedure Code (CrPC)",
-      explanation: "Section 41 of the CrPC empowers police officers to arrest individuals without a warrant under specific circumstances. This includes situations where a person commits a cognizable offence in the presence of an officer, or when there is a reasonable complaint, credible information, or a reasonable suspicion that a person has committed a cognizable offence punishable with imprisonment for a term which may be less than seven years or which may extend to seven years.",
-      example: "For example, if a police officer has credible information from an informant that a person is in possession of illegal firearms, the officer may arrest the suspect without a warrant under Section 41(1)(d) of the CrPC to prevent them from committing any further offence."
-    };
-  } else {
-    answerPart = {
-      section: "Section 10, Indian Contract Act, 1872",
-      explanation: "For a contract to be legally valid and enforceable in India, it must satisfy the conditions laid out in Section 10 of the Indian Contract Act. These essential elements include: a lawful offer and acceptance, free consent of the parties, lawful consideration and object, competency of the parties to contract, and the agreement must not be expressly declared void by law.",
-      example: "For instance, if person A agrees to sell their car to person B for a price of ₹5,00,000, and both parties are of sound mind, legal age, and have given their consent without coercion, this forms a valid contract. If A later refuses to sell, B can take legal action for breach of contract."
-    };
-  }
+  const res = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${openaiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: "gpt-4o",
+      messages: [
+        {
+          role: "system",
+          content: "You are NyayaBot, an Indian law professional answering queries in a friendly, clear, and citation-based manner.",
+        },
+        { role: "user", content: prompt }
+      ],
+      temperature: 0.2,
+      max_tokens: 800,
+    }),
+  });
 
-  // Multi-language friendly greetings and templates
-  const botName = {
-    en: "NyayaBot",
-    hi: "NyayaBot",
-    kn: "NyayaBot"
-  };
+  if (!res.ok) throw new Error("Failed to get answer from OpenAI. Please check your API key or try again.");
 
-  const intro = {
-    en: `👩‍⚖️ Hi, I am NyayaBot — a friendly, knowledgeable legal assistant trained in Indian laws such as the IPC, CrPC, and Indian Contract Act.`,
-    hi: "👩‍⚖️ नमस्ते, मैं NyayaBot हूँ — एक मित्रवत और जानकार कानूनी सहायक जो IPC, CrPC और भारतीय अनुबंध अधिनियम जैसे भारतीय कानूनों में प्रशिक्षित है।",
-    kn: "👩‍⚖️ ನಮಸ್ಕಾರ, ನಾನು NyayaBot — IPC, CrPC ಮತ್ತು ಭಾರತೀಯ ಒಪ್ಪಂದ ಕಾಯ್ದೆಯಂತಹ ಭಾರತೀಯ ಕಾನೂನುಗಳಲ್ಲಿ ಪರಿಣತ ಸಹಾಯಕರಾಗಿದ್ದೇನೆ."
-  };
-
-  const citation = {
-    en: `**Relevant Law Section:** ${answerPart.section}`,
-    hi: `**प्रासंगिक कानूनी खंड:** ${answerPart.section}`,
-    kn: `**ಸಂಬಂಧಿತ ಕಾನೂನು ವಿಭಾಗ:** ${answerPart.section}`
-  };
-
-  const explain = {
-    en: `**Explanation:** ${answerPart.explanation}`,
-    hi: `**स्पष्टीकरण:** ${answerPart.explanation}`,
-    kn: `**ವಿವರಣೆ:** ${answerPart.explanation}`
-  };
-
-  const eg = {
-    en: `**Example:** ${answerPart.example}`,
-    hi: `**उदाहरण:** ${answerPart.example}`,
-    kn: `**ಉದಾಹರಣೆ:** ${answerPart.example}`
-  };
-
-  const disclaimer = {
-    en: "*(This is for educational purposes only and is not personal legal advice or interpretation. For specific situations, consult a qualified lawyer.)*",
-    hi: "*(यह केवल शैक्षिक उद्देश्य हेतु है, व्यक्तिगत कानूनी सलाह या व्याख्या नहीं। कृपया अपनी स्थिति के लिए योग्य वकील से परामर्श करे।)*",
-    kn: "*(ಇದು ಆಶಯಾತ್ಮಕ ಉತ್ತಮಿಕೆಗಾಗಿ ಮಾತ್ರ ಮತ್ತು ವೈಯಕ್ತಿಕ ಕಾನೂನು ಸಲಹೆ ಅಥವಾ ವಿವರಣೆ ಅಲ್ಲ. ನಿಮ್ಮ ಸಂದರ್ಭದಲ್ಲಿ ದಯವಿಟ್ಟು ಯೋಗ್ಯವಾದ ವಕೀಲರನ್ನು ಸಂಪರ್ಕಿಸಿ.)*"
-  };
-
-  // Compose answer presentation, keeping markdown style (simulate)
-  let fullAnswer = `
-${intro[lang]}
-
-${citation[lang]}
-${explain[lang]}
-${eg[lang]}
-
-${disclaimer[lang]}
-  `;
-
-  return fullAnswer;
+  const data = await res.json();
+  return data.choices[0].message.content as string;
 }
 
 const QABot = () => {
@@ -105,21 +50,33 @@ const QABot = () => {
   const [lang, setLang] = useState("en");
   const [answer, setAnswer] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [keyModal, setKeyModal] = useState(false);
   const { toast } = useToast();
 
-  const handleAsk = (e: React.FormEvent) => {
+  async function handleAsk(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     setAnswer(null);
-    setTimeout(() => {
-      setAnswer(generateNyayaBotAnswer(question, lang));
+    const openaiKey = localStorage.getItem("openaiKey") || "";
+    if (!openaiKey) {
+      setKeyModal(true);
       setLoading(false);
-      toast({ title: "Answer ready!", description: `The response is in ${languages.find(l=>l.code===lang)?.label}` });
-    }, 1100);
-  };
+      return;
+    }
+    try {
+      const out = await fetchQAAIAnswer(question, lang, openaiKey);
+      setAnswer(out);
+      toast({ title: "Answer ready!", description: `The response is in ${languages.find(l => l.code === lang)?.label}` });
+    } catch (err: any) {
+      toast({ title: "OpenAI Error", description: err.message, variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
     <div className="relative z-0 min-h-screen flex items-center justify-center py-10 bg-gradient-to-br from-blue-100 via-blue-50 to-yellow-50 dark:from-blue-950 dark:via-gray-900 dark:to-yellow-900 transition-colors duration-500">
+      <OpenAIKeyInput open={keyModal} onClose={() => setKeyModal(false)} />
       {/* Law/justice theme decorative SVGs (top left, bottom right) */}
       <div className="absolute left-0 top-0 opacity-20 text-blue-200 dark:text-blue-800 pointer-events-none select-none z-0 w-60 -rotate-12">
         <svg viewBox="0 0 120 120" fill="none">
@@ -209,11 +166,9 @@ const QABot = () => {
                   <Book className="w-5 h-5 text-yellow-700 dark:text-yellow-200" />
                   <span className="font-semibold text-blue-900 dark:text-yellow-100 italic">NyayaBot’s Official Response</span>
                 </div>
-                <div className="rounded-xl py-6 px-7 bg-gradient-to-br from-yellow-50 via-blue-50 to-yellow-100 dark:from-blue-900 dark:via-blue-950 dark:to-yellow-900 border-2 border-yellow-300 dark:border-yellow-800 shadow-inner leading-relaxed space-y-2 text-base whitespace-pre-line text-blue-900 dark:text-yellow-100 font-serif relative">
-                  <div className="absolute -left-5 -top-4 rotate-6">
-                    <Scale size={32} className="text-yellow-400 dark:text-yellow-700 opacity-75" />
-                  </div>
-                  <span className="block">{answer}</span>
+                <div className="rounded-xl py-6 px-7 bg-gradient-to-br from-yellow-50 via-blue-50 to-yellow-100 dark:from-blue-900 dark:via-blue-950 dark:to-yellow-900 border-2 border-yellow-300 dark:border-yellow-800 shadow-inner leading-relaxed space-y-2 text-base whitespace-pre-line text-blue-900 dark:text-yellow-100 font-serif relative prose prose-base max-w-none">
+                  {/* Markdown render of answer */}
+                  <div dangerouslySetInnerHTML={{ __html: window.marked ? (window as any).marked(answer) : answer.replace(/\n/g, "<br/>") }} />
                   <div className="absolute -right-7 -bottom-5 rotate-12">
                     <Gavel size={30} className="text-blue-400 dark:text-blue-300 opacity-60" />
                   </div>

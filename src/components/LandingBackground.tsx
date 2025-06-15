@@ -1,55 +1,43 @@
+
 import React, { useRef, useEffect } from "react";
 
-// More lines, all dark blue variants for a "dense" smooth effect
 const LINES = [
-  { amplitude: 44, freq: 1, phase: 0, color: "rgba(23,62,124,0.78)", width: 3.5 },
-  { amplitude: 28, freq: 1.18, phase: Math.PI / 5, color: "rgba(36,81,177,0.43)", width: 2.7 },
-  { amplitude: 21, freq: 0.92, phase: Math.PI / 1.8, color: "rgba(24,53,112,0.42)", width: 2 },
-  { amplitude: 15, freq: 1.34, phase: Math.PI / 1.2, color: "rgba(23,62,124,0.23)", width: 1.7 },
-  { amplitude: 12, freq: 0.72, phase: Math.PI / 2.1, color: "rgba(25,64,130,0.15)", width: 1 },
-  { amplitude: 9, freq: 1.5, phase: Math.PI / 3.3, color: "rgba(19,46,87,0.13)", width: 0.8 },
-  // Added more lines for a denser effect
-  { amplitude: 50, freq: 0.8, phase: Math.PI / 4, color: "rgba(20,50,100,0.5)", width: 3 },
-  { amplitude: 35, freq: 1.2, phase: Math.PI / 1.5, color: "rgba(30,70,150,0.3)", width: 2 },
-  { amplitude: 18, freq: 1.6, phase: Math.PI / 2.5, color: "rgba(22,60,120,0.2)", width: 1.5 },
-  { amplitude: 10, freq: 2.0, phase: Math.PI / 6, color: "rgba(25,64,130,0.1)", width: 0.7 },
-  { amplitude: 38, freq: 0.6, phase: Math.PI / 1.1, color: "rgba(36,81,177,0.25)", width: 2.2 },
+  { amplitude: 50, freq: 1, phase: 0, color: "rgba(36,113,204,0.63)", width: 4 },
+  { amplitude: 32, freq: 1.15, phase: Math.PI / 4, color: "rgba(40,175,233,0.38)", width: 2.7 },
+  { amplitude: 22, freq: 0.92, phase: Math.PI / 2, color: "rgba(72,186,255,0.38)", width: 2 },
+  { amplitude: 17, freq: 1.36, phase: Math.PI / 1.2, color: "rgba(55,112,234,0.15)", width: 1.6 },
+  { amplitude: 12, freq: 0.75, phase: Math.PI / 1.5, color: "rgba(65,133,255,0.10)", width: 1 },
+  { amplitude: 9, freq: 1.6, phase: Math.PI / 2.1, color: "rgba(50,90,207,0.08)", width: 0.8 },
+  { amplitude: 36, freq: 1.2, phase: Math.PI / 3.2, color: "rgba(21,60,150,0.23)", width: 2.5 },
+  { amplitude: 60, freq: 0.78, phase: Math.PI / 1.1, color: "rgba(36,171,244,0.23)", width: 3.8 }
 ];
 
-// Draw a smooth sin or cos line for animation
-function drawTrigLine(
-  ctx: CanvasRenderingContext2D,
-  width: number,
-  height: number,
-  opts: { color: string; amplitude: number; freq: number; phase: number; width: number; anim: number }
-) {
+function drawTrigLine(ctx, width, height, opts) {
   ctx.save();
   ctx.beginPath();
-  const baseY = height * 0.64;
+  const baseY = height * 0.62;
   for (let x = 0; x <= width; x += 2) {
     const t = x / width;
-    // Smoother by limiting amplitude modulation for all, NOT crooked
     const y =
       baseY +
-      Math.sin(t * opts.freq * Math.PI * 2 + opts.phase + opts.anim * 0.72) * opts.amplitude +
-      Math.cos(t * opts.freq * Math.PI * 2 - opts.phase + opts.anim * 0.43) * (opts.amplitude * 0.27);
+      Math.sin(t * opts.freq * Math.PI * 2 + opts.phase + opts.anim * 1.1) * opts.amplitude +
+      Math.cos(t * opts.freq * Math.PI * 2 - opts.phase + opts.anim * 0.6) * (opts.amplitude * 0.22);
 
-    if (x === 0) {
-      ctx.moveTo(x, y);
-    } else {
-      ctx.lineTo(x, y);
-    }
+    if (x === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
   }
   ctx.strokeStyle = opts.color;
   ctx.lineWidth = opts.width;
   ctx.shadowColor = opts.color;
-  ctx.shadowBlur = opts.width * 3.8;
+  ctx.shadowBlur = opts.width * 3.4;
+  ctx.globalAlpha = 0.88;
   ctx.stroke();
   ctx.restore();
 }
 
 const LandingBackground: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+
   useEffect(() => {
     let running = true;
     const canvas = canvasRef.current!;
@@ -68,21 +56,41 @@ const LandingBackground: React.FC = () => {
     setupCanvas();
     window.addEventListener("resize", setupCanvas);
 
+    let landingAnim = 0, finished = false;
+    function landingEffect(time: number) {
+      landingAnim += 0.04;
+      ctx.clearRect(0, 0, width, height);
+      ctx.fillStyle = "#121a36";
+      ctx.fillRect(0, 0, width, height);
+
+      const progress = Math.min(1, landingAnim / 1.3);
+      LINES.forEach((line, i) => {
+        drawTrigLine(ctx, width, height, {
+          ...line,
+          amplitude: line.amplitude * progress * (1 + i * 0.08),
+          anim: time / 1100 + i,
+        });
+      });
+
+      if (progress < 1 && running) requestAnimationFrame(landingEffect);
+      else {
+        finished = true;
+        requestAnimationFrame(draw);
+      }
+    }
     function draw(time: number) {
       ctx.clearRect(0, 0, width, height);
-      // Black background
-      ctx.fillStyle = "#0c1020";
+      ctx.fillStyle = "#121a36";
       ctx.fillRect(0, 0, width, height);
-      // Draw smooth animated wave lines
-      for (let i = 0; i < LINES.length; i++) {
+      LINES.forEach((line, i) =>
         drawTrigLine(ctx, width, height, {
-          ...LINES[i],
-          anim: time / 1400 + i * 1.2,
-        });
-      }
-      if (running) requestAnimationFrame(draw);
+          ...line,
+          anim: time / 1100 + i * 1.26,
+        })
+      );
+      if (running && finished) requestAnimationFrame(draw);
     }
-    requestAnimationFrame(draw);
+    landingEffect(0);
 
     return () => {
       running = false;
@@ -98,7 +106,7 @@ const LandingBackground: React.FC = () => {
         width: "100vw",
         height: "100vh",
         objectFit: "cover",
-        background: "#000",
+        background: "#121a36",
         transition: "background .8s",
       }}
       aria-hidden="true"
@@ -107,3 +115,4 @@ const LandingBackground: React.FC = () => {
 };
 
 export default LandingBackground;
+
