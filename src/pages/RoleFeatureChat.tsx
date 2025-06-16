@@ -1,7 +1,8 @@
+
 import React, { useState, useRef, useEffect } from "react";
 import { groqCompletion } from "@/utils/groqApi";
 import { Button } from "@/components/ui/button";
-import { Copy, Check, ArrowLeft } from "lucide-react";
+import { Copy, Check, ArrowLeft, Plus } from "lucide-react";
 import Flashcard from "@/components/Flashcard";
 import DocumentUpload from "@/components/DocumentUpload";
 import { useToast } from "@/hooks/use-toast";
@@ -19,8 +20,8 @@ const systemPrompts: Record<string, string> = {
   "Legal Draft Templates": "You are LegalOps AI. Ask for doc type (Affidavit, Will, Notice, etc.), parties, and autofill details. Output editable legal draft. End with disclaimer.",
   "Voice Dictation → Legal Format": "You are LegalOps AI. Take raw voice transcription and output a legally formatted, grammatical statement. End with disclaimer.",
   "Multi-Language Support": "You are LegalOps AI. Translate legal answers or documents into Hindi/Kannada/Tamil/Telugu/Marathi, retaining tone. Ask for language if needed. End with disclaimer.",
-  "Citation Checker": "You are LegalOps AI. Check Indian case citation/title for status. Simulate Overruled/Followed/Valid if not verifiable. End with disclaimer.",
-  "Client Brief Summary Tool": "You are LegalOps AI. Accept facts/PDF/Word digest and return a 5-line summary of Facts, Issues, Defense, Judgment, Relevance. Flag if document unclear. End with disclaimer.",
+  "Citation Checker": "You are LegalOps AI with document analysis capabilities. Check Indian case citation/title for status and analyze uploaded documents for citation validity. When users reference uploaded documents, verify citations within them and provide status reports. Simulate Overruled/Followed/Valid if not verifiable. End with disclaimer.",
+  "Client Brief Summary Tool": "You are LegalOps AI with document analysis capabilities. Accept facts/PDF/Word digest from uploaded documents and return a 5-line summary of Facts, Issues, Defense, Judgment, Relevance. When users reference uploaded documents, analyze and summarize their content. Flag if document unclear. End with disclaimer.",
   "Hearing/Deadline Tracker": "You are LegalOps AI. Accept court date/case name, return a reminder and a Google Calendar format string. End with disclaimer.",
   // Student tools:
   "Topic-Wise Quiz Generator": "You are LegalOps AI. Ask for legal subject/topic. Output 5 MCQs with answers and brief explanations for each. End with disclaimer.",
@@ -66,13 +67,14 @@ const RoleFeatureChat: React.FC<RoleFeatureChatProps> = ({ featureName, role, on
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
   const [regenerating, setRegenerating] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const [showUpload, setShowUpload] = useState(false);
 
   // Document upload states
   const [uploadedDocuments, setUploadedDocuments] = useState<UploadedDocument[]>([]);
   const { toast } = useToast();
 
   // Check if this feature supports document upload
-  const supportsDocumentUpload = featureName === "Legal Q&A (NyayaBot)";
+  const supportsDocumentUpload = ["Legal Q&A (NyayaBot)", "Citation Checker", "Client Brief Summary Tool"].includes(featureName);
 
   function getSystemPrompt() {
     if (featureName === "Legal Q&A (NyayaBot)" && role === "student") {
@@ -84,6 +86,7 @@ const RoleFeatureChat: React.FC<RoleFeatureChatProps> = ({ featureName, role, on
   // Handle document uploads
   const handleDocumentsUploaded = (documents: UploadedDocument[]) => {
     setUploadedDocuments(prev => [...prev, ...documents]);
+    setShowUpload(false);
   };
 
   const handleRemoveDocument = (documentId: string) => {
@@ -328,17 +331,6 @@ const RoleFeatureChat: React.FC<RoleFeatureChatProps> = ({ featureName, role, on
         </div>
       </div>
 
-      {/* Document Upload Section - Only for supported features */}
-      {supportsDocumentUpload && (
-        <div className="border-b bg-gray-50 p-4">
-          <DocumentUpload
-            onDocumentsUploaded={handleDocumentsUploaded}
-            uploadedDocuments={uploadedDocuments}
-            onRemoveDocument={handleRemoveDocument}
-          />
-        </div>
-      )}
-
       {/* Main chat area */}
       <div
         ref={containerRef}
@@ -357,6 +349,31 @@ const RoleFeatureChat: React.FC<RoleFeatureChatProps> = ({ featureName, role, on
           </div>
         </div>
       </div>
+
+      {/* Document Upload Modal */}
+      {showUpload && supportsDocumentUpload && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold">Upload Documents</h3>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowUpload(false)}
+                >
+                  ✕
+                </Button>
+              </div>
+              <DocumentUpload
+                onDocumentsUploaded={handleDocumentsUploaded}
+                uploadedDocuments={uploadedDocuments}
+                onRemoveDocument={handleRemoveDocument}
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Input box */}
       <form
@@ -381,13 +398,26 @@ const RoleFeatureChat: React.FC<RoleFeatureChatProps> = ({ featureName, role, on
             autoFocus
           />
         </div>
-        <Button
-          type="submit"
-          disabled={loading || !input.trim()}
-          className="px-6 py-2.5 bg-blue-600 text-white hover:bg-blue-700 rounded-xl mt-2 md:mt-0"
-        >
-          {loading ? (regenerating ? "Regenerating..." : "Send") : "Send"}
-        </Button>
+        <div className="flex gap-2">
+          {supportsDocumentUpload && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setShowUpload(true)}
+              className="px-3 py-2.5 rounded-xl"
+            >
+              <Plus className="w-4 h-4" />
+            </Button>
+          )}
+          <Button
+            type="submit"
+            disabled={loading || !input.trim()}
+            className="px-6 py-2.5 bg-blue-600 text-white hover:bg-blue-700 rounded-xl mt-2 md:mt-0"
+          >
+            {loading ? (regenerating ? "Regenerating..." : "Send") : "Send"}
+          </Button>
+        </div>
       </form>
 
       {/* Regenerate/Back actions */}
@@ -418,10 +448,16 @@ const RoleFeatureChat: React.FC<RoleFeatureChatProps> = ({ featureName, role, on
 
 function getWelcomePrompt(feature: string, role: "lawyer" | "student") {
   if (feature === "Legal Q&A (NyayaBot)" && role === "student") {
-    return "You are using LegalOps AI — a highly responsive legal assistant for Indian law students with document analysis capabilities. Upload documents (PDF, DOCX, TXT, images) to get AI-powered summaries, explanations, and legal insights. Ask questions like 'Summarize document 1' or 'Explain the legal terms in document 2'.";
+    return "You are using LegalOps AI — a highly responsive legal assistant for Indian law students with document analysis capabilities. Click the + button to upload documents (PDF, DOCX, TXT, images) for AI-powered summaries, explanations, and legal insights. Ask questions like 'Summarize document 1' or 'Explain the legal terms in document 2'.";
   }
   if (feature === "Legal Q&A (NyayaBot)" && role === "lawyer") {
-    return "You are using LegalOps AI — a highly responsive legal assistant for Indian lawyers with advanced document analysis. Upload multiple documents for AI-powered analysis, summarization, and legal insights. Reference documents in your queries for detailed analysis and comparisons.";
+    return "You are using LegalOps AI — a highly responsive legal assistant for Indian lawyers with advanced document analysis. Click the + button to upload multiple documents for AI-powered analysis, summarization, and legal insights. Reference documents in your queries for detailed analysis and comparisons.";
+  }
+  if (feature === "Citation Checker") {
+    return "You are using the Citation Checker tool. Click the + button to upload legal documents to verify citations within them, or simply enter case citations to check their current legal status.";
+  }
+  if (feature === "Client Brief Summary Tool") {
+    return "You are using the Client Brief Summary Tool. Click the + button to upload case documents, briefs, or legal files for AI-powered analysis and summarization into clear, structured summaries.";
   }
   return `You are using the feature: ${feature}. Please provide input to proceed.`;
 }
