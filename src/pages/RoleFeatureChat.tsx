@@ -3,6 +3,7 @@ import { groqCompletion } from "@/utils/groqApi";
 import { Button } from "@/components/ui/button";
 import { Copy, Check, ArrowLeft } from "lucide-react";
 import Flashcard from "@/components/Flashcard";
+import DocumentUpload from "@/components/DocumentUpload";
 import { useToast } from "@/hooks/use-toast";
 
 // Define the GROQ API key as requested
@@ -10,8 +11,8 @@ const GROQ_API_KEY = "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";
 
 // Maps for system prompts per-feature:
 const systemPrompts: Record<string, string> = {
-  "Contract Generator": "You are LegalOps AI. Guide an Indian lawyer to generate a professional contract using Mixtral/Mistral. Ask for contract type, parties’ names, date, jurisdiction, clauses, then output a legally formatted doc. End with the legal disclaimer.",
-  "Legal Q&A (NyayaBot)": "You are LegalOps AI. Answer Indian legal questions citing applicable law/sections and examples, never giving personal advice. End with legal disclaimer: 'This is an AI-generated legal response and not a substitute for professional legal advice.'",
+  "Contract Generator": "You are LegalOps AI. Guide an Indian lawyer to generate a professional contract using Mixtral/Mistral. Ask for contract type, parties' names, date, jurisdiction, clauses, then output a legally formatted doc. End with the legal disclaimer.",
+  "Legal Q&A (NyayaBot)": "You are LegalOps AI, an expert in Indian law with document analysis capabilities. When users reference uploaded documents (like 'document 1', 'first document', etc.), analyze the provided document content. You can summarize, explain legal terms, compare documents, and answer questions about their legal implications. Always cite applicable Indian law sections and provide examples. End with legal disclaimer: 'This is an AI-generated legal response and not a substitute for professional legal advice.'",
   "Case Law Finder": "You are LegalOps AI. Ask for case law keywords or section numbers, output simulated results: case name, year, court, and 1-line summary. End with legal disclaimer.",
   "Section Explainer": "You are LegalOps AI. Explain any IPC/CrPC/CPC/etc. section in simple English, including punishment, example, and related sections. End with legal disclaimer.",
   "Bare Act Navigator": "You are LegalOps AI. Let users jump to any section/chapter, show collapsible summaries/internal links. End with disclaimer.",
@@ -30,10 +31,20 @@ const systemPrompts: Record<string, string> = {
   "Doubt Forum (Ask Senior)": "You are LegalOps AI, simulating a senior law student mentor. Accept question, mentor with sections/examples and encouragement. End with disclaimer.",
   "Mock Test Generator": "You are LegalOps AI. Ask for topic/subject. Output 10-20 MCQs/short Qs, provide answer key at end. End with disclaimer.",
   "Study Plan Generator": "You are LegalOps AI. Ask for weeks till exam and subjects, return weekly plan. Add motivational quotes. End with disclaimer.",
-  "Legal Q&A (NyayaBot)_student": "You are LegalOps AI. Indian student mode: Answer legal queries with simplified language, analogies, and stepwise explanations, avoiding jargon. End with disclaimer.",
+  "Legal Q&A (NyayaBot)_student": "You are LegalOps AI in student mode with document analysis capabilities. When users reference uploaded documents, provide simplified explanations using analogies and step-by-step breakdowns. Analyze document content for legal terms, explain concepts in simple language, and help with document comprehension. End with disclaimer.",
   "Case Explainer": "You are LegalOps AI. Ask case name, produce diagram/flow summary, key points, and exam tips. End with disclaimer.",
 };
+
 const FLASHCARD_FEATURE = "Flashcards (Legal Terms)";
+
+interface UploadedDocument {
+  id: string;
+  filename: string;
+  type: string;
+  content: string;
+  size: number;
+  uploadedAt: string;
+}
 
 interface RoleFeatureChatProps {
   featureName: string;
@@ -56,14 +67,12 @@ const RoleFeatureChat: React.FC<RoleFeatureChatProps> = ({ featureName, role, on
   const [regenerating, setRegenerating] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // New state for file upload
-  const [attachedFile, setAttachedFile] = useState<File | null>(null);
-  const [fileContent, setFileContent] = useState<string | null>(null);
+  // Document upload states
+  const [uploadedDocuments, setUploadedDocuments] = useState<UploadedDocument[]>([]);
   const { toast } = useToast();
 
-  // Supported features for document upload
-  const supportsDocumentUpload =
-    featureName === "Legal Q&A (NyayaBot)" && role === "lawyer";
+  // Check if this feature supports document upload
+  const supportsDocumentUpload = featureName === "Legal Q&A (NyayaBot)";
 
   function getSystemPrompt() {
     if (featureName === "Legal Q&A (NyayaBot)" && role === "student") {
@@ -72,15 +81,36 @@ const RoleFeatureChat: React.FC<RoleFeatureChatProps> = ({ featureName, role, on
     return systemPrompts[featureName] || "You are LegalOps AI.";
   }
 
+  // Handle document uploads
+  const handleDocumentsUploaded = (documents: UploadedDocument[]) => {
+    setUploadedDocuments(prev => [...prev, ...documents]);
+  };
+
+  const handleRemoveDocument = (documentId: string) => {
+    setUploadedDocuments(prev => prev.filter(doc => doc.id !== documentId));
+    toast({
+      title: "Document removed",
+      description: "Document has been removed from this session",
+    });
+  };
+
+  // Create document context for AI
+  const createDocumentContext = () => {
+    if (uploadedDocuments.length === 0) return "";
+    
+    const documentInfo = uploadedDocuments.map((doc, index) => {
+      return `Document ${index + 1} (${doc.filename}):\n${doc.content}\n---\n`;
+    }).join("\n");
+
+    return `\n\nUploaded Documents Context:\n${documentInfo}`;
+  };
+
   // *** FLASHCARD PARSER ***
-  // Only for Flashcards feature and AI message
   function parseFlashcards(aiText: string): { question: string, answer: string }[] | null {
-    // Look for "**Flashcard" or "Flashcard X" blocks
     if (featureName !== FLASHCARD_FEATURE) return null;
     const parts = aiText.split(/\*\*Flashcard \d+\*\*/).filter(Boolean);
     if (!parts.length) return null;
     const flashcards = parts.map(block => {
-      // Look for Q: ...\nA: ...
       const qMatch = block.match(/Q:\s?([^\n]+)\n?/);
       const aMatch = block.match(/A:\s?([\s\S]+)/);
       if (!qMatch || !aMatch) return null;
@@ -161,79 +191,6 @@ const RoleFeatureChat: React.FC<RoleFeatureChatProps> = ({ featureName, role, on
     );
   }
 
-  // Read file contents
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setAttachedFile(file);
-
-    const fileType = file.type;
-    if (
-      fileType === "application/pdf" ||
-      file.name.endsWith(".pdf")
-    ) {
-      // --- PATCH FOR TS + VITE + PDFJS-LEGACY ---
-      let pdfjsLib: any;
-      try {
-        // @ts-ignore
-        pdfjsLib = require("pdfjs-dist/legacy/build/pdf");
-      } catch {
-        try {
-          // Dynamic import as fallback (when require is not available)
-          // @ts-ignore
-          pdfjsLib = (await import("pdfjs-dist/legacy/build/pdf")) as any;
-        } catch (err) {
-          setAttachedFile(null);
-          setFileContent(null);
-          toast({ title: "PDF error", description: "PDF.js could not be loaded.", variant: "destructive" });
-          return;
-        }
-      }
-      // Set workerSrc for browser loading
-      if (pdfjsLib.GlobalWorkerOptions) {
-        pdfjsLib.GlobalWorkerOptions.workerSrc =
-          "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.2.67/pdf.worker.min.js";
-      }
-      const arrayBuffer = await file.arrayBuffer();
-      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-      let text = "";
-      for (let i = 1; i <= pdf.numPages; i++) {
-        const page = await pdf.getPage(i);
-        const content = await page.getTextContent();
-        text += content.items.map((item: any) => item.str).join(" ") + "\n";
-      }
-      setFileContent(text);
-      toast({ title: "PDF loaded", description: "Document is ready to send." });
-    } else if (
-      fileType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
-      file.name.endsWith(".docx")
-    ) {
-      // Word docx parsing (lazy-load mammoth)
-      const mammoth = await import("mammoth");
-      const arrayBuffer = await file.arrayBuffer();
-      const { value } = await mammoth.convertToHtml({ arrayBuffer });
-      setFileContent(value.replace(/<[^>]*>/g, "")); // Strip HTML to plain text
-      toast({ title: "Word document loaded", description: "Document is ready to send." });
-    } else if (
-      fileType.startsWith("text/") ||
-      file.name.endsWith(".txt")
-    ) {
-      // Plain text file
-      const text = await file.text();
-      setFileContent(text);
-      toast({ title: "Text file loaded", description: "Document is ready to send." });
-    } else {
-      setAttachedFile(null);
-      setFileContent(null);
-      toast({ title: "Unsupported file", description: "Please upload PDF, DOCX, or TXT files.", variant: "destructive" });
-    }
-  };
-
-  const handleRemoveFile = () => {
-    setAttachedFile(null);
-    setFileContent(null);
-  };
-
   // Simple markdown-like converter for AI (code block, bold, list, line breaks)
   function renderAiMarkup(text: string) {
     let html = text
@@ -258,21 +215,24 @@ const RoleFeatureChat: React.FC<RoleFeatureChatProps> = ({ featureName, role, on
 
   async function handleSend(e: React.FormEvent) {
     e.preventDefault();
-    if ((!input.trim() && !fileContent) || loading) return;
+    if (!input.trim() || loading) return;
+    
+    // Add document context to the user input if documents are uploaded
     let userInput = input;
-    if (fileContent) {
-      userInput += `\n\n---\nAttached Document Content (for summarization/explanation):\n${fileContent}\n---\n`;
+    const documentContext = createDocumentContext();
+    if (documentContext && supportsDocumentUpload) {
+      userInput += documentContext;
     }
-    const newMsg: Message = { sender: "user", text: userInput };
+    
+    const newMsg: Message = { sender: "user", text: input }; // Display only the user's actual input
     setMessages((msgs) => [...msgs, newMsg]);
     setInput("");
     setLoading(true);
-    setAttachedFile(null);
-    setFileContent(null);
+    
     try {
       const context = messages
         .map(m => (m.sender === "user" ? `User: ${m.text}` : `AI: ${m.text}`))
-        .join("\n") + `\nUser: ${userInput}`;
+        .join("\n") + `\nUser: ${userInput}`; // Include document context in AI context
 
       const aiReply = await groqCompletion({
         apiKey: GROQ_API_KEY,
@@ -293,14 +253,13 @@ const RoleFeatureChat: React.FC<RoleFeatureChatProps> = ({ featureName, role, on
 
   // Regenerate (repeat last user input)
   async function handleRegenerate() {
-    // Only allow if not currently generating and there is a user message to regen
     const lastUser = [...messages].reverse().find(m => m.sender === "user");
     if (!lastUser) return;
     setRegenerating(true);
     setLoading(true);
     try {
       const context = messages
-        .filter((_, i, arr) => i < arr.lastIndexOf(lastUser)) // cut at previous user input
+        .filter((_, i, arr) => i < arr.lastIndexOf(lastUser))
         .map(m => (m.sender === "user" ? `User: ${m.text}` : `AI: ${m.text}`))
         .join("\n") + `\nUser: ${lastUser.text}`;
       const aiReply = await groqCompletion({
@@ -309,7 +268,6 @@ const RoleFeatureChat: React.FC<RoleFeatureChatProps> = ({ featureName, role, on
         systemInstruction: getSystemPrompt(),
         language: "English"
       });
-      // slice to just before last user, replay to that point then new user message, then new AI answer
       const baseMsgs = messages.slice(0, messages.lastIndexOf(lastUser) + 1);
       setMessages([...baseMsgs, { sender: "ai", text: aiReply }]);
     } catch {
@@ -333,7 +291,6 @@ const RoleFeatureChat: React.FC<RoleFeatureChatProps> = ({ featureName, role, on
   // Copy button for AI message (no copy for welcome)
   const handleCopy = async (text: string, idx: number) => {
     try {
-      // Remove markdown for clipboard
       await navigator.clipboard.writeText(text.replace(/\*\*/g, ""));
       setCopiedIdx(idx);
       setTimeout(() => setCopiedIdx(null), 1300);
@@ -365,14 +322,27 @@ const RoleFeatureChat: React.FC<RoleFeatureChatProps> = ({ featureName, role, on
         </Button>
         <div className="ml-3">
           <div className="text-xl md:text-2xl font-bold text-gray-800 font-serif">{featureName}</div>
-          {/* Short description placeholder; you can add if needed */}
+          {supportsDocumentUpload && (
+            <div className="text-xs text-blue-600">📄 Document analysis enabled</div>
+          )}
         </div>
       </div>
+
+      {/* Document Upload Section - Only for supported features */}
+      {supportsDocumentUpload && (
+        <div className="border-b bg-gray-50 p-4">
+          <DocumentUpload
+            onDocumentsUploaded={handleDocumentsUploaded}
+            uploadedDocuments={uploadedDocuments}
+            onRemoveDocument={handleRemoveDocument}
+          />
+        </div>
+      )}
+
       {/* Main chat area */}
       <div
         ref={containerRef}
         className="flex-1 overflow-y-auto flex flex-col px-2 md:px-0 pb-36"
-        // Increased bottom padding (pb-36) ensures input/actions never cover last message
         style={{
           minHeight: 0,
           background: "#fff",
@@ -387,7 +357,8 @@ const RoleFeatureChat: React.FC<RoleFeatureChatProps> = ({ featureName, role, on
           </div>
         </div>
       </div>
-      {/* Input box (always visible, sticky bottom, above action buttons; z-30 ensures priority) */}
+
+      {/* Input box */}
       <form
         onSubmit={handleSend}
         className="fixed bottom-[56px] left-0 w-full flex flex-col md:flex-row items-end gap-2 px-2 py-4 border-t bg-white z-30"
@@ -399,48 +370,27 @@ const RoleFeatureChat: React.FC<RoleFeatureChatProps> = ({ featureName, role, on
         <div className="flex-1 flex flex-col">
           <input
             className="w-full h-[52px] max-h-[90px] text-lg bg-[#f7f7fa] text-gray-950 rounded-xl px-4 py-3 border border-gray-200 focus:outline-none transition mb-2"
-            placeholder="Type your query or details here…"
+            placeholder={
+              supportsDocumentUpload && uploadedDocuments.length > 0
+                ? "Ask about your documents: 'Summarize document 1', 'Compare doc 1 and 2'..."
+                : "Type your query or details here…"
+            }
             value={input}
             onChange={e => setInput(e.target.value)}
             disabled={loading}
             autoFocus
           />
-          {/* Show attach file only for supported feature */}
-          {supportsDocumentUpload && (
-            <div className="flex items-center gap-3">
-              <label className="text-sm font-medium block">
-                Attach a document
-                <input
-                  type="file"
-                  accept=".pdf,.docx,.txt"
-                  className="block mt-1"
-                  onChange={handleFileChange}
-                  disabled={loading || !!attachedFile}
-                />
-              </label>
-              {attachedFile && (
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-blue-700 font-bold">
-                    {attachedFile.name}
-                  </span>
-                  <Button type="button" size="sm" variant="ghost" onClick={handleRemoveFile}>
-                    Remove
-                  </Button>
-                </div>
-              )}
-            </div>
-          )}
         </div>
         <Button
           type="submit"
-          disabled={loading || (!input.trim() && !fileContent)}
+          disabled={loading || !input.trim()}
           className="px-6 py-2.5 bg-blue-600 text-white hover:bg-blue-700 rounded-xl mt-2 md:mt-0"
         >
           {loading ? (regenerating ? "Regenerating..." : "Send") : "Send"}
         </Button>
       </form>
 
-      {/* Regenerate/Back actions: now sticky at bottom, never overlaps input */}
+      {/* Regenerate/Back actions */}
       {aiRespCount > 0 && (
         <div className="fixed bottom-0 left-0 w-full z-20 flex flex-row items-center justify-center gap-4 py-3 border-t bg-white shadow-2xl">
           <Button
@@ -468,10 +418,10 @@ const RoleFeatureChat: React.FC<RoleFeatureChatProps> = ({ featureName, role, on
 
 function getWelcomePrompt(feature: string, role: "lawyer" | "student") {
   if (feature === "Legal Q&A (NyayaBot)" && role === "student") {
-    return "You are using LegalOps AI — a highly responsive legal assistant for Indian law students. This feature: Legal Q&A (NyayaBot). Please provide your input, or ask a question.";
+    return "You are using LegalOps AI — a highly responsive legal assistant for Indian law students with document analysis capabilities. Upload documents (PDF, DOCX, TXT, images) to get AI-powered summaries, explanations, and legal insights. Ask questions like 'Summarize document 1' or 'Explain the legal terms in document 2'.";
   }
   if (feature === "Legal Q&A (NyayaBot)" && role === "lawyer") {
-    return "You are using LegalOps AI — a highly responsive legal assistant for Indian lawyers. This feature: Legal Q&A (NyayaBot). Please provide your input, or ask a question.";
+    return "You are using LegalOps AI — a highly responsive legal assistant for Indian lawyers with advanced document analysis. Upload multiple documents for AI-powered analysis, summarization, and legal insights. Reference documents in your queries for detailed analysis and comparisons.";
   }
   return `You are using the feature: ${feature}. Please provide input to proceed.`;
 }
