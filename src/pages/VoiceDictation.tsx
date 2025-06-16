@@ -2,10 +2,12 @@
 import React, { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { useNavigate } from "react-router-dom";
 import { groqCompletion } from "@/utils/groqApi";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Mic, MicOff, Play, Pause } from "lucide-react";
+import { Loader2, Mic, MicOff, Download, Edit, FileText, FileImage } from "lucide-react";
 
 const VoiceDictation = () => {
   const navigate = useNavigate();
@@ -14,6 +16,8 @@ const VoiceDictation = () => {
   const [transcription, setTranscription] = useState("");
   const [formattedDocument, setFormattedDocument] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [documentFormat, setDocumentFormat] = useState("text");
+  const [isEditing, setIsEditing] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
 
@@ -32,7 +36,6 @@ const VoiceDictation = () => {
 
       mediaRecorder.onstop = () => {
         const audioBlob = new Blob(chunksRef.current, { type: 'audio/wav' });
-        // For now, we'll simulate transcription since we don't have a real audio-to-text API
         simulateTranscription();
       };
 
@@ -61,7 +64,6 @@ const VoiceDictation = () => {
   };
 
   const simulateTranscription = () => {
-    // Simulate transcription for demo purposes
     const sampleText = "I would like to file a petition in the honorable court regarding the matter of property dispute. The petitioner is seeking relief under section 9 of the specific relief act. The facts of the case are as follows...";
     setTranscription(sampleText);
     toast({
@@ -121,6 +123,57 @@ Format it as a complete, professional legal document.`;
     }
   };
 
+  const downloadDocument = () => {
+    if (!formattedDocument) return;
+
+    let content = formattedDocument;
+    let filename = "legal-document";
+    let mimeType = "text/plain";
+
+    if (documentFormat === "pdf") {
+      // For PDF, we'll create HTML that can be printed to PDF
+      content = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Legal Document</title>
+          <style>
+            body { font-family: Times, serif; line-height: 1.6; margin: 40px; }
+            h1, h2, h3 { text-align: center; margin-bottom: 20px; }
+            .content { white-space: pre-wrap; }
+          </style>
+        </head>
+        <body>
+          <div class="content">${formattedDocument.replace(/\n/g, '<br>')}</div>
+        </body>
+        </html>
+      `;
+      filename = "legal-document.html";
+      mimeType = "text/html";
+    } else if (documentFormat === "word") {
+      // Create a basic RTF format that Word can open
+      content = `{\\rtf1\\ansi\\deff0 {\\fonttbl {\\f0 Times New Roman;}}
+        \\f0\\fs24 ${formattedDocument.replace(/\n/g, '\\par ')}}`;
+      filename = "legal-document.rtf";
+      mimeType = "application/rtf";
+    }
+
+    const blob = new Blob([content], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    toast({
+      title: "Document Downloaded",
+      description: `Document saved as ${filename}`
+    });
+  };
+
   const copyToClipboard = () => {
     navigator.clipboard.writeText(formattedDocument);
     toast({
@@ -163,12 +216,23 @@ Format it as a complete, professional legal document.`;
 
             {transcription && (
               <div>
-                <label className="block text-sm font-medium mb-2">Transcription</label>
-                <textarea
+                <div className="flex justify-between items-center mb-2">
+                  <label className="block text-sm font-medium">Transcription</label>
+                  <Button
+                    onClick={() => setIsEditing(!isEditing)}
+                    variant="outline"
+                    size="sm"
+                  >
+                    <Edit className="w-4 h-4 mr-2" />
+                    {isEditing ? "Save" : "Edit"}
+                  </Button>
+                </div>
+                <Textarea
                   value={transcription}
                   onChange={(e) => setTranscription(e.target.value)}
+                  readOnly={!isEditing}
                   rows={4}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className={`w-full ${!isEditing ? 'bg-gray-50' : ''}`}
                 />
                 <Button 
                   onClick={formatDocument} 
@@ -193,15 +257,33 @@ Format it as a complete, professional legal document.`;
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>Formatted Legal Document</CardTitle>
-              <Button onClick={copyToClipboard} variant="outline" size="sm">
-                Copy Document
-              </Button>
+              <div className="flex gap-2">
+                <Select value={documentFormat} onValueChange={setDocumentFormat}>
+                  <SelectTrigger className="w-32">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="text">Text</SelectItem>
+                    <SelectItem value="word">Word</SelectItem>
+                    <SelectItem value="pdf">PDF</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button onClick={downloadDocument} variant="outline" size="sm">
+                  <Download className="w-4 h-4 mr-2" />
+                  Download
+                </Button>
+                <Button onClick={copyToClipboard} variant="outline" size="sm">
+                  Copy
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
               <div className="bg-gray-50 p-4 rounded-md">
-                <pre className="whitespace-pre-wrap font-mono text-sm leading-relaxed">
-                  {formattedDocument}
-                </pre>
+                <Textarea
+                  value={formattedDocument}
+                  onChange={(e) => setFormattedDocument(e.target.value)}
+                  className="min-h-96 font-mono text-sm leading-relaxed border-none bg-transparent resize-none"
+                />
               </div>
             </CardContent>
           </Card>
