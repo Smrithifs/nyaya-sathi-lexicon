@@ -14,7 +14,8 @@ const GROQ_API_KEY = "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";
 const systemPrompts: Record<string, string> = {
   "Contract Generator": "You are LegalOps AI. Guide an Indian lawyer to generate a professional contract using Mixtral/Mistral. Ask for contract type, parties' names, date, jurisdiction, clauses, then output a legally formatted doc. End with the legal disclaimer.",
   "Legal Q&A (NyayaBot)": "You are LegalOps AI, an expert in Indian law with document analysis capabilities. When users reference uploaded documents (like 'document 1', 'first document', etc.), analyze the provided document content. You can summarize, explain legal terms, compare documents, and answer questions about their legal implications. Always cite applicable Indian law sections and provide examples. End with legal disclaimer: 'This is an AI-generated legal response and not a substitute for professional legal advice.'",
-  "Case Law Finder": "You are LegalOps AI. Ask for case law keywords or section numbers, output simulated results: case name, year, court, and 1-line summary. End with legal disclaimer.",
+  "Case Law Finder": "🔍 You are a senior legal researcher trained in Indian jurisprudence. Generate landmark Indian case law summaries for Supreme Court or High Court judgments. Follow the exact structure: Case Title, Citation (AIR/SCC/SCR), Date, Court & Bench, then 5 sections: Summary of Facts (300+ words), Legal Issues (200+ words), Judgment & Holding (400+ words), Ratio Decidendi (300+ words), Legal Significance (200+ words). Each case minimum 1200 words. Only Indian-origin judgments. Academic/textbook format. End with disclaimer.",
+  "Case Brief Generator": "🔍 You are a senior legal researcher trained in Indian jurisprudence. Generate comprehensive Indian case briefs following this EXACT structure: ▶ CASE TITLE, ▶ CITATION (AIR/SCC/SCR), ▶ DATE OF JUDGMENT, ▶ COURT & BENCH, then 5 numbered sections: 1. SUMMARY OF FACTS (300+ words), 2. LEGAL ISSUES INVOLVED (200+ words), 3. JUDGMENT & HOLDING (400+ words), 4. RATIO DECIDENDI (300+ words), 5. LEGAL SIGNIFICANCE (200+ words). Minimum 1200 words per case. Only verified Indian constitutional/statutory references. Academic textbook style. End with disclaimer.",
   "Section Explainer": "You are LegalOps AI. Explain any IPC/CrPC/CPC/etc. section in simple English, including punishment, example, and related sections. End with legal disclaimer.",
   "Bare Act Navigator": "You are LegalOps AI. Let users jump to any section/chapter, show collapsible summaries/internal links. End with disclaimer.",
   "Legal Draft Templates": "You are LegalOps AI. Ask for doc type (Affidavit, Will, Notice, etc.), parties, and autofill details. Output editable legal draft. End with disclaimer.",
@@ -25,7 +26,7 @@ const systemPrompts: Record<string, string> = {
   "Hearing/Deadline Tracker": "You are LegalOps AI. Accept court date/case name, return a reminder and a Google Calendar format string. End with disclaimer.",
   // Student tools:
   "Topic-Wise Quiz Generator": "You are LegalOps AI. Ask for legal subject/topic. Output 5 MCQs with answers and brief explanations for each. End with disclaimer.",
-  "Case Brief Generator": "You are LegalOps AI. Accept a case name, output: Facts, Issues, Judgment, Ratio, Exam importance. End with disclaimer.",
+  "Case Brief Generator_student": "🔍 You are a senior legal researcher trained in Indian jurisprudence, explaining to law students. Generate student-friendly Indian case briefs following this EXACT structure: ▶ CASE TITLE, ▶ CITATION (AIR/SCC/SCR), ▶ DATE OF JUDGMENT, ▶ COURT & BENCH, then 5 numbered sections: 1. SUMMARY OF FACTS (300+ words with simple explanations), 2. LEGAL ISSUES INVOLVED (200+ words with analogies), 3. JUDGMENT & HOLDING (400+ words with step-by-step reasoning), 4. RATIO DECIDENDI (300+ words with examples), 5. LEGAL SIGNIFICANCE (200+ words with exam relevance). Minimum 1200 words per case. Use simple language while maintaining legal accuracy. Academic textbook style suitable for students. End with disclaimer.",
   "Flashcards (Legal Terms)": "You are LegalOps AI. Ask for a topic, return 5 flashcards as Q&A. End with disclaimer.",
   "Syllabus Tracker": "You are LegalOps AI. Ask for subjects and semester duration, output a weekly study plan with checkboxes for status. End with disclaimer.",
   "Law News Digest": "You are LegalOps AI. Output a weekly digest of top 5 legal news in India, under 50 words per item, source links (mock OK). End with disclaimer.",
@@ -79,6 +80,9 @@ const RoleFeatureChat: React.FC<RoleFeatureChatProps> = ({ featureName, role, on
   function getSystemPrompt() {
     if (featureName === "Legal Q&A (NyayaBot)" && role === "student") {
       return systemPrompts["Legal Q&A (NyayaBot)_student"];
+    }
+    if (featureName === "Case Brief Generator" && role === "student") {
+      return systemPrompts["Case Brief Generator_student"];
     }
     return systemPrompts[featureName] || "You are LegalOps AI.";
   }
@@ -458,6 +462,9 @@ function getWelcomePrompt(feature: string, role: "lawyer" | "student") {
   }
   if (feature === "Client Brief Summary Tool") {
     return "You are using the Client Brief Summary Tool. Click the + button to upload case documents, briefs, or legal files for AI-powered analysis and summarization into clear, structured summaries.";
+  }
+  if (feature === "Case Brief Generator") {
+    return `🔍 You are using the Case Brief Generator - designed for ${role === "lawyer" ? "practicing advocates and legal professionals" : "law students and judiciary aspirants"}. Generate comprehensive Indian Supreme Court/High Court case briefs following textbook format: Case Title, Citation (AIR/SCC/SCR), Facts (300+ words), Legal Issues (200+ words), Judgment (400+ words), Ratio Decidendi (300+ words), Legal Significance (200+ words). Minimum 1200 words per case. Input examples: "Kesavananda Bharati case", "Article 21 cases 2020", "Triple Talaq judgment".`;
   }
   return `You are using the feature: ${feature}. Please provide input to proceed.`;
 }

@@ -46,6 +46,13 @@ const lawyerFeatures = [
     description: "Search and find relevant case law and precedents",
     icon: Search,
     route: "/case-law-finder",
+    useChat: false
+  },
+  {
+    title: "Case Brief Generator",
+    description: "Generate comprehensive case briefs in textbook format",
+    icon: Archive,
+    route: null,
     useChat: true
   },
   {
@@ -115,16 +122,16 @@ const studentFeatures = [
     useChat: true
   },
   {
-    title: "Topic-Wise Quiz Generator",
-    description: "Generate quizzes on legal topics",
-    icon: Target,
+    title: "Case Brief Generator",
+    description: "Generate student-friendly comprehensive case briefs",
+    icon: Archive,
     route: null,
     useChat: true
   },
   {
-    title: "Case Brief Generator",
-    description: "Generate comprehensive case briefs",
-    icon: Archive,
+    title: "Topic-Wise Quiz Generator",
+    description: "Generate quizzes on legal topics",
+    icon: Target,
     route: null,
     useChat: true
   },

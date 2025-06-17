@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -5,13 +6,24 @@ import { useNavigate } from "react-router-dom";
 import { groqCompletion } from "@/utils/groqApi";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Search, FileText } from "lucide-react";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { useForm } from "react-hook-form";
 
 const CaseLawFinder = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
+  const [citationFormat, setCitationFormat] = useState("AIR");
   const [searchResults, setSearchResults] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
+  const form = useForm({
+    defaultValues: {
+      query: "",
+      citationFormat: "AIR"
+    }
+  });
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) {
@@ -29,55 +41,115 @@ const CaseLawFinder = () => {
 
       if (/\d{4}\s*-\s*\d{4}/.test(searchQuery.trim())) {
         const [startYear, endYear] = searchQuery.match(/\d{4}/g);
-        prompt = `You are an Indian legal assistant. Retrieve and explain at least 5 landmark Indian court judgments per year from ${startYear} to ${endYear}.
+        prompt = `🔍 You are a senior legal researcher trained in Indian jurisprudence. Generate 5 landmark Indian Supreme Court or High Court judgments from ${startYear} to ${endYear}.
 
-Each case must include:
-- Title
-- Citation (AIR/SCC)
-- Date of Judgment
-- Bench and Court
-- Facts (300+ words)
-- Legal Issues (200+ words)
-- Judgment (400+ words)
-- Ratio Decidendi (300+ words)
-- Legal Significance (200+ words)
+For each case, follow this EXACT structure:
 
-Minimum 1200 words per case. Strictly Indian judgments only.`;
+▶ **CASE TITLE:**  
+▶ **CITATION:** [${citationFormat} format]  
+▶ **DATE OF JUDGMENT:**  
+▶ **COURT & BENCH:**  
+
+**1. SUMMARY OF FACTS**  
+• At least 300 words describing full chronology, parties involved, context, and procedural background.
+
+**2. LEGAL ISSUES INVOLVED**  
+• At least 200 words explaining primary and secondary constitutional or legal questions.
+
+**3. JUDGMENT & HOLDING**  
+• At least 400 words with detailed summary of reasoning, interpretation, outcome, and orders.
+
+**4. RATIO DECIDENDI (LEGAL REASONING)**  
+• At least 300 words explaining the legal principle(s) laid down and how the court arrived at it.
+
+**5. LEGAL SIGNIFICANCE / PRECEDENTIAL VALUE**  
+• At least 200 words discussing long-term impact, use in subsequent citations, and doctrinal shift.
+
+Requirements:
+- Each case minimum 1200 words
+- Total 6000+ words for 5 cases
+- Only Indian-origin judgments
+- Citations in ${citationFormat} format only
+- Use SCC Online/Manupatra/EBC databases format
+- Academic/textbook writing style`;
       } else if (/\d{4}/.test(searchQuery.trim())) {
         const year = searchQuery.match(/\d{4}/)[0];
-        prompt = `You are an Indian legal assistant. Retrieve and explain at least 5 landmark Indian court judgments from the year ${year}.
+        prompt = `🔍 You are a senior legal researcher trained in Indian jurisprudence. Generate 5 landmark Indian Supreme Court or High Court judgments from the year ${year}.
 
-Each case must include:
-- Title
-- Citation (AIR/SCC)
-- Date of Judgment
-- Bench and Court
-- Facts (300+ words)
-- Legal Issues (200+ words)
-- Judgment (400+ words)
-- Ratio Decidendi (300+ words)
-- Legal Significance (200+ words)
+For each case, follow this EXACT structure:
 
-Minimum 1200 words per case. Strictly Indian judgments only.`;
+▶ **CASE TITLE:**  
+▶ **CITATION:** [${citationFormat} format]  
+▶ **DATE OF JUDGMENT:**  
+▶ **COURT & BENCH:**  
+
+**1. SUMMARY OF FACTS**  
+• At least 300 words describing full chronology, parties involved, context, and procedural background.
+
+**2. LEGAL ISSUES INVOLVED**  
+• At least 200 words explaining primary and secondary constitutional or legal questions.
+
+**3. JUDGMENT & HOLDING**  
+• At least 400 words with detailed summary of reasoning, interpretation, outcome, and orders.
+
+**4. RATIO DECIDENDI (LEGAL REASONING)**  
+• At least 300 words explaining the legal principle(s) laid down and how the court arrived at it.
+
+**5. LEGAL SIGNIFICANCE / PRECEDENTIAL VALUE**  
+• At least 200 words discussing long-term impact, use in subsequent citations, and doctrinal shift.
+
+Requirements:
+- Each case minimum 1200 words
+- Total 6000+ words for 5 cases
+- Only Indian-origin judgments
+- Citations in ${citationFormat} format only
+- Use SCC Online/Manupatra/EBC databases format
+- Academic/textbook writing style`;
       } else {
-        prompt = `You are an Indian legal assistant. Provide a detailed legal brief (min. 1200 words) of the Indian case or topic: ${searchQuery}.
+        prompt = `🔍 You are a senior legal researcher trained in Indian jurisprudence. Generate comprehensive legal brief for Indian case or topic: ${searchQuery}.
 
-Include:
-- Case Title and Citation (AIR/SCC)
-- Court and Bench
-- Date of Judgment
-- Summary of Facts
-- Legal Issues
-- Final Holding
-- Ratio Decidendi
-- Relevant Constitutional/Statutory Provisions
-- Legal Significance
-- Dissenting opinions (if any)
+For each case, follow this EXACT structure:
 
-Strictly use Indian judgments and law.`;
+▶ **CASE TITLE:**  
+▶ **CITATION:** [${citationFormat} format]  
+▶ **DATE OF JUDGMENT:**  
+▶ **COURT & BENCH:**  
+
+**1. SUMMARY OF FACTS**  
+• At least 300 words describing full chronology, parties involved, context, and procedural background.
+
+**2. LEGAL ISSUES INVOLVED**  
+• At least 200 words explaining primary and secondary constitutional or legal questions.
+
+**3. JUDGMENT & HOLDING**  
+• At least 400 words with detailed summary of reasoning, interpretation, outcome, and orders.
+
+**4. RATIO DECIDENDI (LEGAL REASONING)**  
+• At least 300 words explaining the legal principle(s) laid down and how the court arrived at it.
+
+**5. LEGAL SIGNIFICANCE / PRECEDENTIAL VALUE**  
+• At least 200 words discussing long-term impact, use in subsequent citations, and doctrinal shift.
+
+Requirements:
+- Minimum 1200 words per case
+- Only Indian-origin judgments
+- Citations in ${citationFormat} format only
+- Use SCC Online/Manupatra/EBC databases format
+- Academic/textbook writing style
+- Constitutional/statutory references as per Indian legal framework`;
       }
 
-      const systemInstruction = `You are a senior legal research specialist in Indian Supreme Court jurisprudence. You must provide comprehensive Indian legal analysis ONLY. Exclude foreign cases. Focus on law textbook-level structure and clarity.`;
+      const systemInstruction = `🧑‍⚖️ You are a senior legal research specialist in Indian Supreme Court jurisprudence. You MUST provide comprehensive Indian legal analysis ONLY. 
+
+🎯 Your output is used by:
+- Advocates filing briefs before Supreme Court
+- Judiciary aspirants studying landmark case law
+- Law professors preparing teaching material
+- Legal scholars writing articles
+
+NEVER include foreign cases. Focus exclusively on Indian constitutional law and statutory provisions. Write in formal academic/textbook format with precise legal terminology.
+
+Each case brief must be structured exactly as specified with minimum word counts per section. Pull citations only from SCC Online/Manupatra/EBC databases format.`;
 
       const result = await groqCompletion({
         apiKey: process.env.NEXT_PUBLIC_GROQ_API_KEY,
@@ -88,7 +160,7 @@ Strictly use Indian judgments and law.`;
       setSearchResults(result);
       toast({
         title: "Case Analysis Ready",
-        description: "Detailed Indian Supreme Court case explanation generated."
+        description: "Comprehensive Indian Supreme Court case briefs generated in textbook format."
       });
     } catch (error) {
       console.error('Error searching case law:', error);
@@ -106,7 +178,7 @@ Strictly use Indian judgments and law.`;
     <div className="p-6 min-h-screen bg-white flex flex-col">
       <div className="flex items-center gap-4 mb-8">
         <Button variant="ghost" onClick={() => navigate("/features")}>← Back to Dashboard</Button>
-        <h1 className="text-2xl font-bold">Indian Supreme Court Case Law Finder</h1>
+        <h1 className="text-2xl font-bold">🔍 Indian Supreme Court Case Law Finder</h1>
       </div>
 
       <div className="max-w-6xl mx-auto w-full space-y-6">
@@ -114,34 +186,76 @@ Strictly use Indian judgments and law.`;
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Search className="w-5 h-5" />
-              Search Landmark Judgments or Case by Year/Range/Topic
+              Generate Landmark Indian Judgments & Legal Briefs
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div>
-              <label className="block text-sm font-medium mb-2">
-                Enter a Legal Topic, Case Name, or Year/Range (e.g., "Article 21", "Kesavananda", "2019-2020")
-              </label>
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="e.g. Article 21, 2019, 2015-2017, Navtej Johar v. Union of India"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Search Query
+                </label>
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="e.g. Article 21, 2024, 2015-2020, Kesavananda Bharati"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  📝 Input: Year (2019) | Year Range (2015-2020) | Topic (Article 21) | Case Name
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Citation Format
+                </label>
+                <select
+                  value={citationFormat}
+                  onChange={(e) => setCitationFormat(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="AIR">AIR (All India Reporter)</option>
+                  <option value="SCC">SCC (Supreme Court Cases)</option>
+                  <option value="SCR">SCR (Supreme Court Reports)</option>
+                </select>
+                <p className="text-xs text-gray-500 mt-1">
+                  📚 Choose preferred Indian legal citation format
+                </p>
+              </div>
+            </div>
+
+            <div className="bg-blue-50 p-4 rounded-lg">
+              <h3 className="font-semibold text-blue-900 mb-2">📌 Output Structure (Per Case):</h3>
+              <ul className="text-sm text-blue-800 space-y-1">
+                <li>• <strong>Case Title & Citation</strong> (AIR/SCC/SCR format)</li>
+                <li>• <strong>Summary of Facts</strong> (300+ words)</li>
+                <li>• <strong>Legal Issues</strong> (200+ words)</li>
+                <li>• <strong>Judgment & Holding</strong> (400+ words)</li>
+                <li>• <strong>Ratio Decidendi</strong> (300+ words)</li>
+                <li>• <strong>Legal Significance</strong> (200+ words)</li>
+                <li>• <strong>Minimum 1200 words per case</strong></li>
+              </ul>
             </div>
 
             <Button onClick={handleSearch} disabled={isLoading} className="w-full" size="lg">
               {isLoading ? (
                 <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Generating...
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Generating Legal Briefs...
                 </>
               ) : (
                 <>
-                  <Search className="w-4 h-4 mr-2" /> Generate Case Analysis
+                  <Search className="w-4 h-4 mr-2" /> Generate Indian Case Law Analysis
                 </>
               )}
             </Button>
+
+            <div className="text-xs text-gray-600 bg-gray-50 p-3 rounded">
+              <strong>🎓 Used by:</strong> Supreme Court Advocates, Judiciary Aspirants, Law Professors, Legal Scholars
+              <br />
+              <strong>📖 Format:</strong> Academic/Textbook style with verified Indian constitutional references
+            </div>
           </CardContent>
         </Card>
 
@@ -149,12 +263,12 @@ Strictly use Indian judgments and law.`;
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <FileText className="w-5 h-5" /> Case Brief Result
+                <FileText className="w-5 h-5" /> Indian Supreme Court Case Briefs
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="prose prose-sm max-w-none">
-                <div className="whitespace-pre-wrap font-mono text-xs leading-relaxed bg-gray-50 p-4 rounded-lg overflow-x-auto">
+                <div className="whitespace-pre-wrap font-serif text-sm leading-relaxed bg-gray-50 p-6 rounded-lg overflow-x-auto border">
                   {searchResults}
                 </div>
               </div>
