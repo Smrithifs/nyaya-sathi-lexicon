@@ -2,12 +2,12 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
-import { groqCompletion } from "@/utils/groqApi";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Search, FileText } from "lucide-react";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useForm } from "react-hook-form";
+import { supabase } from "@/integrations/supabase/client";
 
 const CaseLawFinder = () => {
   const navigate = useNavigate();
@@ -23,6 +23,22 @@ const CaseLawFinder = () => {
       citationFormat: "AIR"
     }
   });
+
+  const callGroqCompletion = async (prompt: string, systemInstruction: string) => {
+    const { data, error } = await supabase.functions.invoke('groq-completion', {
+      body: {
+        prompt,
+        systemInstruction,
+        model: "llama3-70b-8192"
+      }
+    });
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    return data.result;
+  };
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) {
@@ -150,11 +166,7 @@ NEVER include foreign cases. Focus exclusively on Indian constitutional law and 
 
 Each case brief must be structured exactly as specified with minimum word counts per section. Pull citations only from SCC Online/Manupatra/EBC databases format.`;
 
-      const result = await groqCompletion({
-        apiKey: import.meta.env.VITE_GROQ_API_KEY || process.env.NEXT_PUBLIC_GROQ_API_KEY,
-        prompt,
-        systemInstruction
-      });
+      const result = await callGroqCompletion(prompt, systemInstruction);
 
       setSearchResults(result);
       toast({
@@ -165,7 +177,7 @@ Each case brief must be structured exactly as specified with minimum word counts
       console.error('Error searching case law:', error);
       toast({
         title: "Error",
-        description: "Something went wrong. Please check that your API key is properly configured. Try again.",
+        description: "Failed to generate case analysis. Please try again.",
         variant: "destructive"
       });
     } finally {
