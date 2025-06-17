@@ -67,12 +67,44 @@ const languages = [
   { label: "മലയാളം (Malayalam)", code: "ml" },
 ];
 
+const jurisdictions = [
+  { label: "Andhra Pradesh", value: "ap", court: "Andhra Pradesh High Court", rules: "Andhra Pradesh High Court Rules of Practice" },
+  { label: "Assam", value: "as", court: "Gauhati High Court", rules: "Gauhati High Court Rules" },
+  { label: "Bihar", value: "br", court: "Patna High Court", rules: "Patna High Court Rules of Practice" },
+  { label: "Chhattisgarh", value: "cg", court: "Chhattisgarh High Court", rules: "Chhattisgarh High Court Rules" },
+  { label: "Delhi", value: "dl", court: "Delhi High Court", rules: "Delhi High Court Rules of Practice" },
+  { label: "Goa", value: "ga", court: "Bombay High Court (Goa Bench)", rules: "Bombay High Court Rules (Goa)" },
+  { label: "Gujarat", value: "gj", court: "Gujarat High Court", rules: "Gujarat High Court Rules of Practice" },
+  { label: "Haryana", value: "hr", court: "Punjab and Haryana High Court", rules: "Punjab & Haryana High Court Rules" },
+  { label: "Himachal Pradesh", value: "hp", court: "Himachal Pradesh High Court", rules: "Himachal Pradesh High Court Rules" },
+  { label: "Jharkhand", value: "jh", court: "Jharkhand High Court", rules: "Jharkhand High Court Rules of Practice" },
+  { label: "Karnataka", value: "ka", court: "Karnataka High Court", rules: "Karnataka High Court Rules of Practice" },
+  { label: "Kerala", value: "kl", court: "Kerala High Court", rules: "Kerala High Court Rules of Practice" },
+  { label: "Madhya Pradesh", value: "mp", court: "Madhya Pradesh High Court", rules: "Madhya Pradesh High Court Rules" },
+  { label: "Maharashtra", value: "mh", court: "Bombay High Court", rules: "Bombay High Court Rules of Practice" },
+  { label: "Manipur", value: "mn", court: "Manipur High Court", rules: "Manipur High Court Rules" },
+  { label: "Meghalaya", value: "ml", court: "Meghalaya High Court", rules: "Meghalaya High Court Rules" },
+  { label: "Mizoram", value: "mz", court: "Gauhati High Court (Aizawl Bench)", rules: "Gauhati High Court Rules (Mizoram)" },
+  { label: "Nagaland", value: "nl", court: "Gauhati High Court (Kohima Bench)", rules: "Gauhati High Court Rules (Nagaland)" },
+  { label: "Odisha", value: "or", court: "Orissa High Court", rules: "Orissa High Court Rules of Practice" },
+  { label: "Punjab", value: "pb", court: "Punjab and Haryana High Court", rules: "Punjab & Haryana High Court Rules" },
+  { label: "Rajasthan", value: "rj", court: "Rajasthan High Court", rules: "Rajasthan High Court Rules of Practice" },
+  { label: "Sikkim", value: "sk", court: "Sikkim High Court", rules: "Sikkim High Court Rules" },
+  { label: "Tamil Nadu", value: "tn", court: "Madras High Court", rules: "Civil Rules of Practice (Madras High Court)" },
+  { label: "Telangana", value: "ts", court: "Telangana High Court", rules: "Telangana High Court Rules of Practice" },
+  { label: "Tripura", value: "tr", court: "Tripura High Court", rules: "Tripura High Court Rules" },
+  { label: "Uttar Pradesh", value: "up", court: "Allahabad High Court", rules: "Allahabad High Court Rules of Practice" },
+  { label: "Uttarakhand", value: "uk", court: "Uttarakhand High Court", rules: "Uttarakhand High Court Rules" },
+  { label: "West Bengal", value: "wb", court: "Calcutta High Court", rules: "Calcutta High Court Rules of Practice" },
+];
+
 const ContractGenerator = () => {
   const navigate = useNavigate();
   const [partyA, setPartyA] = useState("");
   const [partyB, setPartyB] = useState("");
   const [contractDate, setContractDate] = useState("");
   const [contractType, setContractType] = useState("");
+  const [jurisdiction, setJurisdiction] = useState("");
   const [lang, setLang] = useState("en");
   const [output, setOutput] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -80,8 +112,9 @@ const ContractGenerator = () => {
   const { toast } = useToast();
 
   const selectedContractType = contractTypes.find(ct => ct.value === contractType);
+  const selectedJurisdiction = jurisdictions.find(j => j.value === jurisdiction);
 
-  const getContractPrompt = (type: string, partyA: string, partyB: string, date: string, language: string) => {
+  const getContractPrompt = (type: string, partyA: string, partyB: string, date: string, language: string, jurisdiction: string) => {
     const languageMap: { [key: string]: string } = {
       en: "English",
       hi: "Hindi",
@@ -97,6 +130,7 @@ const ContractGenerator = () => {
 
     const langStr = languageMap[language] || "English";
     const typeLabel = contractTypes.find(ct => ct.value === type)?.label || "Agreement";
+    const jurisdictionInfo = jurisdictions.find(j => j.value === jurisdiction);
 
     let specificClauses = "";
     let relevantLaws = "Indian Contract Act, 1872";
@@ -150,14 +184,25 @@ const ContractGenerator = () => {
         specificClauses = "including all standard and specific clauses relevant to this type of agreement";
     }
 
+    const jurisdictionClause = jurisdictionInfo ? 
+      `\n\n**Jurisdiction-Specific Requirements:**
+- Applicable Court: ${jurisdictionInfo.court}
+- Rules of Practice: ${jurisdictionInfo.rules}
+- Jurisdiction clause must reference ${jurisdictionInfo.court} for dispute resolution
+- Format and procedural requirements must comply with ${jurisdictionInfo.rules}
+- Include specific provisions for service of process under ${jurisdictionInfo.label} jurisdiction
+- Ensure compliance with local registration and stamp duty requirements for ${jurisdictionInfo.label}` : "";
+
     return `
-You are a legal contract generation assistant trained in Indian law. Draft a complete, professional ${typeLabel} in ${langStr} that is legally valid under Indian law.
+You are a legal contract generation assistant trained in Indian law. Draft a complete, professional ${typeLabel} in ${langStr} that is legally valid under Indian law and specifically tailored for ${jurisdictionInfo?.label || "Indian"} jurisdiction.
 
 Contract Details:
 - Party A (First Party): ${partyA}
 - Party B (Second Party): ${partyB}
 - Date of Agreement: ${date}
 - Contract Type: ${typeLabel}
+- Jurisdiction: ${jurisdictionInfo?.label || "India"}
+- Applicable Court: ${jurisdictionInfo?.court || "Competent Court having jurisdiction"}
 
 Requirements:
 1. Use proper Indian legal structure with:
@@ -173,8 +218,8 @@ Requirements:
 3. Include all essential legal elements:
    - Consideration clause
    - Terms and conditions specific to ${typeLabel}
-   - Dispute resolution and jurisdiction (Indian courts)
-   - Governing law as Indian law
+   - Dispute resolution clause specifically referencing ${jurisdictionInfo?.court || "appropriate court"}
+   - Governing law as Indian law with ${jurisdictionInfo?.label || "Indian"} jurisdiction
    - Force majeure clause
    - Entire agreement clause
 
@@ -182,7 +227,9 @@ Requirements:
 5. Language: ${langStr === "English" ? "Use clear legal English" : `Translate to ${langStr} but keep legal terms in English where necessary for precision`}
 6. Make it ready for digital/physical signature and legally enforceable
 
-Generate a complete, professional contract that covers all necessary legal aspects for a ${typeLabel} under Indian law.
+${jurisdictionClause}
+
+Generate a complete, professional contract that covers all necessary legal aspects for a ${typeLabel} under Indian law, specifically formatted for ${jurisdictionInfo?.label || "Indian"} jurisdiction and compliant with ${jurisdictionInfo?.rules || "standard Indian legal practice"}.
     `.trim();
   };
 
@@ -192,21 +239,26 @@ Generate a complete, professional contract that covers all necessary legal aspec
       toast({ title: "Error", description: "Please select a contract type", variant: "destructive" });
       return;
     }
+    if (!jurisdiction) {
+      toast({ title: "Error", description: "Please select applicable jurisdiction/state", variant: "destructive" });
+      return;
+    }
 
     setLoading(true);
     setOutput(null);
     try {
-      const prompt = getContractPrompt(contractType, partyA, partyB, contractDate, lang);
+      const prompt = getContractPrompt(contractType, partyA, partyB, contractDate, lang, jurisdiction);
 
       const doc = await groqCompletion({
         apiKey: GROQ_API_KEY,
         prompt,
-        systemInstruction: "You are a legal contracts assistant specializing in Indian law. Draft detailed, legally valid, and enforceable agreements that comply with Indian legal requirements. Structure contracts professionally with proper legal formatting, include all necessary clauses, and ensure compliance with relevant Indian statutes."
+        systemInstruction: `You are a legal contracts assistant specializing in Indian law with expertise in state-specific jurisdictional requirements. Draft detailed, legally valid, and enforceable agreements that comply with Indian legal requirements and specific state Rules of Practice. Structure contracts professionally with proper legal formatting, include all necessary clauses, ensure compliance with relevant Indian statutes, and tailor procedural and jurisdictional aspects to the specific state's high court rules and practices.`
       });
 
       setOutput(doc);
       const langLabel = languages.find(l => l.code === lang)?.label || "English";
-      toast({ title: "Contract generated!", description: `${selectedContractType?.label} ready in ${langLabel}` });
+      const jurisdictionLabel = jurisdictions.find(j => j.value === jurisdiction)?.label || "India";
+      toast({ title: "Contract generated!", description: `${selectedContractType?.label} ready in ${langLabel} for ${jurisdictionLabel} jurisdiction` });
     } catch (err: any) {
       toast({ title: "Generation Error", description: err.message, variant: "destructive" });
     } finally {
@@ -258,6 +310,21 @@ Generate a complete, professional contract that covers all necessary legal aspec
                 />
               </div>
               <div>
+                <label className="text-sm font-medium mb-1 block">Applicable Jurisdiction/State</label>
+                <Select value={jurisdiction} onValueChange={setJurisdiction} disabled={loading}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select state/jurisdiction" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white">
+                    {jurisdictions.map(j => (
+                      <SelectItem key={j.value} value={j.value}>
+                        {j.label} ({j.court})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
                 <label className="text-sm font-medium mb-1 block">Contract Type</label>
                 <Popover open={open} onOpenChange={setOpen}>
                   <PopoverTrigger asChild>
@@ -272,7 +339,7 @@ Generate a complete, professional contract that covers all necessary legal aspec
                       <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-full p-0">
+                  <PopoverContent className="w-full p-0 bg-white">
                     <Command>
                       <CommandInput placeholder="Search contract types..." />
                       <CommandEmpty>No contract type found.</CommandEmpty>
@@ -308,7 +375,7 @@ Generate a complete, professional contract that covers all necessary legal aspec
                   <SelectTrigger>
                     <SelectValue placeholder="Select language" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-white">
                     {languages.map(l => (
                       <SelectItem key={l.code} value={l.code}>{l.label}</SelectItem>
                     ))}
