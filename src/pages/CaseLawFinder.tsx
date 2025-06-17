@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -152,7 +151,7 @@ NEVER include foreign cases. Focus exclusively on Indian constitutional law and 
 Each case brief must be structured exactly as specified with minimum word counts per section. Pull citations only from SCC Online/Manupatra/EBC databases format.`;
 
       const result = await groqCompletion({
-        apiKey: process.env.NEXT_PUBLIC_GROQ_API_KEY,
+        apiKey: import.meta.env.VITE_GROQ_API_KEY || process.env.NEXT_PUBLIC_GROQ_API_KEY,
         prompt,
         systemInstruction
       });
@@ -166,7 +165,7 @@ Each case brief must be structured exactly as specified with minimum word counts
       console.error('Error searching case law:', error);
       toast({
         title: "Error",
-        description: "Something went wrong. Please try again.",
+        description: "Something went wrong. Please check that your API key is properly configured. Try again.",
         variant: "destructive"
       });
     } finally {
