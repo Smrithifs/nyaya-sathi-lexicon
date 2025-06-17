@@ -7,9 +7,6 @@ import Flashcard from "@/components/Flashcard";
 import DocumentUpload from "@/components/DocumentUpload";
 import { useToast } from "@/hooks/use-toast";
 
-// Define the GROQ API key as requested
-const GROQ_API_KEY = "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";
-
 // Maps for system prompts per-feature:
 const systemPrompts: Record<string, string> = {
   "Contract Generator": "You are LegalOps AI. Guide an Indian lawyer to generate a professional contract using Mixtral/Mistral. Ask for contract type, parties' names, date, jurisdiction, clauses, then output a legally formatted doc. End with the legal disclaimer.",
@@ -242,16 +239,17 @@ const RoleFeatureChat: React.FC<RoleFeatureChatProps> = ({ featureName, role, on
         .join("\n") + `\nUser: ${userInput}`; // Include document context in AI context
 
       const aiReply = await groqCompletion({
-        apiKey: GROQ_API_KEY,
+        apiKey: import.meta.env.VITE_GROQ_API_KEY || process.env.NEXT_PUBLIC_GROQ_API_KEY,
         prompt: context,
         systemInstruction: getSystemPrompt(),
         language: "English"
       });
       setMessages((msgs) => [...msgs, { sender: "ai", text: aiReply }]);
     } catch (err: any) {
+      console.error('Chat error:', err);
       setMessages((msgs) => [
         ...msgs,
-        { sender: "ai", text: "Sorry, I couldn't process your request. Please try again!" }
+        { sender: "ai", text: "Sorry, I couldn't process your request. Please check that your API key is properly configured. Try again!" }
       ]);
     } finally {
       setLoading(false);
@@ -270,7 +268,7 @@ const RoleFeatureChat: React.FC<RoleFeatureChatProps> = ({ featureName, role, on
         .map(m => (m.sender === "user" ? `User: ${m.text}` : `AI: ${m.text}`))
         .join("\n") + `\nUser: ${lastUser.text}`;
       const aiReply = await groqCompletion({
-        apiKey: GROQ_API_KEY,
+        apiKey: import.meta.env.VITE_GROQ_API_KEY || process.env.NEXT_PUBLIC_GROQ_API_KEY,
         prompt: context,
         systemInstruction: getSystemPrompt(),
         language: "English"
