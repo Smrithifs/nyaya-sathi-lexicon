@@ -41,165 +41,139 @@ const CaseLawFinder = () => {
       let prompt = "";
       
       if (searchType === "year-range") {
-        prompt = `Provide EXTREMELY DETAILED case briefs for all major Supreme Court of India cases between ${startYear} and ${endYear} related to: "${searchQuery}"
+        prompt = `You are a senior legal research specialist in Indian Supreme Court jurisprudence. Provide COMPREHENSIVE case briefs for ALL major Supreme Court of India cases between ${startYear} and ${endYear} related to: "${searchQuery}"
 
-For each case, provide a COMPREHENSIVE analysis in this EXACT format:
+CRITICAL REQUIREMENTS - EACH CASE MUST BE EXACTLY 1200-1500 WORDS:
+
+For EVERY case, provide this EXACT format structure:
 
 ═══════════════════════════════════════════════════════
-**CASE TITLE:** [Full case name with all parties]
-**CITATION:** [Complete citation with AIR/SCC/SCR reference]
-**DATE OF JUDGMENT:** [Day Month Year]
-**COURT & BENCH:** [Supreme Court of India - Complete Justice names with Chief Justice if applicable]
+**CASE TITLE:** [Complete case name with all parties - e.g., Maneka Gandhi v. Union of India]
+**CITATION:** [Full Indian citation - AIR/SCC/SCR format]
+**DATE OF JUDGMENT:** [Complete date - Day Month Year]
+**COURT & BENCH:** [Supreme Court of India - Full bench composition with Chief Justice name]
 ═══════════════════════════════════════════════════════
 
-**DETAILED FACTUAL BACKGROUND:**
-[Provide extensive factual background - 4-6 paragraphs covering:
-- Complete chronology of events
-- All relevant parties and their roles
-- Previous legal proceedings
-- Circumstances leading to the Supreme Court appeal
-- Any constitutional/statutory provisions involved]
+**COMPREHENSIVE SUMMARY OF FACTS:**
+[Write 300-400 words providing exhaustive factual background including:
+- Complete chronological sequence of events
+- All parties involved and their specific roles
+- Detailed circumstances that led to the legal dispute
+- Any relevant constitutional/statutory framework
+- Previous legal proceedings and their outcomes
+- The specific grievance that brought the matter to Supreme Court]
 
-**PROCEDURAL HISTORY:**
-[Detailed procedural journey - 2-3 paragraphs covering:
-- Lower court proceedings and decisions
-- Appeals and interim orders
-- Constitutional/legal challenges raised
-- Timeline of legal proceedings]
-
-**KEY LEGAL ISSUES PRESENTED:**
-[List all major legal questions - each with detailed explanation:
-1. [Primary constitutional/legal issue with context]
-2. [Secondary issues with their implications]
-3. [Any procedural or jurisdictional questions]
-4. [Interpretation of specific statutory provisions]]
-
-**ARGUMENTS PRESENTED:**
-**Petitioner's Arguments:**
-[2-3 paragraphs detailing complete legal arguments, precedents cited, constitutional provisions relied upon]
-
-**Respondent's Arguments:**
-[2-3 paragraphs detailing counter-arguments, distinguishing precedents, statutory interpretations]
+**KEY LEGAL ISSUES INVOLVED:**
+[Write 200-250 words listing and explaining all major legal questions:
+1. [Primary constitutional/legal issue with detailed context]
+2. [Secondary legal questions with implications]
+3. [Any procedural or jurisdictional matters]
+4. [Interpretation of specific provisions/articles]]
 
 **DETAILED JUDGMENT AND HOLDING:**
-[4-5 paragraphs providing:
-- Complete reasoning of the Court
-- How each issue was addressed
-- Specific legal conclusions reached
-- Orders/directions issued by the Court]
+[Write 400-500 words providing:
+- Complete reasoning adopted by the Supreme Court
+- How each legal issue was systematically addressed
+- Specific conclusions reached by the Court
+- Any dissenting opinions if applicable
+- Final orders/directions issued
+- Immediate impact of the judgment]
 
-**COMPREHENSIVE RATIO DECIDENDI:**
-[3-4 paragraphs explaining:
-- The exact legal principle established
-- The constitutional/legal reasoning behind it
-- How it differs from or builds upon previous law
-- The scope and limitations of the principle]
+**COMPREHENSIVE RATIO DECIDENDI (LEGAL REASONING):**
+[Write 300-350 words explaining:
+- The exact legal principle established by this case
+- The constitutional/legal reasoning behind the principle
+- How this principle differs from or builds upon existing law
+- The scope and limitations of the legal principle
+- The methodology adopted by the Court in reaching this conclusion]
 
-**LEGAL SIGNIFICANCE & PRECEDENTIAL VALUE:**
-[3-4 paragraphs covering:
-- Impact on existing jurisprudence
-- How it has been applied in subsequent cases
-- Its effect on legal practice and procedure
-- Constitutional/statutory interpretation clarified
-- Long-term implications for Indian law]
+**LEGAL SIGNIFICANCE AND PRECEDENTIAL VALUE:**
+[Write 200-250 words covering:
+- Impact on existing Indian jurisprudence
+- How this case has been cited in subsequent Supreme Court judgments
+- Effect on legal practice and constitutional interpretation
+- Long-term implications for Indian legal system
+- Its place in landmark constitutional/legal precedents]
 
-**SUBSEQUENT JUDICIAL TREATMENT:**
-[If applicable - how later courts have interpreted/applied this decision]
-
-════════════════════════════════════════════════════════
-
-Focus ONLY on Supreme Court of India judgments from ${startYear}-${endYear}. Provide extensive detail similar to comprehensive law textbook analysis. Each case brief should be 800-1200 words minimum.`;
+FOCUS EXCLUSIVELY ON SUPREME COURT OF INDIA JUDGMENTS FROM ${startYear}-${endYear}. Each case brief MUST be 1200-1500 words minimum with extensive legal analysis suitable for law textbooks.`;
       } else {
-        prompt = `Provide EXTREMELY DETAILED case briefs for major Supreme Court of India cases related to: "${searchQuery}"
+        prompt = `You are a senior legal research specialist in Indian Supreme Court jurisprudence. Provide COMPREHENSIVE case briefs for major Supreme Court of India cases related to: "${searchQuery}"
 
-For each relevant case, provide a COMPREHENSIVE analysis in this EXACT format:
+CRITICAL REQUIREMENTS - EACH CASE MUST BE EXACTLY 1200-1500 WORDS:
+
+For EVERY case, provide this EXACT format structure:
 
 ═══════════════════════════════════════════════════════
-**CASE TITLE:** [Full case name with all parties]
-**CITATION:** [Complete citation with AIR/SCC/SCR reference]
-**DATE OF JUDGMENT:** [Day Month Year]
-**COURT & BENCH:** [Supreme Court of India - Complete Justice names with Chief Justice if applicable]
+**CASE TITLE:** [Complete case name with all parties - e.g., Kesavananda Bharati v. State of Kerala]
+**CITATION:** [Full Indian citation - AIR/SCC/SCR format]
+**DATE OF JUDGMENT:** [Complete date - Day Month Year]
+**COURT & BENCH:** [Supreme Court of India - Full bench composition with Chief Justice name]
 ═══════════════════════════════════════════════════════
 
-**DETAILED FACTUAL BACKGROUND:**
-[Provide extensive factual background - 4-6 paragraphs covering:
-- Complete chronology of events
-- All relevant parties and their roles
-- Previous legal proceedings
-- Circumstances leading to the Supreme Court appeal
-- Any constitutional/statutory provisions involved]
+**COMPREHENSIVE SUMMARY OF FACTS:**
+[Write 300-400 words providing exhaustive factual background including:
+- Complete chronological sequence of events
+- All parties involved and their specific roles
+- Detailed circumstances that led to the legal dispute
+- Any relevant constitutional/statutory framework
+- Previous legal proceedings and their outcomes
+- The specific grievance that brought the matter to Supreme Court]
 
-**PROCEDURAL HISTORY:**
-[Detailed procedural journey - 2-3 paragraphs covering:
-- Lower court proceedings and decisions
-- Appeals and interim orders
-- Constitutional/legal challenges raised
-- Timeline of legal proceedings]
-
-**KEY LEGAL ISSUES PRESENTED:**
-[List all major legal questions - each with detailed explanation:
-1. [Primary constitutional/legal issue with context]
-2. [Secondary issues with their implications]
-3. [Any procedural or jurisdictional questions]
-4. [Interpretation of specific statutory provisions]]
-
-**ARGUMENTS PRESENTED:**
-**Petitioner's Arguments:**
-[2-3 paragraphs detailing complete legal arguments, precedents cited, constitutional provisions relied upon]
-
-**Respondent's Arguments:**
-[2-3 paragraphs detailing counter-arguments, distinguishing precedents, statutory interpretations]
+**KEY LEGAL ISSUES INVOLVED:**
+[Write 200-250 words listing and explaining all major legal questions:
+1. [Primary constitutional/legal issue with detailed context]
+2. [Secondary legal questions with implications]
+3. [Any procedural or jurisdictional matters]
+4. [Interpretation of specific provisions/articles]]
 
 **DETAILED JUDGMENT AND HOLDING:**
-[4-5 paragraphs providing:
-- Complete reasoning of the Court
-- How each issue was addressed
-- Specific legal conclusions reached
-- Orders/directions issued by the Court]
+[Write 400-500 words providing:
+- Complete reasoning adopted by the Supreme Court
+- How each legal issue was systematically addressed
+- Specific conclusions reached by the Court
+- Any dissenting opinions if applicable
+- Final orders/directions issued
+- Immediate impact of the judgment]
 
-**COMPREHENSIVE RATIO DECIDENDI:**
-[3-4 paragraphs explaining:
-- The exact legal principle established
-- The constitutional/legal reasoning behind it
-- How it differs from or builds upon previous law
-- The scope and limitations of the principle]
+**COMPREHENSIVE RATIO DECIDENDI (LEGAL REASONING):**
+[Write 300-350 words explaining:
+- The exact legal principle established by this case
+- The constitutional/legal reasoning behind the principle
+- How this principle differs from or builds upon existing law
+- The scope and limitations of the legal principle
+- The methodology adopted by the Court in reaching this conclusion]
 
-**LEGAL SIGNIFICANCE & PRECEDENTIAL VALUE:**
-[3-4 paragraphs covering:
-- Impact on existing jurisprudence
-- How it has been applied in subsequent cases
-- Its effect on legal practice and procedure
-- Constitutional/statutory interpretation clarified
-- Long-term implications for Indian law]
+**LEGAL SIGNIFICANCE AND PRECEDENTIAL VALUE:**
+[Write 200-250 words covering:
+- Impact on existing Indian jurisprudence
+- How this case has been cited in subsequent Supreme Court judgments
+- Effect on legal practice and constitutional interpretation
+- Long-term implications for Indian legal system
+- Its place in landmark constitutional/legal precedents]
 
-**SUBSEQUENT JUDICIAL TREATMENT:**
-[If applicable - how later courts have interpreted/applied this decision]
-
-════════════════════════════════════════════════════════
-
-Focus ONLY on landmark Supreme Court of India judgments. Provide extensive detail similar to comprehensive law textbook analysis. Each case brief should be 800-1200 words minimum.`;
+FOCUS EXCLUSIVELY ON LANDMARK SUPREME COURT OF INDIA JUDGMENTS. Each case brief MUST be 1200-1500 words minimum with law textbook-level detail and analysis.`;
       }
 
-      const systemInstruction = `You are a senior legal research assistant specializing in Indian Supreme Court jurisprudence with 20+ years of experience. You must provide EXTREMELY DETAILED, comprehensive case briefs that would be suitable for:
+      const systemInstruction = `You are a senior legal research specialist with 25+ years of experience in Indian Supreme Court jurisprudence. You MUST provide EXTREMELY DETAILED case briefs suitable for:
 
-1. Law professors teaching constitutional/criminal/civil law
-2. Senior advocates preparing for Supreme Court arguments
-3. Legal researchers conducting in-depth analysis
-4. Law students studying for advanced examinations
+1. Senior advocates arguing before the Supreme Court
+2. Law professors teaching constitutional/criminal/civil law at premier institutions
+3. Legal researchers conducting doctoral-level analysis
+4. Advanced law students preparing for judicial services
 
-CRITICAL REQUIREMENTS:
-- Each case brief must be 800-1200 words minimum
-- Provide exhaustive factual background with complete chronology
-- Include detailed procedural history with all court proceedings
-- Analyze legal arguments from both sides comprehensively
-- Explain the Court's reasoning in great detail
-- Provide thorough ratio decidendi analysis
-- Discuss extensive legal significance and precedential impact
-- Use proper Indian legal citation format
-- Ensure accuracy of all legal principles and precedents
-- Format exactly as specified with proper headers and separators
+ABSOLUTE REQUIREMENTS:
+- EACH case brief MUST be exactly 1200-1500 words
+- NEVER mention or reference USA cases unless specifically asked
+- FOCUS EXCLUSIVELY on Supreme Court of India judgments
+- Provide exhaustive legal analysis with complete reasoning
+- Use proper Indian legal citation format (AIR/SCC/SCR)
+- Ensure accuracy of all constitutional provisions and legal principles
+- Format exactly as specified with proper section headers
+- Include extensive factual chronology and procedural history
+- Provide comprehensive ratio decidendi analysis
+- Explain long-term legal significance and precedential impact
 
-The level of detail should match the most comprehensive legal textbooks and case commentaries available in Indian law schools and legal libraries.`;
+The level of detail MUST match the most comprehensive Indian law textbooks, constitutional commentaries, and Supreme Court case analyses available in top law schools and legal research institutions.`;
 
       const result = await groqCompletion({
         apiKey: "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",
@@ -209,8 +183,8 @@ The level of detail should match the most comprehensive legal textbooks and case
 
       setSearchResults(result);
       toast({
-        title: "Detailed Case Analysis Complete",
-        description: `Comprehensive ${searchType === "year-range" ? "year-range" : "general"} case law analysis generated with extensive detail.`
+        title: "Comprehensive Case Analysis Complete",
+        description: `Detailed 1200+ word ${searchType === "year-range" ? "year-range" : "general"} Indian Supreme Court case analysis generated.`
       });
     } catch (error) {
       console.error('Error searching case law:', error);
@@ -235,7 +209,7 @@ The level of detail should match the most comprehensive legal textbooks and case
         >
           ← Back to Dashboard
         </Button>
-        <h1 className="text-2xl font-bold">Case Law Finder</h1>
+        <h1 className="text-2xl font-bold">Indian Supreme Court Case Law Finder</h1>
       </div>
 
       <div className="max-w-6xl mx-auto w-full space-y-6">
@@ -243,7 +217,7 @@ The level of detail should match the most comprehensive legal textbooks and case
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Search className="w-5 h-5" />
-              Search Supreme Court Cases - Detailed Analysis
+              Supreme Court of India Cases - Comprehensive 1200+ Word Analysis
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -262,9 +236,9 @@ The level of detail should match the most comprehensive legal textbooks and case
                 >
                   <div className="flex items-center gap-2 mb-2">
                     <FileText className="w-4 h-4" />
-                    <span className="font-medium">General Search</span>
+                    <span className="font-medium">General Topic Search</span>
                   </div>
-                  <p className="text-sm text-gray-600">Comprehensive case analysis by topic/law</p>
+                  <p className="text-sm text-gray-600">1200+ word analysis by legal topic/area</p>
                 </button>
                 
                 <button
@@ -280,7 +254,7 @@ The level of detail should match the most comprehensive legal textbooks and case
                     <Calendar className="w-4 h-4" />
                     <span className="font-medium">Year Range Search</span>
                   </div>
-                  <p className="text-sm text-gray-600">Detailed cases within specific years</p>
+                  <p className="text-sm text-gray-600">1200+ word analysis within specific years</p>
                 </button>
               </div>
             </div>
@@ -321,7 +295,7 @@ The level of detail should match the most comprehensive legal textbooks and case
             {/* Search Query */}
             <div>
               <label className="block text-sm font-medium mb-2">
-                {searchType === "year-range" ? "Topic/Legal Area" : "Search Query"}
+                {searchType === "year-range" ? "Legal Topic/Area" : "Search Query"}
               </label>
               <input
                 type="text"
@@ -329,8 +303,8 @@ The level of detail should match the most comprehensive legal textbooks and case
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder={
                   searchType === "year-range"
-                    ? "e.g., criminal law, RTI Act, Article 21, dowry death..."
-                    : "Enter legal topics, case names, or statutory provisions (e.g., 'Section 498A', 'Kesavananda Bharati', 'Article 226')"
+                    ? "e.g., criminal law, Article 21, Section 498A, constitutional law..."
+                    : "Enter case names, legal topics, or constitutional provisions (e.g., 'Kesavananda Bharati', 'Article 226', 'Section 302 IPC')"
                 }
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
@@ -338,38 +312,36 @@ The level of detail should match the most comprehensive legal textbooks and case
 
             {/* Enhanced Example Searches */}
             <div className="bg-amber-50 p-4 rounded-lg border border-amber-200">
-              <h3 className="font-medium text-amber-900 mb-2">📚 Detailed Analysis Examples:</h3>
+              <h3 className="font-medium text-amber-900 mb-2">📚 1200+ Word Analysis Examples:</h3>
               <div className="space-y-1 text-sm text-amber-800">
                 {searchType === "year-range" ? (
                   <>
-                    <p>• "criminal law" (2018-2020) - All major criminal law precedents with full analysis</p>
-                    <p>• "Article 21" (2015-2023) - Comprehensive right to life case studies</p>
-                    <p>• "dowry death" (2010-2020) - Detailed Section 498A jurisprudence evolution</p>
+                    <p>• "Article 21" (2018-2020) - Every major right to life case with full 1200+ word analysis</p>
+                    <p>• "criminal procedure" (2015-2023) - Complete CrPC jurisprudence with detailed briefing</p>
+                    <p>• "constitutional law" (2010-2020) - Landmark constitutional cases with comprehensive analysis</p>
                   </>
                 ) : (
                   <>
-                    <p>• "Kesavananda Bharati" - Complete constitutional analysis with full judgment breakdown</p>
-                    <p>• "Section 498A dowry harassment" - Comprehensive criminal law analysis</p>
-                    <p>• "Maneka Gandhi passport" - Detailed Article 21 precedent study</p>
+                    <p>• "Kesavananda Bharati v. State of Kerala" - Complete 1200+ word constitutional analysis</p>
+                    <p>• "Maneka Gandhi v. Union of India" - Detailed Article 21 precedent study</p>
+                    <p>• "criminal law precedents" - Major criminal law cases with full legal reasoning</p>
                   </>
                 )}
               </div>
             </div>
 
             <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-              <h3 className="font-medium text-green-900 mb-2">🔍 What You'll Get:</h3>
+              <h3 className="font-medium text-green-900 mb-2">🔍 Every Case Brief Includes (1200+ Words):</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-green-800">
                 <div>
-                  <p>✓ Complete factual chronology</p>
-                  <p>✓ Detailed procedural history</p>
-                  <p>✓ Comprehensive legal arguments</p>
-                  <p>✓ In-depth judgment analysis</p>
+                  <p>✓ Complete factual chronology (300-400 words)</p>
+                  <p>✓ Detailed legal issues (200-250 words)</p>
+                  <p>✓ Comprehensive judgment analysis (400-500 words)</p>
                 </div>
                 <div>
-                  <p>✓ Extensive ratio decidendi</p>
-                  <p>✓ Legal significance breakdown</p>
+                  <p>✓ Extensive ratio decidendi (300-350 words)</p>
+                  <p>✓ Legal significance breakdown (200-250 words)</p>
                   <p>✓ Precedential impact analysis</p>
-                  <p>✓ 800-1200 words per case</p>
                 </div>
               </div>
             </div>
@@ -383,12 +355,12 @@ The level of detail should match the most comprehensive legal textbooks and case
               {isLoading ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Generating Detailed Case Analysis...
+                  Generating 1200+ Word Indian Supreme Court Analysis...
                 </>
               ) : (
                 <>
                   <Search className="w-4 h-4 mr-2" />
-                  {searchType === "year-range" ? "Generate Detailed Year-Range Analysis" : "Generate Comprehensive Case Analysis"}
+                  {searchType === "year-range" ? "Generate Detailed Year-Range Analysis (1200+ words each)" : "Generate Comprehensive Case Analysis (1200+ words each)"}
                 </>
               )}
             </Button>
@@ -400,7 +372,7 @@ The level of detail should match the most comprehensive legal textbooks and case
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <FileText className="w-5 h-5" />
-                Comprehensive Case Law Analysis
+                Supreme Court of India - Comprehensive Case Analysis (1200+ Words Each)
                 {searchType === "year-range" && startYear && endYear && (
                   <span className="text-sm font-normal text-gray-600">
                     ({startYear} - {endYear})
