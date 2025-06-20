@@ -24,6 +24,9 @@ import {
 } from "lucide-react";
 import { format, isToday, isTomorrow, parseISO } from "date-fns";
 
+type EventType = 'hearing' | 'filing' | 'meeting' | 'misc';
+type ReminderType = '10min' | '1hour' | '1day';
+
 interface CalendarEvent {
   id: string;
   title: string;
@@ -31,8 +34,8 @@ interface CalendarEvent {
   court: string;
   date: Date;
   time: string;
-  type: 'hearing' | 'filing' | 'meeting' | 'misc';
-  reminder: '10min' | '1hour' | '1day';
+  type: EventType;
+  reminder: ReminderType;
   notes?: string;
 }
 
@@ -68,14 +71,23 @@ const HearingTracker: React.FC = () => {
   ]);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    title: string;
+    clientName: string;
+    court: string;
+    date: Date;
+    time: string;
+    type: EventType;
+    reminder: ReminderType;
+    notes: string;
+  }>({
     title: '',
     clientName: '',
     court: '',
     date: new Date(),
     time: '',
-    type: 'hearing' as const,
-    reminder: '1hour' as const,
+    type: 'hearing',
+    reminder: '1hour',
     notes: ''
   });
 
@@ -266,7 +278,7 @@ const HearingTracker: React.FC = () => {
               
               <div className="space-y-2">
                 <Label htmlFor="type">Event Type</Label>
-                <Select value={formData.type} onValueChange={(value: any) => setFormData(prev => ({ ...prev, type: value }))}>
+                <Select value={formData.type} onValueChange={(value: EventType) => setFormData(prev => ({ ...prev, type: value }))}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -281,7 +293,7 @@ const HearingTracker: React.FC = () => {
               
               <div className="space-y-2">
                 <Label htmlFor="reminder">Reminder</Label>
-                <Select value={formData.reminder} onValueChange={(value: any) => setFormData(prev => ({ ...prev, reminder: value }))}>
+                <Select value={formData.reminder} onValueChange={(value: ReminderType) => setFormData(prev => ({ ...prev, reminder: value }))}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
