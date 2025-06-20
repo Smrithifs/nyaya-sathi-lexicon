@@ -5,8 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { marked } from "marked";
-import { useGeminiKey } from "@/hooks/useGeminiKey";
-import { callGeminiAPI } from "@/utils/geminiApi";
+import { askPuter } from "@/utils/openaiApi";
 
 const languages = [
   { label: "English", code: "en" },
@@ -20,20 +19,9 @@ const Summarizer = () => {
   const [lang, setLang] = useState("en");
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
-  const { data: geminiKey } = useGeminiKey();
 
   async function handleSummarize(e: React.FormEvent) {
     e.preventDefault();
-    
-    if (!geminiKey) {
-      toast({
-        title: "API Key Required",
-        description: "Please set your Gemini API key to use this feature.",
-        variant: "destructive",
-      });
-      return;
-    }
-
     setLoading(true);
     setOutput(null);
     try {
@@ -51,7 +39,7 @@ LANGUAGE: ${langStr}
 DOCUMENT:
 ${input}`;
 
-      const summary = await callGeminiAPI(prompt, geminiKey);
+      const summary = await askPuter(prompt);
       setOutput(summary);
       toast({ title: "Summarization complete!", description: `Your summary is available in ${languages.find(l => l.code === lang)?.label}` });
     } catch (err: any) {

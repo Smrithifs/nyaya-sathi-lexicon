@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -15,10 +14,14 @@ import {
   CheckCircle,
   ClipboardList,
   Calendar,
+  Users,
   HelpCircle,
   Flashlight,
-  ArrowLeft,
-  ClipboardCheck
+  Target,
+  TrendingUp,
+  MessageSquare,
+  Globe,
+  ArrowLeft
 } from "lucide-react";
 import RoleFeatureChat from "./RoleFeatureChat";
 
@@ -111,6 +114,13 @@ const studentFeatures = [
     useChat: true
   },
   {
+    title: "Topic-Wise Quiz Generator",
+    description: "Generate quizzes on legal topics",
+    icon: Target,
+    route: null,
+    useChat: true
+  },
+  {
     title: "Flashcards (Legal Terms)",
     description: "Create flashcards for legal terminology",
     icon: Flashlight,
@@ -119,8 +129,43 @@ const studentFeatures = [
   },
   {
     title: "Syllabus Tracker",
-    description: "Track your law school syllabus and study progress",
-    icon: ClipboardCheck,
+    description: "Track your law school syllabus progress",
+    icon: TrendingUp,
+    route: null,
+    useChat: true
+  },
+  {
+    title: "Law News Digest",
+    description: "Stay updated with latest legal news",
+    icon: Globe,
+    route: null,
+    useChat: true
+  },
+  {
+    title: "Doubt Forum (Ask Senior)",
+    description: "Get mentorship from senior law students",
+    icon: Users,
+    route: null,
+    useChat: true
+  },
+  {
+    title: "Mock Test Generator",
+    description: "Generate practice tests for exams",
+    icon: MessageSquare,
+    route: null,
+    useChat: true
+  },
+  {
+    title: "Study Plan Generator",
+    description: "Create personalized study plans",
+    icon: Calendar,
+    route: null,
+    useChat: true
+  },
+  {
+    title: "Case Explainer",
+    description: "Get simplified explanations of legal cases",
+    icon: BookOpen,
     route: null,
     useChat: true
   }

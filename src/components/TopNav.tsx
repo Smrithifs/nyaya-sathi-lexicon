@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
@@ -11,125 +10,49 @@ import {
   navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu";
 import { cn } from "@/lib/utils";
-import { 
-  FileText, 
-  Bot, 
-  BookText, 
-  Search, 
-  Calendar, 
-  Mic, 
-  BookOpen, 
-  Scale,
-  Navigation,
-  PenTool,
-  CheckCircle,
-  ClipboardList,
-  ClipboardCheck,
-  Languages,
-  HelpCircle
-} from "lucide-react";
+import { FileText, Bot, BookText } from "lucide-react";
 
 const features: { title: string; href: string; description: string; icon: React.ReactNode }[] = [
   {
     title: "Contract Generator",
     href: "/contract-generator",
-    description: "Draft legal agreements in seconds",
+    description: "Create legal agreements in seconds.",
     icon: <FileText className="w-5 h-5" />,
   },
   {
-    title: "Legal Draft Templates",
-    href: "/legal-draft-templates",
-    description: "Generate petitions, bail apps, and more",
-    icon: <PenTool className="w-5 h-5" />,
-  },
-  {
-    title: "Case Law Finder",
-    href: "/case-law-finder",
-    description: "Search & explain Indian Supreme Court cases",
-    icon: <Search className="w-5 h-5" />,
-  },
-  {
-    title: "Deadline Tracker",
-    href: "/hearing-tracker",
-    description: "Track hearings with calendar view",
-    icon: <Calendar className="w-5 h-5" />,
-  },
-  {
-    title: "Voice Dictation → Legal Format",
-    href: "/voice-dictation",
-    description: "Convert voice notes to court-ready drafts",
-    icon: <Mic className="w-5 h-5" />,
-  },
-  {
     title: "NyayaBot Q&A",
-    href: "/legal-qna",
-    description: "Ask legal questions based on Indian law",
-    icon: <HelpCircle className="w-5 h-5" />,
+    href: "/qabot",
+    description: "AI legal answers based on Indian law.",
+    icon: <Bot className="w-5 h-5" />,
   },
   {
-    title: "Client Brief Summarizer",
+    title: "Summarizer",
     href: "/summarizer",
-    description: "Summarize lengthy client documents",
+    description: "Turn long documents into clear summaries.",
     icon: <BookText className="w-5 h-5" />,
   },
   {
-    title: "Citation Checker",
-    href: "/citation-checker",
-    description: "Validate case citations and links",
-    icon: <CheckCircle className="w-5 h-5" />,
-  },
-  {
-    title: "Bare Act Navigator",
-    href: "/bare-act-navigator",
-    description: "Browse sections and chapters of Indian laws",
-    icon: <Navigation className="w-5 h-5" />,
-  },
-  {
-    title: "Section Explainer",
-    href: "/section-explainer",
-    description: "Understand individual legal provisions",
-    icon: <BookOpen className="w-5 h-5" />,
-  },
-  {
-    title: "Multi-Language Support",
-    href: "/multi-language-support",
-    description: "Translate legal documents",
-    icon: <Languages className="w-5 h-5" />,
-  },
-  {
-    title: "All Tools & Features",
-    href: "/tools",
-    description: "Discover everything in one place",
-    icon: <Scale className="w-5 h-5" />,
+    title: "All LegalOps Features",
+    href: "/features",
+    description: "Role-detection, tools, and document upload.",
+    icon: <Bot className="w-5 h-5" />,
   },
 ];
 
 const TopNav: React.FC = () => {
   const location = useLocation();
-  
-  const scrollToTools = () => {
-    const toolsSection = document.getElementById('tools-section');
-    if (toolsSection) {
-      toolsSection.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
-
   return (
-    <nav className="fixed top-0 left-0 w-full z-30 flex items-center justify-between px-6 md:px-10 h-16 bg-slate-950/80 backdrop-blur-xl border-b border-slate-800/50">
-      <Link to="/" className="flex items-center gap-3">
-        <div className="w-8 h-8 bg-gradient-to-br from-blue-400 to-indigo-500 rounded-lg flex items-center justify-center">
-          <Scale className="w-5 h-5 text-white" />
-        </div>
-        <span className="text-xl font-bold text-white">LegalOps</span>
+    <nav className="fixed top-0 left-0 w-full z-30 flex items-center justify-between px-6 md:px-10 h-16 bg-black/25 backdrop-blur border-b border-white/10">
+      <Link to="/" className="text-xl font-extrabold text-white font-serif tracking-wide">
+        LegalOps
       </Link>
-      
       <NavigationMenu>
         <NavigationMenuList>
           <NavigationMenuItem>
             <Link to="/">
               <NavigationMenuLink
-                className={cn(navigationMenuTriggerStyle(), "bg-transparent text-slate-300 hover:text-white hover:bg-slate-800/50 text-sm font-medium", {
-                  "text-blue-400 font-medium": location.pathname === "/",
+                className={cn(navigationMenuTriggerStyle(), "bg-transparent text-white/80 hover:text-white hover:bg-white/10", {
+                  "underline text-white font-bold": location.pathname === "/",
                 })}
               >
                 Home
@@ -137,35 +60,10 @@ const TopNav: React.FC = () => {
             </Link>
           </NavigationMenuItem>
           <NavigationMenuItem>
-            <NavigationMenuTrigger className="bg-transparent text-slate-300 hover:text-white hover:bg-slate-800/50 data-[state=open]:bg-slate-800/50 text-sm font-medium">
-              Tools
-            </NavigationMenuTrigger>
-            <NavigationMenuContent>
-              <div className="w-[650px] p-6 bg-slate-900/95 backdrop-blur-xl border border-slate-700/50 text-white rounded-xl shadow-2xl">
-                <div className="mb-6 text-center">
-                  <h3 className="text-lg font-semibold text-white mb-2">Legal Tools & Features</h3>
-                  <p className="text-sm text-slate-400">Access all tools in one place — drafting, tracking, studying, research & more</p>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  {features.map((component) => (
-                    <ListItem
-                      key={component.title}
-                      title={component.title}
-                      to={component.href}
-                      icon={component.icon}
-                    >
-                      {component.description}
-                    </ListItem>
-                  ))}
-                </div>
-              </div>
-            </NavigationMenuContent>
-          </NavigationMenuItem>
-          <NavigationMenuItem>
             <Link to="/about">
               <NavigationMenuLink
-                className={cn(navigationMenuTriggerStyle(), "bg-transparent text-slate-300 hover:text-white hover:bg-slate-800/50 text-sm font-medium", {
-                  "text-blue-400 font-medium": location.pathname === "/about",
+                className={cn(navigationMenuTriggerStyle(), "bg-transparent text-white/80 hover:text-white hover:bg-white/10", {
+                  "underline text-white font-bold": location.pathname === "/about",
                 })}
               >
                 About
@@ -173,12 +71,21 @@ const TopNav: React.FC = () => {
             </Link>
           </NavigationMenuItem>
           <NavigationMenuItem>
-            <NavigationMenuLink
-              className={cn(navigationMenuTriggerStyle(), "bg-transparent text-slate-300 hover:text-white hover:bg-slate-800/50 text-sm font-medium cursor-pointer")}
-              onClick={scrollToTools}
-            >
-              Contact
-            </NavigationMenuLink>
+            <NavigationMenuTrigger className="bg-transparent text-white/80 hover:text-white hover:bg-white/10 data-[state=open]:bg-white/10">Features</NavigationMenuTrigger>
+            <NavigationMenuContent>
+              <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-1 lg:w-[600px] bg-black/80 backdrop-blur border border-white/10 text-white rounded-lg">
+                {features.map((component) => (
+                  <ListItem
+                    key={component.title}
+                    title={component.title}
+                    to={component.href}
+                    icon={component.icon}
+                  >
+                    {component.description}
+                  </ListItem>
+                ))}
+              </ul>
+            </NavigationMenuContent>
           </NavigationMenuItem>
         </NavigationMenuList>
       </NavigationMenu>
@@ -191,27 +98,27 @@ const ListItem = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof Link> & { title: string, icon: React.ReactNode }
 >(({ className, title, children, icon, to, ...props }, ref) => {
   return (
-    <NavigationMenuLink asChild>
-      <Link
-        ref={ref}
-        to={to}
-        className={cn(
-          "block select-none space-y-1 rounded-lg p-3 leading-none no-underline outline-none transition-colors hover:bg-slate-800/50 focus:bg-slate-800/50 border border-slate-700/30",
-          className
-        )}
-        {...props}
-      >
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
+    <li>
+      <NavigationMenuLink asChild>
+        <Link
+          ref={ref}
+          to={to}
+          className={cn(
+            "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-white/10 focus:bg-white/10",
+            className
+          )}
+          {...props}
+        >
+          <div className="flex items-center gap-2">
             {icon}
+            <div className="text-sm font-medium leading-none text-white">{title}</div>
           </div>
-          <div className="text-sm font-medium leading-none text-white">{title}</div>
-        </div>
-        <p className="line-clamp-2 text-xs leading-snug text-slate-400 pl-11">
-          {children}
-        </p>
-      </Link>
-    </NavigationMenuLink>
+          <p className="line-clamp-2 text-sm leading-snug text-white/70 pl-7">
+            {children}
+          </p>
+        </Link>
+      </NavigationMenuLink>
+    </li>
   );
 });
 ListItem.displayName = "ListItem";

@@ -2,49 +2,42 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useNavigate } from "react-router-dom";
-import { useGeminiKey } from "@/hooks/useGeminiKey";
-import { callGeminiAPI } from "@/utils/geminiApi";
+import { askPuter } from "@/utils/openaiApi";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 
 const SectionExplainer = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { data: geminiKey } = useGeminiKey();
-  const [actName, setActName] = useState("");
+  const [selectedAct, setSelectedAct] = useState("");
   const [sectionNumber, setSectionNumber] = useState("");
   const [explanation, setExplanation] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  
-  // New fields for case law search
-  const [searchYear, setSearchYear] = useState("");
-  const [courtLevel, setCourtLevel] = useState("");
-  const [specificCourt, setSpecificCourt] = useState("");
-  const [caseResults, setCaseResults] = useState("");
-  const [isCaseLoading, setIsCaseLoading] = useState(false);
+
+  const acts = [
+    { value: "ipc", label: "Indian Penal Code (IPC)" },
+    { value: "crpc", label: "Code of Criminal Procedure (CrPC)" },
+    { value: "cpc", label: "Code of Civil Procedure (CPC)" },
+    { value: "evidence", label: "Indian Evidence Act" },
+    { value: "contract", label: "Indian Contract Act" },
+    { value: "constitution", label: "Constitution of India" }
+  ];
 
   const handleExplain = async () => {
-    if (!actName || !sectionNumber) {
+    if (!selectedAct || !sectionNumber) {
       toast({
         title: "Missing Information",
-        description: "Please enter both act name and section number.",
+        description: "Please select an act and enter a section number.",
         variant: "destructive"
-      });
-      return;
-    }
-
-    if (!geminiKey) {
-      toast({
-        title: "API Key Required",
-        description: "Please set your Gemini API key to use this feature.",
-        variant: "destructive",
       });
       return;
     }
 
     setIsLoading(true);
     try {
+      const actName = acts.find(act => act.value === selectedAct)?.label || selectedAct;
       const prompt = `You are an expert legal assistant specializing in Indian law. Provide accurate, detailed explanations of legal sections with practical insights.
 
 Explain Section ${sectionNumber} of the ${actName} in detail. Include:
@@ -55,7 +48,7 @@ Explain Section ${sectionNumber} of the ${actName} in detail. Include:
 5. Important case law or precedents if any
 Please provide a comprehensive yet clear explanation suitable for legal practitioners.`;
 
-      const result = await callGeminiAPI(prompt, geminiKey);
+      const result = await askPuter(prompt);
 
       setExplanation(result);
       toast({
@@ -74,76 +67,11 @@ Please provide a comprehensive yet clear explanation suitable for legal practiti
     }
   };
 
-  const handleCaseSearch = async () => {
-    if (!actName || !sectionNumber) {
-      toast({
-        title: "Missing Information",
-        description: "Please enter act name and section number first.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    if (!geminiKey) {
-      toast({
-        title: "API Key Required",
-        description: "Please set your Gemini API key to use this feature.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsCaseLoading(true);
-    try {
-      let courtFilter = "";
-      if (courtLevel && specificCourt) {
-        courtFilter = ` decided by ${specificCourt}`;
-      } else if (courtLevel) {
-        courtFilter = ` from ${courtLevel}`;
-      }
-
-      let yearFilter = "";
-      if (searchYear) {
-        yearFilter = ` from the year ${searchYear}`;
-      }
-
-      const prompt = `You are a legal research assistant specializing in Indian case law. Find relevant cases that have cited or interpreted Section ${sectionNumber} of the ${actName}.
-
-Search for Indian case law${courtFilter}${yearFilter} that has cited, interpreted, or applied Section ${sectionNumber} of the ${actName}.
-
-Please provide:
-1. Case names with full citations
-2. How the section was interpreted or applied in each case
-3. Key judicial observations about this section
-4. Any significant precedents established
-5. Current legal position based on these cases
-
-Focus on cases that specifically deal with Section ${sectionNumber} of the ${actName}.`;
-
-      const result = await callGeminiAPI(prompt, geminiKey);
-
-      setCaseResults(result);
-      toast({
-        title: "Case Search Complete",
-        description: "Cases citing this section have been found."
-      });
-    } catch (error) {
-      console.error('Error searching cases:', error);
-      toast({
-        title: "Error",
-        description: "Failed to search cases. Please try again.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsCaseLoading(false);
-    }
-  };
-
   return (
     <div className="p-6 min-h-screen bg-white flex flex-col">
       <div className="flex items-center gap-4 mb-8">
-        <Button variant="ghost" onClick={() => navigate("/tools")}>
-          ← Back to Tools
+        <Button variant="ghost" onClick={() => navigate("/features")}>
+          ← Back to Dashboard
         </Button>
         <h1 className="text-2xl font-bold">Section Explainer</h1>
       </div>
@@ -155,14 +83,19 @@ Focus on cases that specifically deal with Section ${sectionNumber} of the ${act
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <label className="block text-sm font-medium mb-2">Act Name</label>
-              <input
-                type="text"
-                value={actName}
-                onChange={(e) => setActName(e.target.value)}
-                placeholder="e.g., Indian Penal Code, Code of Criminal Procedure, Constitution of India"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
+              <label className="block text-sm font-medium mb-2">Select Act</label>
+              <Select value={selectedAct} onValueChange={setSelectedAct}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Choose a legal act" />
+                </SelectTrigger>
+                <SelectContent>
+                  {acts.map((act) => (
+                    <SelectItem key={act.value} value={act.value}>
+                      {act.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div>
@@ -193,65 +126,6 @@ Focus on cases that specifically deal with Section ${sectionNumber} of the ${act
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Find Cases Using This Section</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-2">Year (Optional)</label>
-                <input
-                  type="text"
-                  value={searchYear}
-                  onChange={(e) => setSearchYear(e.target.value)}
-                  placeholder="e.g., 2020, 2015-2020"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-2">Court Level (Optional)</label>
-                <select
-                  value={courtLevel}
-                  onChange={(e) => setCourtLevel(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="">Any Court</option>
-                  <option value="Supreme Court">Supreme Court</option>
-                  <option value="High Court">High Court</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-2">Specific Court (Optional)</label>
-                <input
-                  type="text"
-                  value={specificCourt}
-                  onChange={(e) => setSpecificCourt(e.target.value)}
-                  placeholder="e.g., Bombay High Court, Delhi High Court"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-            </div>
-
-            <Button 
-              onClick={handleCaseSearch} 
-              disabled={isCaseLoading}
-              className="w-full"
-            >
-              {isCaseLoading ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Searching Cases...
-                </>
-              ) : (
-                "Find Cases Using This Section"
-              )}
-            </Button>
-          </CardContent>
-        </Card>
-
         {explanation && (
           <Card>
             <CardHeader>
@@ -261,21 +135,6 @@ Focus on cases that specifically deal with Section ${sectionNumber} of the ${act
               <div className="prose max-w-none">
                 <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed">
                   {explanation}
-                </pre>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {caseResults && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Cases Using This Section</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="prose max-w-none">
-                <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed">
-                  {caseResults}
                 </pre>
               </div>
             </CardContent>

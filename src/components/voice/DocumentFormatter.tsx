@@ -1,12 +1,11 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Edit, FileText } from "lucide-react";
-import { useGeminiKey } from "@/hooks/useGeminiKey";
-import { callGeminiAPI } from "@/utils/geminiApi";
+import { supabase } from "@/integrations/supabase/client";
+import { askPuter } from "@/utils/openaiApi";
 
 interface DocumentFormatterProps {
   transcription: string;
@@ -24,7 +23,6 @@ const DocumentFormatter: React.FC<DocumentFormatterProps> = ({
   setIsLoading
 }) => {
   const { toast } = useToast();
-  const { data: geminiKey } = useGeminiKey();
   const [isEditingTranscription, setIsEditingTranscription] = useState(false);
 
   const formatDocument = async () => {
@@ -33,15 +31,6 @@ const DocumentFormatter: React.FC<DocumentFormatterProps> = ({
         title: "No Transcription",
         description: "Please record audio first.",
         variant: "destructive"
-      });
-      return;
-    }
-
-    if (!geminiKey) {
-      toast({
-        title: "API Key Required",
-        description: "Please set your Gemini API key to use this feature.",
-        variant: "destructive",
       });
       return;
     }
@@ -67,7 +56,7 @@ Please:
 
 Format it as a complete, professional legal petition/application.`;
 
-      const result = await callGeminiAPI(prompt, geminiKey);
+      const result = await askPuter(prompt);
 
       onDocumentFormatted(result);
       toast({
