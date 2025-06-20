@@ -26,7 +26,8 @@ import {
   CheckCircle,
   ClipboardList,
   ClipboardCheck,
-  Languages
+  Languages,
+  HelpCircle
 } from "lucide-react";
 
 const features: { title: string; href: string; description: string; icon: React.ReactNode }[] = [
@@ -64,7 +65,7 @@ const features: { title: string; href: string; description: string; icon: React.
     title: "NyayaBot Q&A",
     href: "/legal-qna",
     description: "Ask legal questions based on Indian law",
-    icon: <Bot className="w-5 h-5" />,
+    icon: <HelpCircle className="w-5 h-5" />,
   },
   {
     title: "Client Brief Summarizer",
@@ -107,9 +108,10 @@ const features: { title: string; href: string; description: string; icon: React.
 const TopNav: React.FC = () => {
   const location = useLocation();
   return (
-    <nav className="fixed top-0 left-0 w-full z-30 flex items-center justify-between px-6 md:px-10 h-16 bg-black/25 backdrop-blur border-b border-white/10">
-      <Link to="/" className="text-xl font-extrabold text-white font-serif tracking-wide">
-        LegalOps
+    <nav className="fixed top-0 left-0 w-full z-30 flex items-center justify-between px-6 md:px-10 h-16 bg-black/20 backdrop-blur-lg border-b border-white/10">
+      <Link to="/" className="flex items-center gap-2">
+        <Scale className="w-6 h-6 text-blue-400" />
+        <span className="text-xl font-bold text-white">LegalOps</span>
       </Link>
       <NavigationMenu>
         <NavigationMenuList>
@@ -117,7 +119,7 @@ const TopNav: React.FC = () => {
             <Link to="/">
               <NavigationMenuLink
                 className={cn(navigationMenuTriggerStyle(), "bg-transparent text-white/80 hover:text-white hover:bg-white/10", {
-                  "underline text-white font-bold": location.pathname === "/",
+                  "text-blue-400 font-medium": location.pathname === "/",
                 })}
               >
                 Home
@@ -125,24 +127,13 @@ const TopNav: React.FC = () => {
             </Link>
           </NavigationMenuItem>
           <NavigationMenuItem>
-            <Link to="/about">
-              <NavigationMenuLink
-                className={cn(navigationMenuTriggerStyle(), "bg-transparent text-white/80 hover:text-white hover:bg-white/10", {
-                  "underline text-white font-bold": location.pathname === "/about",
-                })}
-              >
-                About
-              </NavigationMenuLink>
-            </Link>
-          </NavigationMenuItem>
-          <NavigationMenuItem>
             <NavigationMenuTrigger className="bg-transparent text-white/80 hover:text-white hover:bg-white/10 data-[state=open]:bg-white/10">
-              🛠️ Tools & Features
+              Tools
             </NavigationMenuTrigger>
             <NavigationMenuContent>
-              <div className="w-[600px] p-4 bg-black/80 backdrop-blur border border-white/10 text-white rounded-lg">
+              <div className="w-[600px] p-4 bg-slate-900/95 backdrop-blur border border-white/10 text-white rounded-lg">
                 <div className="mb-3 text-center">
-                  <h3 className="text-lg font-semibold text-white mb-1">🛠️ Tools & Features</h3>
+                  <h3 className="text-lg font-semibold text-white mb-1">Legal Tools & Features</h3>
                   <p className="text-sm text-white/70">Access all tools in one place — drafting, tracking, studying, research & more</p>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
@@ -159,6 +150,17 @@ const TopNav: React.FC = () => {
                 </div>
               </div>
             </NavigationMenuContent>
+          </NavigationMenuItem>
+          <NavigationMenuItem>
+            <Link to="/about">
+              <NavigationMenuLink
+                className={cn(navigationMenuTriggerStyle(), "bg-transparent text-white/80 hover:text-white hover:bg-white/10", {
+                  "text-blue-400 font-medium": location.pathname === "/about",
+                })}
+              >
+                About
+              </NavigationMenuLink>
+            </Link>
           </NavigationMenuItem>
         </NavigationMenuList>
       </NavigationMenu>
