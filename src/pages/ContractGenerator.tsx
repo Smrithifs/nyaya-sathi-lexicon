@@ -4,16 +4,15 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Check, ChevronDown, Search } from "lucide-react";
+import { Check, ChevronDown, Search, Upload, FileText, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { marked } from "marked";
-import { groqCompletion } from "@/utils/groqApi";
 import { useNavigate } from "react-router-dom";
-
-const GROQ_API_KEY = "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";
+import { supabase } from "@/integrations/supabase/client";
 
 const contractTypes = [
   { label: "Agency Contract", value: "agency" },
@@ -98,6 +97,15 @@ const jurisdictions = [
   { label: "West Bengal", value: "wb", court: "Calcutta High Court", rules: "Calcutta High Court Rules of Practice" },
 ];
 
+interface UploadedDocument {
+  id: string;
+  filename: string;
+  type: string;
+  content: string;
+  size: number;
+  uploadedAt: string;
+}
+
 const ContractGenerator = () => {
   const navigate = useNavigate();
   const [partyA, setPartyA] = useState("");
@@ -109,12 +117,133 @@ const ContractGenerator = () => {
   const [output, setOutput] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
+  const [uploadedDocuments, setUploadedDocuments] = useState<UploadedDocument[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const [extractedDetails, setExtractedDetails] = useState("");
+  const [extracting, setExtracting] = useState(false);
   const { toast } = useToast();
 
   const selectedContractType = contractTypes.find(ct => ct.value === contractType);
   const selectedJurisdiction = jurisdictions.find(j => j.value === jurisdiction);
 
-  const getContractPrompt = (type: string, partyA: string, partyB: string, date: string, language: string, jurisdiction: string) => {
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
+
+    setUploading(true);
+    
+    try {
+      const formData = new FormData();
+      const sessionId = `session_${Date.now()}`;
+      
+      for (let i = 0; i < files.length; i++) {
+        formData.append('files', files[i]);
+      }
+      formData.append('sessionId', sessionId);
+
+      const { data, error } = await supabase.functions.invoke('process-documents', {
+        body: formData,
+      });
+
+      if (error) throw error;
+
+      if (data.success) {
+        setUploadedDocuments(data.documents);
+        toast({
+          title: "Documents uploaded successfully",
+          description: `${data.documents.length} documents processed`,
+        });
+        
+        // Auto-extract details after upload
+        await extractContractDetails(data.documents);
+        
+        // Clear the input
+        event.target.value = '';
+      } else {
+        throw new Error(data.error);
+      }
+    } catch (error: any) {
+      console.error('Upload error:', error);
+      toast({
+        title: "Upload failed",
+        description: error.message || "Failed to upload documents",
+        variant: "destructive",
+      });
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const extractContractDetails = async (documents: UploadedDocument[]) => {
+    setExtracting(true);
+    try {
+      const documentContent = documents.map(doc => `Document: ${doc.filename}\nContent: ${doc.content}`).join('\n\n');
+      
+      const extractionPrompt = `Extract contract details from the following documents and format them as:
+
+Party A: [First party name]
+Party B: [Second party name]
+Date: [Contract date in YYYY-MM-DD format]
+Jurisdiction: [State/jurisdiction mentioned]
+Purpose: [Brief description of contract purpose]
+Contract Type (suggested): [Suggested contract type based on content]
+
+Documents to analyze:
+${documentContent}
+
+Only extract information that is clearly mentioned in the documents. If information is not available, leave it blank or write "Not specified".`;
+
+      const { data, error } = await supabase.functions.invoke('groq-completion', {
+        body: {
+          prompt: extractionPrompt,
+          systemInstruction: "You are a legal document analysis AI. Extract only the factual information present in the documents. Be precise and accurate.",
+          model: "llama3-70b-8192"
+        }
+      });
+
+      if (error) throw error;
+
+      setExtractedDetails(data.result);
+      toast({
+        title: "Details extracted",
+        description: "Contract details have been extracted from uploaded documents",
+      });
+    } catch (error: any) {
+      console.error('Extraction error:', error);
+      toast({
+        title: "Extraction failed",
+        description: "Failed to extract details from documents",
+        variant: "destructive",
+      });
+    } finally {
+      setExtracting(false);
+    }
+  };
+
+  const handleRemoveDocument = (documentId: string) => {
+    setUploadedDocuments(prev => prev.filter(doc => doc.id !== documentId));
+    if (uploadedDocuments.length === 1) {
+      setExtractedDetails("");
+    }
+  };
+
+  const callGroqCompletion = async (prompt: string, systemInstruction: string) => {
+    const { data, error } = await supabase.functions.invoke('groq-completion', {
+      body: {
+        prompt,
+        systemInstruction,
+        model: "llama3-70b-8192"
+      }
+    });
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    return data.result;
+  };
+
+  const getContractPrompt = (type: string, partyA: string, partyB: string, date: string, language: string, jurisdiction: string, additionalDetails?: string) => {
     const languageMap: { [key: string]: string } = {
       en: "English",
       hi: "Hindi",
@@ -193,6 +322,11 @@ const ContractGenerator = () => {
 - Include specific provisions for service of process under ${jurisdictionInfo.label} jurisdiction
 - Ensure compliance with local registration and stamp duty requirements for ${jurisdictionInfo.label}` : "";
 
+    const additionalContext = additionalDetails ? `\n\n**Additional Context from Uploaded Documents:**
+${additionalDetails}
+
+Please incorporate relevant information from the uploaded documents while ensuring legal compliance.` : "";
+
     return `
 You are a legal contract generation assistant trained in Indian law. Draft a complete, professional ${typeLabel} in ${langStr} that is legally valid under Indian law and specifically tailored for ${jurisdictionInfo?.label || "Indian"} jurisdiction.
 
@@ -227,7 +361,7 @@ Requirements:
 5. Language: ${langStr === "English" ? "Use clear legal English" : `Translate to ${langStr} but keep legal terms in English where necessary for precision`}
 6. Make it ready for digital/physical signature and legally enforceable
 
-${jurisdictionClause}
+${jurisdictionClause}${additionalContext}
 
 Generate a complete, professional contract that covers all necessary legal aspects for a ${typeLabel} under Indian law, specifically formatted for ${jurisdictionInfo?.label || "Indian"} jurisdiction and compliant with ${jurisdictionInfo?.rules || "standard Indian legal practice"}.
     `.trim();
@@ -247,13 +381,9 @@ Generate a complete, professional contract that covers all necessary legal aspec
     setLoading(true);
     setOutput(null);
     try {
-      const prompt = getContractPrompt(contractType, partyA, partyB, contractDate, lang, jurisdiction);
+      const prompt = getContractPrompt(contractType, partyA, partyB, contractDate, lang, jurisdiction, extractedDetails);
 
-      const doc = await groqCompletion({
-        apiKey: GROQ_API_KEY,
-        prompt,
-        systemInstruction: `You are a legal contracts assistant specializing in Indian law with expertise in state-specific jurisdictional requirements. Draft detailed, legally valid, and enforceable agreements that comply with Indian legal requirements and specific state Rules of Practice. Structure contracts professionally with proper legal formatting, include all necessary clauses, ensure compliance with relevant Indian statutes, and tailor procedural and jurisdictional aspects to the specific state's high court rules and practices.`
-      });
+      const doc = await callGroqCompletion(prompt, `You are a legal contracts assistant specializing in Indian law with expertise in state-specific jurisdictional requirements. Draft detailed, legally valid, and enforceable agreements that comply with Indian legal requirements and specific state Rules of Practice. Structure contracts professionally with proper legal formatting, include all necessary clauses, ensure compliance with relevant Indian statutes, and tailor procedural and jurisdictional aspects to the specific state's high court rules and practices.`);
 
       setOutput(doc);
       const langLabel = languages.find(l => l.code === lang)?.label || "English";
@@ -265,6 +395,19 @@ Generate a complete, professional contract that covers all necessary legal aspec
       setLoading(false);
     }
   }
+
+  const getFileIcon = (type: string) => {
+    if (type.includes('pdf')) return <FileText className="w-4 h-4 text-red-500" />;
+    return <FileText className="w-4 h-4 text-gray-500" />;
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
 
   return (
     <div className="p-6 min-h-screen bg-white flex flex-col">
@@ -278,6 +421,90 @@ Generate a complete, professional contract that covers all necessary legal aspec
       <Card className="w-full max-w-2xl mx-auto shadow-lg border border-input">
         <CardContent className="pt-6">
           <form onSubmit={handleGenerate} className="space-y-4">
+            {/* Document Upload Section */}
+            <div className="space-y-4">
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-500 transition-colors">
+                <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                <p className="text-sm text-gray-600 mb-3">
+                  Upload documents to auto-extract contract details (PDF, DOCX, TXT)
+                </p>
+                <input
+                  type="file"
+                  multiple
+                  accept=".pdf,.docx,.txt"
+                  onChange={handleFileUpload}
+                  disabled={uploading}
+                  className="hidden"
+                  id="document-upload"
+                />
+                <Button 
+                  asChild 
+                  disabled={uploading}
+                  className="bg-blue-600 hover:bg-blue-700"
+                  type="button"
+                >
+                  <label htmlFor="document-upload" className="cursor-pointer">
+                    {uploading ? 'Processing...' : 'Upload Documents'}
+                  </label>
+                </Button>
+              </div>
+
+              {/* Uploaded Documents List */}
+              {uploadedDocuments.length > 0 && (
+                <div className="space-y-2">
+                  <h3 className="text-sm font-semibold text-gray-700">
+                    Uploaded Documents ({uploadedDocuments.length})
+                  </h3>
+                  <div className="space-y-2 max-h-32 overflow-y-auto">
+                    {uploadedDocuments.map((doc) => (
+                      <div
+                        key={doc.id}
+                        className="flex items-center justify-between p-2 bg-gray-50 rounded-md border"
+                      >
+                        <div className="flex items-center space-x-2 flex-1">
+                          {getFileIcon(doc.type)}
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-gray-900 truncate">
+                              {doc.filename}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              {formatFileSize(doc.size)}
+                            </p>
+                          </div>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleRemoveDocument(doc.id)}
+                          className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                          type="button"
+                        >
+                          <X className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Extracted Details Editor */}
+              {extractedDetails && (
+                <div>
+                  <label className="text-sm font-medium mb-1 block">Extracted Details (Editable)</label>
+                  <Textarea
+                    value={extractedDetails}
+                    onChange={e => setExtractedDetails(e.target.value)}
+                    placeholder="Extracted contract details will appear here..."
+                    className="min-h-[120px]"
+                    disabled={extracting}
+                  />
+                  {extracting && (
+                    <p className="text-sm text-blue-600 mt-1">Extracting details from uploaded documents...</p>
+                  )}
+                </div>
+              )}
+            </div>
+
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
                 <label className="text-sm font-medium mb-1 block">Party A (First Party)</label>
@@ -334,6 +561,7 @@ Generate a complete, professional contract that covers all necessary legal aspec
                       aria-expanded={open}
                       className="w-full justify-between"
                       disabled={loading}
+                      type="button"
                     >
                       {selectedContractType?.label || "Search or select contract type..."}
                       <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
