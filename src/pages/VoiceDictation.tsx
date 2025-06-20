@@ -34,6 +34,8 @@ const VoiceDictation = () => {
           <CardContent>
             <VoiceRecorder 
               onTranscriptionComplete={setTranscription}
+              isLoading={isLoading}
+              setIsLoading={setIsLoading}
             />
           </CardContent>
         </Card>
@@ -48,8 +50,8 @@ const VoiceDictation = () => {
 
         {formattedDocument && (
           <DocumentEditor
-            document={formattedDocument}
-            setDocument={setFormattedDocument}
+            formattedDocument={formattedDocument}
+            setFormattedDocument={setFormattedDocument}
           />
         )}
       </div>
