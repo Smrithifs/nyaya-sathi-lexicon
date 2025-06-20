@@ -14,7 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 const QABot = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { geminiKey } = useGeminiKey();
+  const { data: geminiKey } = useGeminiKey();
   const [question, setQuestion] = useState("");
   const [language, setLanguage] = useState("english");
   const [response, setResponse] = useState("");

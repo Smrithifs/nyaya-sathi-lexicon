@@ -38,3 +38,8 @@ export async function geminiTextCompletion({
   if (!text) throw new Error("Gemini produced no output");
   return text;
 }
+
+// Add the callGeminiAPI function that QABot expects
+export async function callGeminiAPI(prompt: string, apiKey: string) {
+  return await geminiTextCompletion({ apiKey, prompt });
+}
