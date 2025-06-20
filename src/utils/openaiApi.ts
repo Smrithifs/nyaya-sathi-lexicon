@@ -1,58 +1,6 @@
-
-/**
- * Utility for calling OpenAI Chat Completions API for text completion.
- * Returns just the content string from the response.
- */
-export async function openaiSummarize({
-  apiKey,
-  prompt,
-  systemInstruction,
-  language = "English"
-}: {
-  apiKey: string,
-  prompt: string,
-  systemInstruction?: string,
-  language?: string
-}) {
-  const apiUrl = "https://api.openai.com/v1/chat/completions";
-  const headers = {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${apiKey}`
-  };
-
-  const messages = [];
-  if (systemInstruction) {
-    messages.push({ role: "system", content: systemInstruction });
-  }
-  messages.push({
-    role: "user",
-    content: prompt
-  });
-
-  const body = {
-    model: "gpt-4o", // Use OpenAI GPT-4o model for best results
-    messages,
-    temperature: 0.2
-  };
-
-  const res = await fetch(apiUrl, {
-    method: "POST",
-    headers,
-    body: JSON.stringify(body)
-  });
-
-  if (!res.ok) {
-    let errMsg = "OpenAI API error";
-    try {
-      const errorData = await res.json();
-      if (errorData?.error?.message) {
-        errMsg = `OpenAI API error: ${errorData.error.message}`;
-      }
-    } catch {}
-    throw new Error(errMsg);
-  }
-  const data = await res.json();
-  const text = data?.choices?.[0]?.message?.content as string;
-  if (!text) throw new Error("OpenAI produced no output");
-  return text;
+// /src/utils/openaiApi.ts
+export async function askPuter(prompt: string, model: string = "gpt-4o"): Promise<string> {
+  if (!window.puter) throw new Error("Puter.js is not loaded");
+  const response = await window.puter.ai.chat(prompt, { model });
+  return response;
 }
