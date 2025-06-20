@@ -73,7 +73,7 @@ const lawyerFeatures = [
     description: "Convert voice recordings to legal documents",
     icon: Mic,
     route: "/voice-dictation",
-    useChat: true
+    useChat: false
   },
   {
     title: "Multi-Language Support",
@@ -100,8 +100,8 @@ const lawyerFeatures = [
     title: "Hearing/Deadline Tracker",
     description: "Track court dates and deadlines",
     icon: Calendar,
-    route: null,
-    useChat: true
+    route: "/hearing-tracker",
+    useChat: false
   }
 ];
 

@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -17,6 +18,7 @@ import LegalDraftTemplates from "./pages/LegalDraftTemplates";
 import VoiceDictation from "./pages/VoiceDictation";
 import MultiLanguageSupport from "./pages/MultiLanguageSupport";
 import CitationChecker from "./pages/CitationChecker";
+import HearingTracker from "./pages/HearingTracker";
 import RoleFeatureChat from "./pages/RoleFeatureChat";
 
 const queryClient = new QueryClient();
@@ -42,6 +44,7 @@ const App = () => (
           <Route path="/voice-dictation" element={<VoiceDictation />} />
           <Route path="/multi-language-support" element={<MultiLanguageSupport />} />
           <Route path="/citation-checker" element={<CitationChecker />} />
+          <Route path="/hearing-tracker" element={<HearingTracker />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
