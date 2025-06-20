@@ -13,7 +13,6 @@ import { useNavigate } from "react-router-dom";
 
 const lawyerTools = [
   { name: "Contract Generator", icon: <FileEdit className="w-7 h-7 text-blue-600" /> },
-  { name: "Legal Q&A (NyayaBot)", icon: <Gavel className="w-7 h-7 text-yellow-700" /> },
   { name: "Case Law Finder", icon: <Search className="w-7 h-7 text-green-600" /> },
   { name: "Section Explainer", icon: <Landmark className="w-7 h-7 text-gray-600" /> },
   { name: "Bare Act Navigator", icon: <BookOpen className="w-7 h-7 text-amber-700" /> },
@@ -22,20 +21,14 @@ const lawyerTools = [
   { name: "Multi-Language Support", icon: <Languages className="w-7 h-7 text-blue-700" /> },
   { name: "Citation Checker", icon: <Wand2 className="w-7 h-7 text-lime-700" /> },
   { name: "Client Brief Summary Tool", icon: <Brain className="w-7 h-7 text-indigo-700" /> },
-  { name: "Hearing/Deadline Tracker", icon: <Users className="w-7 h-7 text-orange-700" /> }
+  { name: "Hearing/Deadline Tracker", icon: <Users className="w-7 h-7 text-orange-700" /> },
+  { name: "Legal Q&A (NyayaBot)", icon: <Gavel className="w-7 h-7 text-yellow-700" /> }
 ];
 
 const studentTools = [
-  { name: "Topic-Wise Quiz Generator", icon: <Brain className="w-7 h-7 text-blue-600" /> },
-  { name: "Case Brief Generator", icon: <Layers className="w-7 h-7 text-gray-700" /> },
   { name: "Flashcards (Legal Terms)", icon: <Wand2 className="w-7 h-7 text-yellow-700" /> },
   { name: "Syllabus Tracker", icon: <BookOpen className="w-7 h-7 text-purple-600" /> },
-  { name: "Law News Digest", icon: <Landmark className="w-7 h-7 text-green-700" /> },
-  { name: "Doubt Forum (Ask Senior)", icon: <Users className="w-7 h-7 text-pink-700" /> },
-  { name: "Mock Test Generator", icon: <FileEdit className="w-7 h-7 text-indigo-700" /> },
-  { name: "Study Plan Generator", icon: <BookOpen className="w-7 h-7 text-blue-700" /> },
-  { name: "Legal Q&A (NyayaBot)", icon: <Gavel className="w-7 h-7 text-yellow-700" /> },
-  { name: "Case Explainer", icon: <Search className="w-7 h-7 text-orange-700" /> },
+  { name: "Legal Q&A (NyayaBot)", icon: <Gavel className="w-7 h-7 text-yellow-700" /> }
 ];
 
 const whyLegalOpsItems = [
@@ -122,7 +115,7 @@ const About = () => {
                   <BookOpen className="w-10 h-10 text-blue-300" />
                 </div>
                 <div className="text-xl font-bold mb-2 font-serif">Law Student</div>
-                <div className="text-base text-white/80">Get learning aids—case briefings, study plans, quizzes and doubt forum built just for you.</div>
+                <div className="text-base text-white/80">Get learning aids—flashcards, syllabus tracking, and Q&A built just for you.</div>
               </div>
             </div>
 
@@ -163,7 +156,7 @@ const About = () => {
               </div>
 
               <Button 
-                onClick={() => navigate("/features")}
+                onClick={() => navigate("/tools")}
                 className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg font-semibold rounded-xl shadow-lg"
               >
                 Try These Features →

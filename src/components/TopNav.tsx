@@ -25,7 +25,8 @@ import {
   PenTool,
   CheckCircle,
   ClipboardList,
-  ClipboardCheck
+  ClipboardCheck,
+  Languages
 } from "lucide-react";
 
 const features: { title: string; href: string; description: string; icon: React.ReactNode }[] = [
@@ -90,14 +91,14 @@ const features: { title: string; href: string; description: string; icon: React.
     icon: <BookOpen className="w-5 h-5" />,
   },
   {
-    title: "Flashcards",
-    href: "/features",
-    description: "Learn legal terms efficiently",
-    icon: <Flashlight className="w-5 h-5" />,
+    title: "Multi-Language Support",
+    href: "/multi-language-support",
+    description: "Translate legal documents",
+    icon: <Languages className="w-5 h-5" />,
   },
   {
-    title: "All LegalOps Features",
-    href: "/features",
+    title: "All Tools & Features",
+    href: "/tools",
     description: "Discover everything in one place",
     icon: <Scale className="w-5 h-5" />,
   },

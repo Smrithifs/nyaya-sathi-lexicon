@@ -11,6 +11,7 @@ import ContractGenerator from "./pages/ContractGenerator";
 import QABot from "./pages/QABot";
 import Summarizer from "./pages/Summarizer";
 import LegalOpsHome from "./pages/LegalOpsHome";
+import ToolsAndFeatures from "./pages/ToolsAndFeatures";
 import CaseLawFinder from "./pages/CaseLawFinder";
 import SectionExplainer from "./pages/SectionExplainer";
 import BareActNavigator from "./pages/BareActNavigator";
@@ -36,6 +37,7 @@ const App = () => (
           <Route path="/legal-qna" element={<QABot />} />
           <Route path="/summarizer" element={<Summarizer />} />
           <Route path="/features" element={<LegalOpsHome />} />
+          <Route path="/tools" element={<ToolsAndFeatures />} />
           {/* New dedicated feature routes */}
           <Route path="/case-law-finder" element={<CaseLawFinder />} />
           <Route path="/section-explainer" element={<SectionExplainer />} />
