@@ -102,14 +102,14 @@ const allTools = [
     title: "Flashcards (Legal Terms)",
     description: "Create flashcards for legal terminology",
     icon: Flashlight,
-    route: "/features",
+    route: "/tools",
     category: "🧠 Learning"
   },
   {
     title: "Syllabus Tracker",
     description: "Track your law school syllabus and study progress",
     icon: ClipboardCheck,
-    route: "/features",
+    route: "/tools",
     category: "🧠 Learning"
   }
 ];
