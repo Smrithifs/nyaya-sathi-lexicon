@@ -1,416 +1,207 @@
-
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
 /* Ivo.ai Design System Implementation */
-@layer base {
-  :root {
-    /* Ivo.ai Color Palette */
-    --ivo-primary: #0a2540;
-    --ivo-secondary: #00d4ff;
-    --ivo-background: #f6f9fc;
-    --ivo-white: #ffffff;
-    --ivo-gray-50: #f8fafc;
-    --ivo-gray-100: #f1f5f9;
-    --ivo-gray-200: #e2e8f0;
-    --ivo-gray-300: #cbd5e1;
-    --ivo-gray-400: #94a3b8;
-    --ivo-gray-500: #64748b;
-    --ivo-gray-600: #475569;
-    --ivo-gray-700: #334155;
-    --ivo-gray-800: #1e293b;
-    --ivo-gray-900: #0f172a;
-    
-    /* Ivo.ai signature radius */
-    --ivo-radius: 30px;
-    --ivo-radius-sm: 20px;
-    --ivo-radius-lg: 40px;
-    
-    /* Shadow system */
-    --ivo-shadow-sm: 0 4px 20px rgba(10, 37, 64, 0.08);
-    --ivo-shadow-md: 0 8px 30px rgba(10, 37, 64, 0.12);
-    --ivo-shadow-lg: 0 20px 60px rgba(10, 37, 64, 0.15);
-    
-    /* Original shadcn variables maintained for compatibility */
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
-    --radius: 0.5rem;
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
-  }
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+:root {
+  /* Ivo.ai Color Palette */
+  --ivo-primary: #0a2540;
+  --ivo-secondary: #00d4ff;
+  --ivo-background: #f6f9fc;
+  --ivo-white: #ffffff;
+  --ivo-gray-50: #f8fafc;
+  --ivo-gray-100: #f1f5f9;
+  --ivo-gray-200: #e2e8f0;
+  --ivo-gray-300: #cbd5e1;
+  --ivo-gray-400: #94a3b8;
+  --ivo-gray-500: #64748b;
+  --ivo-gray-600: #475569;
+  --ivo-gray-700: #334155;
+  --ivo-gray-800: #1e293b;
+  --ivo-gray-900: #0f172a;
+  
+  /* Ivo.ai signature radius */
+  --ivo-radius: 30px;
+  --ivo-radius-sm: 20px;
+  --ivo-radius-lg: 40px;
+  
+  /* Shadow system */
+  --ivo-shadow-sm: 0 4px 20px rgba(10, 37, 64, 0.08);
+  --ivo-shadow-md: 0 8px 30px rgba(10, 37, 64, 0.12);
+  --ivo-shadow-lg: 0 20px 60px rgba(10, 37, 64, 0.15);
+  
+  /* Original shadcn variables maintained for compatibility */
+  --background: 0 0% 100%;
+  --foreground: 222.2 84% 4.9%;
+  --card: 0 0% 100%;
+  --card-foreground: 222.2 84% 4.9%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222.2 84% 4.9%;
+  --primary: 222.2 47.4% 11.2%;
+  --primary-foreground: 210 40% 98%;
+  --secondary: 210 40% 96.1%;
+  --secondary-foreground: 222.2 47.4% 11.2%;
+  --muted: 210 40% 96.1%;
+  --muted-foreground: 215.4 16.3% 46.9%;
+  --accent: 210 40% 96.1%;
+  --accent-foreground: 222.2 47.4% 11.2%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 210 40% 98%;
+  --border: 214.3 31.8% 91.4%;
+  --input: 214.3 31.8% 91.4%;
+  --ring: 222.2 84% 4.9%;
+  --radius: 0.5rem;
+  --sidebar-background: 0 0% 98%;
+  --sidebar-foreground: 240 5.3% 26.1%;
+  --sidebar-primary: 240 5.9% 10%;
+  --sidebar-primary-foreground: 0 0% 98%;
+  --sidebar-accent: 240 4.8% 95.9%;
+  --sidebar-accent-foreground: 240 5.9% 10%;
+  --sidebar-border: 220 13% 91%;
+  --sidebar-ring: 217.2 91.2% 59.8%;
+}
+
+.dark {
+  --background: 222.2 84% 4.9%;
+  --foreground: 210 40% 98%;
+  --card: 222.2 84% 4.9%;
+  --card-foreground: 210 40% 98%;
+  --popover: 222.2 84% 4.9%;
+  --popover-foreground: 210 40% 98%;
+  --primary: 210 40% 98%;
+  --primary-foreground: 222.2 47.4% 11.2%;
+  --secondary: 217.2 32.6% 17.5%;
+  --secondary-foreground: 210 40% 98%;
+  --muted: 217.2 32.6% 17.5%;
+  --muted-foreground: 215 20.2% 65.1%;
+  --accent: 217.2 32.6% 17.5%;
+  --accent-foreground: 210 40% 98%;
+  --destructive: 0 62.8% 30.6%;
+  --destructive-foreground: 210 40% 98%;
+  --border: 217.2 32.6% 17.5%;
+  --input: 217.2 32.6% 17.5%;
+  --ring: 212.7 26.8% 83.9%;
+  --sidebar-background: 240 5.9% 10%;
+  --sidebar-foreground: 240 4.8% 95.9%;
+  --sidebar-primary: 224.3 76.3% 48%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 240 3.7% 15.9%;
+  --sidebar-accent-foreground: 240 4.8% 95.9%;
+  --sidebar-border: 240 3.7% 15.9%;
+  --sidebar-ring: 217.2 91.2% 59.8%;
+}
+
+* {
+  border-color: var(--border);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  background: var(--ivo-background);
+  color: var(--ivo-gray-800);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* Ivo.ai Typography Scale */
+.ivo-text-hero {
+  font-size: 3rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--ivo-primary);
+}
+
+.ivo-text-heading {
+  font-size: 2.25rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--ivo-primary);
+}
+
+.ivo-text-subheading {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--ivo-gray-700);
+}
+
+.ivo-text-body {
+  font-size: 1.125rem;
+  line-height: 1.6;
+  color: var(--ivo-gray-600);
+}
+
+.ivo-text-small {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--ivo-gray-500);
+}
+
+/* Ivo.ai Button System */
+.ivo-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem 2rem;
+  font-weight: 600;
+  color: white;
+  background: var(--ivo-secondary);
+  border-radius: var(--ivo-radius-sm);
+  box-shadow: var(--ivo-shadow-sm);
+  transition: all 0.3s ease-out;
+}
+
+.ivo-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--ivo-shadow-md);
+  background: #00c4ef;
+}
+
+/* Ivo.ai Card System */
+.ivo-card {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease-out;
+  background: var(--ivo-white);
+  border-radius: var(--ivo-radius);
+  box-shadow: var(--ivo-shadow-sm);
+  border: 1px solid var(--ivo-gray-100);
+}
+
+.ivo-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--ivo-shadow-lg);
+}
+
+/* Ivo.ai Layout System */
+.ivo-container {
+  max-width: 80rem;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+}
+
+.ivo-section {
+  padding-top: 5rem;
+  padding-bottom: 5rem;
+}
+
+/* Ivo.ai Animations */
+@keyframes ivoFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
-@layer base {
-  * {
-    @apply border-border;
-  }
-
-  body {
-    @apply bg-background text-foreground;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
-    background: var(--ivo-background);
-    color: var(--ivo-gray-800);
-  }
-
-  html {
-    scroll-behavior: smooth;
-  }
-
-  /* Ivo.ai Typography Scale */
-  .ivo-text-hero {
-    @apply text-5xl md:text-7xl font-bold leading-tight;
-    color: var(--ivo-primary);
-  }
-
-  .ivo-text-heading {
-    @apply text-3xl md:text-5xl font-bold leading-tight;
-    color: var(--ivo-primary);
-  }
-
-  .ivo-text-subheading {
-    @apply text-xl md:text-2xl font-semibold;
-    color: var(--ivo-gray-700);
-  }
-
-  .ivo-text-body {
-    @apply text-base md:text-lg leading-relaxed;
-    color: var(--ivo-gray-600);
-  }
-
-  .ivo-text-small {
-    @apply text-sm font-medium;
-    color: var(--ivo-gray-500);
-  }
-}
-
-@layer utilities {
-  /* Ivo.ai Button System */
-  .ivo-btn-primary {
-    @apply inline-flex items-center justify-center px-8 py-4 font-semibold text-white transition-all duration-300 ease-out;
-    background: var(--ivo-secondary);
-    border-radius: var(--ivo-radius-sm);
-    box-shadow: var(--ivo-shadow-sm);
-  }
-
-  .ivo-btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--ivo-shadow-md);
-    background: #00c4ef;
-  }
-
-  .ivo-btn-secondary {
-    @apply inline-flex items-center justify-center px-8 py-4 font-semibold transition-all duration-300 ease-out;
-    background: var(--ivo-white);
-    color: var(--ivo-primary);
-    border: 2px solid var(--ivo-gray-200);
-    border-radius: var(--ivo-radius-sm);
-    box-shadow: var(--ivo-shadow-sm);
-  }
-
-  .ivo-btn-secondary:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--ivo-shadow-md);
-    border-color: var(--ivo-secondary);
-  }
-
-  /* Ivo.ai Card System */
-  .ivo-card {
-    @apply relative overflow-hidden transition-all duration-300 ease-out;
-    background: var(--ivo-white);
-    border-radius: var(--ivo-radius);
-    box-shadow: var(--ivo-shadow-sm);
-    border: 1px solid var(--ivo-gray-100);
-  }
-
-  .ivo-card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--ivo-shadow-lg);
-  }
-
-  .ivo-card-feature {
-    @apply p-8;
-    background: var(--ivo-white);
-    border-radius: var(--ivo-radius);
-    box-shadow: var(--ivo-shadow-sm);
-    border: 1px solid var(--ivo-gray-100);
-    transition: all 0.3s ease-out;
-  }
-
-  .ivo-card-feature:hover {
-    transform: translateY(-6px);
-    box-shadow: var(--ivo-shadow-lg);
-    border-color: var(--ivo-secondary);
-  }
-
-  /* Ivo.ai Layout System */
-  .ivo-container {
-    @apply max-w-7xl mx-auto px-6 lg:px-8;
-  }
-
-  .ivo-section {
-    @apply py-20 md:py-32;
-  }
-
-  .ivo-grid-features {
-    @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8;
-  }
-
-  /* Ivo.ai Navigation */
-  .ivo-nav {
-    @apply fixed top-0 left-0 w-full z-50 transition-all duration-300;
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(20px);
-    border-bottom: 1px solid var(--ivo-gray-100);
-  }
-
-  .ivo-nav-link {
-    @apply font-medium transition-colors duration-200;
-    color: var(--ivo-gray-700);
-  }
-
-  .ivo-nav-link:hover {
-    color: var(--ivo-secondary);
-  }
-
-  /* Ivo.ai Hero Section */
-  .ivo-hero {
-    background: linear-gradient(135deg, var(--ivo-background) 0%, var(--ivo-white) 100%);
-    position: relative;
-    overflow: hidden;
-  }
-
-  .ivo-hero::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: radial-gradient(circle at 30% 30%, rgba(0, 212, 255, 0.1) 0%, transparent 50%);
-    pointer-events: none;
-  }
-
-  /* Ivo.ai Icon Container */
-  .ivo-icon {
-    @apply w-16 h-16 rounded-2xl flex items-center justify-center mb-6;
-    background: linear-gradient(135deg, var(--ivo-secondary), #0099cc);
-    box-shadow: var(--ivo-shadow-sm);
-  }
-
-  /* Ivo.ai Animations */
-  .ivo-fade-in {
-    animation: ivoFadeIn 0.8s ease-out forwards;
-  }
-
-  .ivo-slide-up {
-    animation: ivoSlideUp 0.8s ease-out forwards;
-  }
-
-  .ivo-scale-in {
-    animation: ivoScaleIn 0.6s ease-out forwards;
-  }
-
-  .ivo-float {
-    animation: ivoFloat 6s ease-in-out infinite;
-  }
-
-  @keyframes ivoFadeIn {
-    from {
-      opacity: 0;
-      transform: translateY(30px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  @keyframes ivoSlideUp {
-    from {
-      opacity: 0;
-      transform: translateY(50px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  @keyframes ivoScaleIn {
-    from {
-      opacity: 0;
-      transform: scale(0.95);
-    }
-    to {
-      opacity: 1;
-      transform: scale(1);
-    }
-  }
-
-  @keyframes ivoFloat {
-    0%, 100% {
-      transform: translateY(0px);
-    }
-    50% {
-      transform: translateY(-10px);
-    }
-  }
-
-  /* Ivo.ai Gradient Text */
-  .ivo-gradient-text {
-    background: linear-gradient(135deg, var(--ivo-primary), var(--ivo-secondary));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-
-  /* Ivo.ai Smooth Transitions */
-  .ivo-transition {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  /* Preserve original animations for compatibility */
-  .animate-fade-in {
-    animation: fadeIn 1s ease-out forwards;
-  }
-
-  .animate-slide-up {
-    animation: slideUp 0.8s ease-out forwards;
-  }
-
-  .animate-scale-in {
-    animation: scaleIn 0.6s ease-out forwards;
-  }
-
-  .animate-float {
-    animation: float 6s ease-in-out infinite;
-  }
-
-  .animate-pulse-slow {
-    animation: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-  }
-
-  @keyframes fadeIn {
-    from {
-      opacity: 0;
-      transform: translateY(30px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  @keyframes slideUp {
-    from {
-      opacity: 0;
-      transform: translateY(50px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  @keyframes scaleIn {
-    from {
-      opacity: 0;
-      transform: scale(0.95);
-    }
-    to {
-      opacity: 1;
-      transform: scale(1);
-    }
-  }
-
-  @keyframes float {
-    0%, 100% {
-      transform: translateY(0px);
-    }
-    50% {
-      transform: translateY(-20px);
-    }
-  }
-
-  /* Premium glass morphism effects - preserved */
-  .glass {
-    background: rgba(15, 23, 42, 0.3);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(148, 163, 184, 0.1);
-  }
-
-  .glass-hover:hover {
-    background: rgba(15, 23, 42, 0.4);
-    border: 1px solid rgba(148, 163, 184, 0.2);
-  }
-
-  /* Premium gradient text - preserved */
-  .gradient-text {
-    background: linear-gradient(135deg, #3b82f6, #6366f1, #8b5cf6);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-
-  /* Smooth transitions for all interactive elements - preserved */
-  .smooth-transition {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  }
+.ivo-fade-in {
+  animation: ivoFadeIn 0.8s ease-out forwards;
 }
 
 /* Custom scrollbar styling - Ivo.ai inspired */
@@ -431,33 +222,107 @@
   background: #00c4ef;
 }
 
-/* Responsive Design - Ivo.ai 8px grid system */
+/* Interactive Document Styles */
+.interactive-document {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12px;
+  padding: 0;
+  max-width: 600px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+  overflow: hidden;
+  transition: transform 0.3s ease;
+  margin: 20px auto;
+}
+
+.interactive-document:hover {
+  transform: translateY(-5px);
+}
+
+.document-header {
+  background: #00d4ff;
+  color: white;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.doc-icon {
+  font-size: 24px;
+}
+
+.doc-title {
+  flex: 1;
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.document-content {
+  background: white;
+  padding: 24px;
+  max-height: 400px;
+  overflow-y: auto;
+  position: relative;
+}
+
+.section-title {
+  color: #1a365d;
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 20px;
+  border-bottom: 2px solid #00d4ff;
+  padding-bottom: 8px;
+}
+
+.subsection {
+  margin-bottom: 16px;
+  padding: 12px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.subsection:hover {
+  background: #f7fafc;
+  transform: translateX(8px);
+  box-shadow: 0 4px 12px rgba(0,212,255,0.2);
+}
+
+.subsection-number {
+  color: #00d4ff;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+  font-size: 16px;
+}
+
+.subsection-text {
+  color: #4a5568;
+  line-height: 1.6;
+  margin: 0;
+  transition: color 0.3s ease;
+}
+
+.subsection:hover .subsection-text {
+  color: #2d3748;
+}
+
+.document-footer {
+  background: #f8f9fa;
+  padding: 12px 20px;
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #6c757d;
+}
+
+/* Responsive Design */
 @media (max-width: 768px) {
-  .ivo-grid-features {
-    @apply grid-cols-1 gap-6;
-  }
-  
   .ivo-text-hero {
-    @apply text-4xl;
+    font-size: 2.25rem;
   }
   
   .ivo-text-heading {
-    @apply text-2xl;
-  }
-  
-  .ivo-section {
-    @apply py-16;
-  }
-}
-
-@media (min-width: 769px) and (max-width: 1024px) {
-  .ivo-grid-features {
-    @apply grid-cols-2;
-  }
-}
-
-@media (min-width: 1025px) {
-  .ivo-grid-features {
-    @apply grid-cols-3;
+    font-size: 1.875rem;
   }
 }
