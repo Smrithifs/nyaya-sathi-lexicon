@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -20,9 +19,11 @@ import {
   Bell,
   Edit,
   Trash2,
-  ExternalLink
+  ExternalLink,
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react";
-import { format, isToday, isTomorrow, parseISO } from "date-fns";
+import { format, isToday, isTomorrow, isSameDay } from "date-fns";
 
 type EventType = 'hearing' | 'filing' | 'meeting' | 'misc';
 type ReminderType = '10min' | '1hour' | '1day';
@@ -96,13 +97,26 @@ const HearingTracker: React.FC = () => {
       title: '',
       clientName: '',
       court: '',
-      date: new Date(),
+      date: selectedDate || new Date(),
       time: '',
       type: 'hearing',
       reminder: '1hour',
       notes: ''
     });
     setEditingEvent(null);
+  };
+
+  const handleCalendarDateSelect = (date: Date | undefined) => {
+    if (date) {
+      setSelectedDate(date);
+      // Update form data to pre-fill the selected date
+      setFormData(prev => ({ ...prev, date: date }));
+    }
+  };
+
+  const handleAddEventClick = () => {
+    resetForm();
+    setIsAddDialogOpen(true);
   };
 
   const handleAddEvent = () => {
@@ -194,18 +208,21 @@ const HearingTracker: React.FC = () => {
 
   const getEventsForDate = (date: Date) => {
     return events.filter(event => 
-      event.date.toDateString() === date.toDateString()
+      isSameDay(event.date, date)
     );
+  };
+
+  const getEventsForSelectedDate = () => {
+    if (!selectedDate) return [];
+    return getEventsForDate(selectedDate);
   };
 
   const upcomingEvents = events
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
     .slice(0, 5);
 
-  const getDayStatus = (date: Date) => {
-    if (isToday(date)) return 'today';
-    if (isTomorrow(date)) return 'tomorrow';
-    return 'normal';
+  const hasEventsOnDate = (date: Date) => {
+    return events.some(event => isSameDay(event.date, date));
   };
 
   return (
@@ -222,7 +239,7 @@ const HearingTracker: React.FC = () => {
         
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
-            <Button onClick={resetForm} className="flex items-center gap-2">
+            <Button onClick={handleAddEventClick} className="flex items-center gap-2">
               <Plus className="w-4 h-4" />
               Add Event
             </Button>
@@ -263,6 +280,16 @@ const HearingTracker: React.FC = () => {
                   value={formData.court}
                   onChange={(e) => setFormData(prev => ({ ...prev, court: e.target.value }))}
                   placeholder="e.g., Mumbai High Court"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="date">Date *</Label>
+                <Input
+                  id="date"
+                  type="date"
+                  value={format(formData.date, 'yyyy-MM-dd')}
+                  onChange={(e) => setFormData(prev => ({ ...prev, date: new Date(e.target.value) }))}
                 />
               </div>
               
@@ -334,30 +361,48 @@ const HearingTracker: React.FC = () => {
         <div className="lg:col-span-2">
           <Card>
             <CardHeader>
-              <CardTitle>Calendar View</CardTitle>
+              <CardTitle className="flex items-center justify-between">
+                Calendar View
+                {selectedDate && (
+                  <span className="text-sm font-normal text-gray-600">
+                    Selected: {format(selectedDate, 'PPP')}
+                  </span>
+                )}
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <Calendar
                 mode="single"
                 selected={selectedDate}
-                onSelect={setSelectedDate}
-                className="rounded-md border"
+                onSelect={handleCalendarDateSelect}
+                className="rounded-md border pointer-events-auto"
                 modifiers={{
-                  hasEvents: (date) => getEventsForDate(date).length > 0
+                  hasEvents: (date) => hasEventsOnDate(date),
+                  today: (date) => isToday(date)
                 }}
                 modifiersStyles={{
                   hasEvents: { 
                     backgroundColor: '#dbeafe', 
                     color: '#1e40af',
+                    fontWeight: 'bold',
+                    border: '2px solid #3b82f6'
+                  },
+                  today: {
+                    backgroundColor: '#fee2e2',
+                    color: '#dc2626',
                     fontWeight: 'bold'
                   }
                 }}
+                components={{
+                  IconLeft: ({ ...props }) => <ChevronLeft className="h-4 w-4" />,
+                  IconRight: ({ ...props }) => <ChevronRight className="h-4 w-4" />,
+                }}
               />
               
-              {selectedDate && getEventsForDate(selectedDate).length > 0 && (
+              {selectedDate && getEventsForSelectedDate().length > 0 && (
                 <div className="mt-4 space-y-2">
                   <h4 className="font-medium">Events on {format(selectedDate, 'PPP')}</h4>
-                  {getEventsForDate(selectedDate).map(event => (
+                  {getEventsForSelectedDate().map(event => (
                     <div key={event.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                       <div className="flex items-center gap-3">
                         <span>{eventTypeIcons[event.type]}</span>
@@ -384,6 +429,21 @@ const HearingTracker: React.FC = () => {
                       </div>
                     </div>
                   ))}
+                </div>
+              )}
+
+              {selectedDate && getEventsForSelectedDate().length === 0 && (
+                <div className="mt-4 p-4 bg-gray-50 rounded-lg text-center">
+                  <p className="text-gray-500">No events scheduled for {format(selectedDate, 'PPP')}</p>
+                  <Button
+                    onClick={handleAddEventClick}
+                    variant="outline"
+                    size="sm"
+                    className="mt-2"
+                  >
+                    <Plus className="w-3 h-3 mr-1" />
+                    Add Event for This Date
+                  </Button>
                 </div>
               )}
             </CardContent>
