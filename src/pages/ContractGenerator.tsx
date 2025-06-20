@@ -12,6 +12,8 @@ import { cn } from "@/lib/utils";
 import { marked } from "marked";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useGeminiKey } from "@/hooks/useGeminiKey";
+import { callGeminiAPI } from "@/utils/geminiApi";
 
 const contractTypes = [
   { label: "Agency Contract", value: "agency" },
@@ -121,6 +123,7 @@ const ContractGenerator = () => {
   const [extractedDetails, setExtractedDetails] = useState("");
   const [extracting, setExtracting] = useState(false);
   const { toast } = useToast();
+  const { data: geminiKey } = useGeminiKey();
 
   const selectedContractType = contractTypes.find(ct => ct.value === contractType);
   const selectedJurisdiction = jurisdictions.find(j => j.value === jurisdiction);
@@ -174,6 +177,15 @@ const ContractGenerator = () => {
   };
 
   const extractContractDetails = async (documents: UploadedDocument[]) => {
+    if (!geminiKey) {
+      toast({
+        title: "API Key Required",
+        description: "Please set your Gemini API key to use this feature.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setExtracting(true);
     try {
       const documentContent = documents.map(doc => `Document: ${doc.filename}\nContent: ${doc.content}`).join('\n\n');
@@ -192,17 +204,8 @@ ${documentContent}
 
 Only extract information that is clearly mentioned in the documents. If information is not available, leave it blank or write "Not specified".`;
 
-      const { data, error } = await supabase.functions.invoke('groq-completion', {
-        body: {
-          prompt: extractionPrompt,
-          systemInstruction: "You are a legal document analysis AI. Extract only the factual information present in the documents. Be precise and accurate.",
-          model: "llama3-70b-8192"
-        }
-      });
-
-      if (error) throw error;
-
-      setExtractedDetails(data.result);
+      const result = await callGeminiAPI(extractionPrompt, geminiKey);
+      setExtractedDetails(result);
       toast({
         title: "Details extracted",
         description: "Contract details have been extracted from uploaded documents",
@@ -224,22 +227,6 @@ Only extract information that is clearly mentioned in the documents. If informat
     if (uploadedDocuments.length === 1) {
       setExtractedDetails("");
     }
-  };
-
-  const callGroqCompletion = async (prompt: string, systemInstruction: string) => {
-    const { data, error } = await supabase.functions.invoke('groq-completion', {
-      body: {
-        prompt,
-        systemInstruction,
-        model: "llama3-70b-8192"
-      }
-    });
-
-    if (error) {
-      throw new Error(error.message);
-    }
-
-    return data.result;
   };
 
   const getContractPrompt = (type: string, partyA: string, partyB: string, date: string, language: string, jurisdiction: string, additionalDetails?: string) => {
@@ -377,12 +364,21 @@ Generate a complete, professional contract that covers all necessary legal aspec
       return;
     }
 
+    if (!geminiKey) {
+      toast({
+        title: "API Key Required",
+        description: "Please set your Gemini API key to use this feature.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setLoading(true);
     setOutput(null);
     try {
       const prompt = getContractPrompt(contractType, partyA, partyB, contractDate, lang, jurisdiction, extractedDetails);
 
-      const doc = await callGroqCompletion(prompt, `You are a legal contracts assistant specializing in Indian law with expertise in state-specific jurisdictional requirements. Draft detailed, legally valid, and enforceable agreements that comply with Indian legal requirements and specific state Rules of Practice. Structure contracts professionally with proper legal formatting, include all necessary clauses, ensure compliance with relevant Indian statutes, and tailor procedural and jurisdictional aspects to the specific state's high court rules and practices.`);
+      const doc = await callGeminiAPI(prompt, geminiKey);
 
       setOutput(doc);
       const langLabel = languages.find(l => l.code === lang)?.label || "English";
@@ -411,8 +407,8 @@ Generate a complete, professional contract that covers all necessary legal aspec
   return (
     <div className="p-6 min-h-screen bg-white flex flex-col">
       <div className="flex items-center gap-4 mb-8">
-        <Button variant="ghost" onClick={() => navigate("/features")}>
-          ← Back to Dashboard
+        <Button variant="ghost" onClick={() => navigate("/tools")}>
+          ← Back to Tools
         </Button>
         <h1 className="text-2xl font-bold">Contract Generator</h1>
       </div>

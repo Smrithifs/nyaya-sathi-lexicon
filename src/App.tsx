@@ -10,7 +10,7 @@ import About from "./pages/About";
 import ContractGenerator from "./pages/ContractGenerator";
 import QABot from "./pages/QABot";
 import Summarizer from "./pages/Summarizer";
-import LegalOpsHome from "./pages/LegalOpsHome";
+import ToolsAndFeatures from "./pages/ToolsAndFeatures";
 import CaseLawFinder from "./pages/CaseLawFinder";
 import SectionExplainer from "./pages/SectionExplainer";
 import BareActNavigator from "./pages/BareActNavigator";
@@ -19,7 +19,6 @@ import VoiceDictation from "./pages/VoiceDictation";
 import MultiLanguageSupport from "./pages/MultiLanguageSupport";
 import CitationChecker from "./pages/CitationChecker";
 import HearingTracker from "./pages/HearingTracker";
-import RoleFeatureChat from "./pages/RoleFeatureChat";
 
 const queryClient = new QueryClient();
 
@@ -35,7 +34,7 @@ const App = () => (
           <Route path="/contract-generator" element={<ContractGenerator />} />
           <Route path="/legal-qna" element={<QABot />} />
           <Route path="/summarizer" element={<Summarizer />} />
-          <Route path="/features" element={<LegalOpsHome />} />
+          <Route path="/tools" element={<ToolsAndFeatures />} />
           {/* New dedicated feature routes */}
           <Route path="/case-law-finder" element={<CaseLawFinder />} />
           <Route path="/section-explainer" element={<SectionExplainer />} />
