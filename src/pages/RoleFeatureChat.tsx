@@ -197,6 +197,11 @@ const RoleFeatureChat: React.FC<RoleFeatureChatProps> = ({ featureName, role, on
 
   // Simple markdown-like converter for AI (code block, bold, list, line breaks)
   function renderAiMarkup(text: string) {
+    // Add safety check for undefined or null text
+    if (!text || typeof text !== 'string') {
+      return '';
+    }
+
     let html = text
       // basic bold
       .replace(/\*\*(.*?)\*\*/g, "<b>$1</b>")
