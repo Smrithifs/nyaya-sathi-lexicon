@@ -19,7 +19,6 @@ import {
   Calendar, 
   Mic, 
   BookOpen, 
-  Flashlight,
   Scale,
   Navigation,
   PenTool,
@@ -107,18 +106,29 @@ const features: { title: string; href: string; description: string; icon: React.
 
 const TopNav: React.FC = () => {
   const location = useLocation();
+  
+  const scrollToTools = () => {
+    const toolsSection = document.getElementById('tools-section');
+    if (toolsSection) {
+      toolsSection.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   return (
-    <nav className="fixed top-0 left-0 w-full z-30 flex items-center justify-between px-6 md:px-10 h-16 bg-black/20 backdrop-blur-lg border-b border-white/10">
-      <Link to="/" className="flex items-center gap-2">
-        <Scale className="w-6 h-6 text-blue-400" />
+    <nav className="fixed top-0 left-0 w-full z-30 flex items-center justify-between px-6 md:px-10 h-16 bg-slate-950/80 backdrop-blur-xl border-b border-slate-800/50">
+      <Link to="/" className="flex items-center gap-3">
+        <div className="w-8 h-8 bg-gradient-to-br from-blue-400 to-indigo-500 rounded-lg flex items-center justify-center">
+          <Scale className="w-5 h-5 text-white" />
+        </div>
         <span className="text-xl font-bold text-white">LegalOps</span>
       </Link>
+      
       <NavigationMenu>
         <NavigationMenuList>
           <NavigationMenuItem>
             <Link to="/">
               <NavigationMenuLink
-                className={cn(navigationMenuTriggerStyle(), "bg-transparent text-white/80 hover:text-white hover:bg-white/10", {
+                className={cn(navigationMenuTriggerStyle(), "bg-transparent text-slate-300 hover:text-white hover:bg-slate-800/50 text-sm font-medium", {
                   "text-blue-400 font-medium": location.pathname === "/",
                 })}
               >
@@ -127,16 +137,16 @@ const TopNav: React.FC = () => {
             </Link>
           </NavigationMenuItem>
           <NavigationMenuItem>
-            <NavigationMenuTrigger className="bg-transparent text-white/80 hover:text-white hover:bg-white/10 data-[state=open]:bg-white/10">
+            <NavigationMenuTrigger className="bg-transparent text-slate-300 hover:text-white hover:bg-slate-800/50 data-[state=open]:bg-slate-800/50 text-sm font-medium">
               Tools
             </NavigationMenuTrigger>
             <NavigationMenuContent>
-              <div className="w-[600px] p-4 bg-slate-900/95 backdrop-blur border border-white/10 text-white rounded-lg">
-                <div className="mb-3 text-center">
-                  <h3 className="text-lg font-semibold text-white mb-1">Legal Tools & Features</h3>
-                  <p className="text-sm text-white/70">Access all tools in one place — drafting, tracking, studying, research & more</p>
+              <div className="w-[650px] p-6 bg-slate-900/95 backdrop-blur-xl border border-slate-700/50 text-white rounded-xl shadow-2xl">
+                <div className="mb-6 text-center">
+                  <h3 className="text-lg font-semibold text-white mb-2">Legal Tools & Features</h3>
+                  <p className="text-sm text-slate-400">Access all tools in one place — drafting, tracking, studying, research & more</p>
                 </div>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-2 gap-3">
                   {features.map((component) => (
                     <ListItem
                       key={component.title}
@@ -154,13 +164,21 @@ const TopNav: React.FC = () => {
           <NavigationMenuItem>
             <Link to="/about">
               <NavigationMenuLink
-                className={cn(navigationMenuTriggerStyle(), "bg-transparent text-white/80 hover:text-white hover:bg-white/10", {
+                className={cn(navigationMenuTriggerStyle(), "bg-transparent text-slate-300 hover:text-white hover:bg-slate-800/50 text-sm font-medium", {
                   "text-blue-400 font-medium": location.pathname === "/about",
                 })}
               >
                 About
               </NavigationMenuLink>
             </Link>
+          </NavigationMenuItem>
+          <NavigationMenuItem>
+            <NavigationMenuLink
+              className={cn(navigationMenuTriggerStyle(), "bg-transparent text-slate-300 hover:text-white hover:bg-slate-800/50 text-sm font-medium cursor-pointer")}
+              onClick={scrollToTools}
+            >
+              Contact
+            </NavigationMenuLink>
           </NavigationMenuItem>
         </NavigationMenuList>
       </NavigationMenu>
@@ -178,16 +196,18 @@ const ListItem = React.forwardRef<
         ref={ref}
         to={to}
         className={cn(
-          "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-white/10 focus:bg-white/10",
+          "block select-none space-y-1 rounded-lg p-3 leading-none no-underline outline-none transition-colors hover:bg-slate-800/50 focus:bg-slate-800/50 border border-slate-700/30",
           className
         )}
         {...props}
       >
-        <div className="flex items-center gap-2">
-          {icon}
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
+            {icon}
+          </div>
           <div className="text-sm font-medium leading-none text-white">{title}</div>
         </div>
-        <p className="line-clamp-2 text-xs leading-snug text-white/70 pl-7">
+        <p className="line-clamp-2 text-xs leading-snug text-slate-400 pl-11">
           {children}
         </p>
       </Link>
