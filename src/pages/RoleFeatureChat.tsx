@@ -1,11 +1,10 @@
-
 import React, { useState, useRef, useEffect } from "react";
-import { groqCompletion } from "@/utils/groqApi";
 import { Button } from "@/components/ui/button";
 import { Copy, Check, ArrowLeft, Plus } from "lucide-react";
 import Flashcard from "@/components/Flashcard";
 import DocumentUpload from "@/components/DocumentUpload";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 // Maps for system prompts per-feature:
 const systemPrompts: Record<string, string> = {
@@ -238,13 +237,17 @@ const RoleFeatureChat: React.FC<RoleFeatureChatProps> = ({ featureName, role, on
         .map(m => (m.sender === "user" ? `User: ${m.text}` : `AI: ${m.text}`))
         .join("\n") + `\nUser: ${userInput}`; // Include document context in AI context
 
-      const aiReply = await groqCompletion({
-        apiKey: import.meta.env.VITE_GROQ_API_KEY || process.env.NEXT_PUBLIC_GROQ_API_KEY,
-        prompt: context,
-        systemInstruction: getSystemPrompt(),
-        language: "English"
+      const { data, error } = await supabase.functions.invoke('groq-completion', {
+        body: {
+          prompt: context,
+          systemInstruction: getSystemPrompt(),
+          model: "llama3-70b-8192"
+        }
       });
-      setMessages((msgs) => [...msgs, { sender: "ai", text: aiReply }]);
+
+      if (error) throw error;
+
+      setMessages((msgs) => [...msgs, { sender: "ai", text: data.result }]);
     } catch (err: any) {
       console.error('Chat error:', err);
       setMessages((msgs) => [
@@ -267,14 +270,19 @@ const RoleFeatureChat: React.FC<RoleFeatureChatProps> = ({ featureName, role, on
         .filter((_, i, arr) => i < arr.lastIndexOf(lastUser))
         .map(m => (m.sender === "user" ? `User: ${m.text}` : `AI: ${m.text}`))
         .join("\n") + `\nUser: ${lastUser.text}`;
-      const aiReply = await groqCompletion({
-        apiKey: import.meta.env.VITE_GROQ_API_KEY || process.env.NEXT_PUBLIC_GROQ_API_KEY,
-        prompt: context,
-        systemInstruction: getSystemPrompt(),
-        language: "English"
+      
+      const { data, error } = await supabase.functions.invoke('groq-completion', {
+        body: {
+          prompt: context,
+          systemInstruction: getSystemPrompt(),
+          model: "llama3-70b-8192"
+        }
       });
+
+      if (error) throw error;
+
       const baseMsgs = messages.slice(0, messages.lastIndexOf(lastUser) + 1);
-      setMessages([...baseMsgs, { sender: "ai", text: aiReply }]);
+      setMessages([...baseMsgs, { sender: "ai", text: data.result }]);
     } catch {
       setMessages((msgs) => [
         ...msgs,
