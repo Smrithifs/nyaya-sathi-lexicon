@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -8,110 +9,55 @@ import { Label } from "@/components/ui/label";
 import { useNavigate } from "react-router-dom";
 import { askPuter } from "@/utils/openaiApi";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2 } from "lucide-react";
+import { Loader2, Download, Edit3, Upload } from "lucide-react";
 
 const LegalDraftTemplates = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [templateType, setTemplateType] = useState("");
-  const [courtType, setCourtType] = useState("");
   const [jurisdiction, setJurisdiction] = useState("");
   const [petitionerName, setPetitionerName] = useState("");
   const [respondentName, setRespondentName] = useState("");
-  const [advocateName, setAdvocateName] = useState("");
-  const [caseBackground, setCaseBackground] = useState("");
+  const [occupation, setOccupation] = useState("");
+  const [caseFacts, setCaseFacts] = useState("");
+  const [legalSection, setLegalSection] = useState("");
   const [prayerRelief, setPrayerRelief] = useState("");
-  const [applicableLaws, setApplicableLaws] = useState("");
-  const [filingPurpose, setFilingPurpose] = useState("");
-  const [outputLanguage, setOutputLanguage] = useState("English");
-  const [customDetails, setCustomDetails] = useState("");
+  const [language, setLanguage] = useState("English");
   const [generatedTemplate, setGeneratedTemplate] = useState("");
+  const [editableTemplate, setEditableTemplate] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
 
   const templates = [
-    { value: "affidavit_cpc", label: "Affidavit (under CPC)" },
-    { value: "anticipatory_bail", label: "Anticipatory Bail Application (under CrPC)" },
-    { value: "writ_petition_226", label: "Writ Petition (under Article 226)" },
-    { value: "consumer_complaint", label: "Consumer Court Complaint" },
+    { value: "affidavit", label: "Affidavit" },
+    { value: "anticipatory_bail", label: "Anticipatory Bail Application (under Section 438 CrPC)" },
+    { value: "consumer_complaint", label: "Consumer Complaint" },
     { value: "legal_notice", label: "Legal Notice" },
-    { value: "reply_notice", label: "Reply Notice" },
-    { value: "rti_application", label: "RTI Application" },
-    { value: "pil_draft", label: "PIL Draft" },
+    { value: "pil", label: "Public Interest Litigation (PIL)" },
     { value: "power_of_attorney", label: "Power of Attorney" },
-    { value: "bail_application", label: "Bail Application" },
-    { value: "divorce_petition", label: "Divorce Petition" },
-    { value: "injunction_application", label: "Injunction Application" },
-    { value: "appeal_memorandum", label: "Appeal Memorandum" },
-    { value: "revision_petition", label: "Revision Petition" },
-    { value: "habeas_corpus", label: "Habeas Corpus Petition" },
-    { value: "quashing_petition", label: "Quashing Petition" },
-    { value: "others", label: "Others (specify in details)" }
-  ];
-
-  const courtTypes = [
-    { value: "district_court", label: "District Court" },
-    { value: "sessions_court", label: "Sessions Court" },
-    { value: "high_court", label: "High Court" },
-    { value: "supreme_court", label: "Supreme Court" },
-    { value: "consumer_court", label: "Consumer Court" },
-    { value: "family_court", label: "Family Court" },
-    { value: "labour_court", label: "Labour Court" },
-    { value: "tribunal", label: "Tribunal" },
-    { value: "magistrate_court", label: "Magistrate Court" }
+    { value: "reply_notice", label: "Reply to Legal Notice" },
+    { value: "rti_application", label: "RTI Application" },
+    { value: "writ_petition_226", label: "Writ Petition (under Article 226)" }
   ];
 
   const jurisdictions = [
-    { value: "andhra_pradesh", label: "Andhra Pradesh" },
-    { value: "arunachal_pradesh", label: "Arunachal Pradesh" },
-    { value: "assam", label: "Assam" },
-    { value: "bihar", label: "Bihar" },
-    { value: "chhattisgarh", label: "Chhattisgarh" },
-    { value: "goa", label: "Goa" },
-    { value: "gujarat", label: "Gujarat" },
-    { value: "haryana", label: "Haryana" },
-    { value: "himachal_pradesh", label: "Himachal Pradesh" },
-    { value: "jharkhand", label: "Jharkhand" },
-    { value: "karnataka", label: "Karnataka" },
-    { value: "kerala", label: "Kerala" },
-    { value: "madhya_pradesh", label: "Madhya Pradesh" },
-    { value: "maharashtra", label: "Maharashtra" },
-    { value: "manipur", label: "Manipur" },
-    { value: "meghalaya", label: "Meghalaya" },
-    { value: "mizoram", label: "Mizoram" },
-    { value: "nagaland", label: "Nagaland" },
-    { value: "odisha", label: "Odisha" },
-    { value: "punjab", label: "Punjab" },
-    { value: "rajasthan", label: "Rajasthan" },
-    { value: "sikkim", label: "Sikkim" },
-    { value: "tamil_nadu", label: "Tamil Nadu" },
-    { value: "telangana", label: "Telangana" },
-    { value: "tripura", label: "Tripura" },
-    { value: "uttar_pradesh", label: "Uttar Pradesh" },
-    { value: "uttarakhand", label: "Uttarakhand" },
-    { value: "west_bengal", label: "West Bengal" },
-    { value: "delhi", label: "Delhi" },
-    { value: "chandigarh", label: "Chandigarh" },
-    { value: "puducherry", label: "Puducherry" }
+    { value: "delhi_high_court", label: "Delhi High Court" },
+    { value: "district_court", label: "District Court (General Format)" },
+    { value: "karnataka_high_court", label: "Karnataka High Court" },
+    { value: "supreme_court", label: "Supreme Court of India" }
   ];
 
   const languages = [
     { value: "English", label: "English" },
     { value: "Hindi", label: "Hindi" },
-    { value: "Tamil", label: "Tamil" },
-    { value: "Telugu", label: "Telugu" },
-    { value: "Kannada", label: "Kannada" },
-    { value: "Malayalam", label: "Malayalam" },
-    { value: "Marathi", label: "Marathi" },
-    { value: "Bengali", label: "Bengali" },
-    { value: "Gujarati", label: "Gujarati" },
-    { value: "Punjabi", label: "Punjabi" }
+    { value: "Regional", label: "Regional Language" }
   ];
 
   const handleGenerate = async () => {
-    if (!templateType || !courtType || !jurisdiction) {
+    if (!templateType || !jurisdiction) {
       toast({
         title: "Missing Information",
-        description: "Please fill in template type, court type, and jurisdiction.",
+        description: "Please select template type and jurisdiction.",
         variant: "destructive"
       });
       return;
@@ -120,55 +66,49 @@ const LegalDraftTemplates = () => {
     setIsLoading(true);
     try {
       const templateName = templates.find(t => t.value === templateType)?.label || templateType;
-      const courtName = courtTypes.find(c => c.value === courtType)?.label || courtType;
-      const stateName = jurisdictions.find(j => j.value === jurisdiction)?.label || jurisdiction;
+      const courtName = jurisdictions.find(j => j.value === jurisdiction)?.label || jurisdiction;
 
-      const prompt = `You are a legal drafting expert specializing in Indian court procedures and state-specific Rules of Practice. Create professional, court-ready templates with proper legal formatting, language, and compliance with specific state High Court rules. Pay special attention to jurisdiction-specific requirements:
-      
-- Karnataka: Follow Karnataka High Court Rules of Practice
-- Tamil Nadu: Apply Civil Rules of Practice (Madras High Court style)
-- Maharashtra: Bombay High Court procedures
-- Delhi: Delhi High Court Rules
-- Other states: Apply respective High Court Rules of Practice
+      const prompt = `You are a legal drafting assistant trained in Indian law and jurisdiction-specific court procedures. Your role is to generate **fully compliant legal documents** based on user inputs, using court-approved formats from Indian judicial systems.
 
-Ensure all documents are formatted for both e-filing and offline submission as applicable.
-
-Generate a professional ${templateName} for ${courtName} in ${stateName} following the state's Rules of Practice and Filing.
+Generate a professional ${templateName} for ${courtName} following Indian legal practice and court-specific Rules of Practice.
 
 Document Details:
 - Template Type: ${templateName}
-- Court: ${courtName}
-- Jurisdiction/State: ${stateName}
+- Court/Jurisdiction: ${courtName}
 - Petitioner/Applicant: ${petitionerName || "[PETITIONER NAME]"}
 - Respondent: ${respondentName || "[RESPONDENT NAME]"}
-- Advocate: ${advocateName || "[ADVOCATE NAME]"}
-- Case Background: ${caseBackground || "[CASE BACKGROUND TO BE FILLED]"}
+- Occupation/Relation: ${occupation || "[OCCUPATION/RELATION]"}
+- Case Facts: ${caseFacts || "[CASE FACTS TO BE FILLED]"}
+- Legal Section/Reference: ${legalSection || "[APPLICABLE SECTIONS TO BE MENTIONED]"}
 - Prayer/Relief Sought: ${prayerRelief || "[RELIEF SOUGHT TO BE SPECIFIED]"}
-- Applicable Laws/Sections: ${applicableLaws || "[APPLICABLE SECTIONS TO BE MENTIONED]"}
-- Filing Purpose: ${filingPurpose || "[PURPOSE TO BE SPECIFIED]"}
-- Output Language: ${outputLanguage}
-- Additional Details: ${customDetails || "Standard format"}
+- Language: ${language}
 
-Please provide:
-1. Complete format following ${stateName} ${courtName} Rules of Practice
-2. Proper legal headings and structure as per court requirements
-3. Standard legal language and clauses appropriate for ${templateName}
-4. Placeholder fields marked with [PLACEHOLDER_NAME] where information is missing
-5. Proper verification clause and formatting
-6. Court-specific formatting requirements for ${stateName}
-7. Include necessary legal formalities and citation format
-8. Ensure compliance with ${stateName} High Court/Court Rules of Filing
-9. Add appropriate sections for exhibits, annexures if required
-10. Include proper prayer format as per court practice
+REQUIREMENTS:
+1. Use appropriate legal language and court phrasing specific to ${courtName}
+2. Match templates with standard court formats for ${jurisdiction.replace('_', ' ')}
+3. Include proper legal headings and structure as per Indian court requirements
+4. Use standard legal language and clauses appropriate for ${templateName}
+5. Mark placeholder fields with [PLACEHOLDER_NAME] where information is missing
+6. Include proper verification clause and formatting
+7. Add court-specific formatting requirements
+8. Include necessary legal formalities and citation format
+9. Ensure compliance with Indian legal practice — **no U.S. style references**
+10. Add appropriate sections for exhibits, annexures if required
+11. Include proper prayer format as per Indian court practice
+12. Show placeholders like "[Signature]", "[Stamp]", "[Advocate details]"
 
-Make it comprehensive, court-ready, and professionally formatted for ${outputLanguage === "English" ? "English" : outputLanguage + " with legal terms in English where necessary"}.`;
+Make it comprehensive, court-ready, and professionally formatted for ${language === "English" ? "English" : language + " with legal terms in English where necessary"}.
+
+Format the output as a complete legal document ready for court filing.`;
 
       const result = await askPuter(prompt);
-
       setGeneratedTemplate(result);
+      setEditableTemplate(result);
+      setShowPreview(true);
+      
       toast({
         title: "Legal Draft Generated",
-        description: `Your ${templateName} for ${courtName}, ${stateName} is ready.`
+        description: `Your ${templateName} for ${courtName} is ready for review.`
       });
     } catch (error) {
       console.error('Error generating template:', error);
@@ -182,13 +122,97 @@ Make it comprehensive, court-ready, and professionally formatted for ${outputLan
     }
   };
 
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(generatedTemplate);
+  const handleDownloadPDF = () => {
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>Legal Document</title>
+            <style>
+              body { font-family: 'Times New Roman', serif; line-height: 1.6; margin: 20px; }
+              .document { max-width: 800px; margin: 0 auto; }
+              pre { white-space: pre-wrap; font-family: 'Times New Roman', serif; }
+            </style>
+          </head>
+          <body>
+            <div class="document">
+              <pre>${editableTemplate}</pre>
+            </div>
+          </body>
+        </html>
+      `);
+      printWindow.document.close();
+      printWindow.print();
+    }
+    
     toast({
-      title: "Copied!",
-      description: "Legal draft copied to clipboard."
+      title: "Download Initiated",
+      description: "Your legal document is ready for printing/saving as PDF."
     });
   };
+
+  const handleDownloadWord = () => {
+    const blob = new Blob([editableTemplate], { type: 'application/msword' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `legal_document_${templateType}.doc`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    toast({
+      title: "Downloaded",
+      description: "Legal document downloaded as Word document."
+    });
+  };
+
+  if (showPreview) {
+    return (
+      <div className="p-6 min-h-screen bg-white flex flex-col">
+        <div className="flex items-center gap-4 mb-8">
+          <Button variant="ghost" onClick={() => setShowPreview(false)}>
+            ← Back to Form
+          </Button>
+          <h1 className="text-2xl font-bold">Legal Document Preview</h1>
+        </div>
+
+        <div className="max-w-4xl mx-auto w-full space-y-6">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <Edit3 className="w-5 h-5" />
+                Editable Document Preview
+              </CardTitle>
+              <div className="flex gap-2">
+                <Button onClick={handleDownloadPDF} variant="outline" size="sm">
+                  <Download className="w-4 h-4 mr-2" />
+                  Download PDF
+                </Button>
+                <Button onClick={handleDownloadWord} variant="outline" size="sm">
+                  <Download className="w-4 h-4 mr-2" />
+                  Download Word
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <Textarea
+                value={editableTemplate}
+                onChange={(e) => setEditableTemplate(e.target.value)}
+                className="min-h-[600px] font-mono text-sm leading-relaxed"
+                placeholder="Your legal document will appear here..."
+              />
+              <p className="text-sm text-gray-500 mt-2">
+                You can edit the document above before downloading. Make sure to review all placeholders and fill in any missing information.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 min-h-screen bg-white flex flex-col">
@@ -202,7 +226,10 @@ Make it comprehensive, court-ready, and professionally formatted for ${outputLan
       <div className="max-w-4xl mx-auto w-full space-y-6">
         <Card>
           <CardHeader>
-            <CardTitle>Generate Court-Specific Legal Document</CardTitle>
+            <CardTitle>Generate Court-Compliant Legal Document</CardTitle>
+            <p className="text-sm text-gray-600">
+              Create professionally formatted legal documents following Indian court procedures and state-specific Rules of Practice.
+            </p>
           </CardHeader>
           <CardContent className="space-y-4">
             {/* Template Type */}
@@ -222,43 +249,24 @@ Make it comprehensive, court-ready, and professionally formatted for ${outputLan
               </Select>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Court Type */}
-              <div>
-                <Label className="text-sm font-medium">Type of Court *</Label>
-                <Select value={courtType} onValueChange={setCourtType}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select court type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {courtTypes.map((court) => (
-                      <SelectItem key={court.value} value={court.value}>
-                        {court.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Jurisdiction */}
-              <div>
-                <Label className="text-sm font-medium">Jurisdiction/State *</Label>
-                <Select value={jurisdiction} onValueChange={setJurisdiction}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select state/jurisdiction" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {jurisdictions.map((state) => (
-                      <SelectItem key={state.value} value={state.value}>
-                        {state.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+            {/* Jurisdiction */}
+            <div>
+              <Label className="text-sm font-medium">Court/Jurisdiction *</Label>
+              <Select value={jurisdiction} onValueChange={setJurisdiction}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select court/jurisdiction" />
+                </SelectTrigger>
+                <SelectContent>
+                  {jurisdictions.map((court) => (
+                    <SelectItem key={court.value} value={court.value}>
+                      {court.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Party Details */}
               <div>
                 <Label className="text-sm font-medium">Petitioner/Applicant Name</Label>
@@ -277,86 +285,65 @@ Make it comprehensive, court-ready, and professionally formatted for ${outputLan
                   placeholder="Enter respondent name"
                 />
               </div>
-
-              <div>
-                <Label className="text-sm font-medium">Advocate Name (Optional)</Label>
-                <Input
-                  value={advocateName}
-                  onChange={(e) => setAdvocateName(e.target.value)}
-                  placeholder="Enter advocate name"
-                />
-              </div>
             </div>
 
-            {/* Case Background */}
             <div>
-              <Label className="text-sm font-medium">Case Background</Label>
+              <Label className="text-sm font-medium">Occupation/Relation</Label>
+              <Input
+                value={occupation}
+                onChange={(e) => setOccupation(e.target.value)}
+                placeholder="Enter occupation or relation details"
+              />
+            </div>
+
+            {/* Case Facts */}
+            <div>
+              <Label className="text-sm font-medium">Case Facts (Short Paragraph)</Label>
               <Textarea
-                value={caseBackground}
-                onChange={(e) => setCaseBackground(e.target.value)}
+                value={caseFacts}
+                onChange={(e) => setCaseFacts(e.target.value)}
                 placeholder="Provide a brief description of the case facts and circumstances..."
                 rows={3}
               />
             </div>
 
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Legal Section */}
+              <div>
+                <Label className="text-sm font-medium">Section/Law Reference</Label>
+                <Input
+                  value={legalSection}
+                  onChange={(e) => setLegalSection(e.target.value)}
+                  placeholder="e.g., Section 438 CrPC, Article 226"
+                />
+              </div>
+
+              {/* Language */}
+              <div>
+                <Label className="text-sm font-medium">Language Preference</Label>
+                <Select value={language} onValueChange={setLanguage}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select language" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {languages.map((lang) => (
+                      <SelectItem key={lang.value} value={lang.value}>
+                        {lang.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
             {/* Prayer/Relief */}
             <div>
-              <Label className="text-sm font-medium">Prayer or Relief Sought</Label>
+              <Label className="text-sm font-medium">Prayer/Relief Requested</Label>
               <Textarea
                 value={prayerRelief}
                 onChange={(e) => setPrayerRelief(e.target.value)}
                 placeholder="Specify what relief or order you are seeking from the court..."
                 rows={3}
-              />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Applicable Laws */}
-              <div>
-                <Label className="text-sm font-medium">Applicable Acts/Sections</Label>
-                <Input
-                  value={applicableLaws}
-                  onChange={(e) => setApplicableLaws(e.target.value)}
-                  placeholder="e.g., Section 438 CrPC, Article 226"
-                />
-              </div>
-
-              {/* Filing Purpose */}
-              <div>
-                <Label className="text-sm font-medium">Filing Purpose</Label>
-                <Input
-                  value={filingPurpose}
-                  onChange={(e) => setFilingPurpose(e.target.value)}
-                  placeholder="e.g., interim relief, stay order"
-                />
-              </div>
-            </div>
-
-            {/* Output Language */}
-            <div>
-              <Label className="text-sm font-medium">Output Language</Label>
-              <Select value={outputLanguage} onValueChange={setOutputLanguage}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select language" />
-                </SelectTrigger>
-                <SelectContent>
-                  {languages.map((lang) => (
-                    <SelectItem key={lang.value} value={lang.value}>
-                      {lang.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Additional Details */}
-            <div>
-              <Label className="text-sm font-medium">Additional Details/Special Requirements</Label>
-              <Textarea
-                value={customDetails}
-                onChange={(e) => setCustomDetails(e.target.value)}
-                placeholder="Specify any special formatting, e-filing requirements, or other details..."
-                rows={2}
               />
             </div>
 
@@ -377,23 +364,27 @@ Make it comprehensive, court-ready, and professionally formatted for ${outputLan
           </CardContent>
         </Card>
 
-        {generatedTemplate && (
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>Generated Legal Draft</CardTitle>
-              <Button onClick={copyToClipboard} variant="outline" size="sm">
-                Copy Draft
-              </Button>
-            </CardHeader>
-            <CardContent>
-              <div className="bg-gray-50 p-4 rounded-md">
-                <pre className="whitespace-pre-wrap font-mono text-sm leading-relaxed">
-                  {generatedTemplate}
-                </pre>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Upload className="w-5 h-5" />
+              Optional: Upload Existing Document
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-gray-600 mb-4">
+              Upload an existing document (FIR, legal notice, etc.) to auto-extract information and populate the form fields.
+            </p>
+            <input
+              type="file"
+              accept=".pdf,.doc,.docx,.txt"
+              className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+            />
+            <p className="text-xs text-gray-400 mt-2">
+              Supported formats: PDF, DOC, DOCX, TXT
+            </p>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

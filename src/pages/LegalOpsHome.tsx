@@ -16,7 +16,6 @@ import {
   Calendar,
   Users,
   HelpCircle,
-  Archive,
   Flashlight,
   Target,
   TrendingUp,
@@ -49,13 +48,6 @@ const lawyerFeatures = [
     useChat: false
   },
   {
-    title: "Case Brief Generator",
-    description: "Generate comprehensive case briefs in textbook format",
-    icon: Archive,
-    route: null,
-    useChat: true
-  },
-  {
     title: "Section Explainer",
     description: "Get detailed explanations of legal sections",
     icon: BookOpen,
@@ -74,7 +66,7 @@ const lawyerFeatures = [
     description: "Generate professional legal document templates",
     icon: PenTool,
     route: "/legal-draft-templates",
-    useChat: true
+    useChat: false
   },
   {
     title: "Voice Dictation → Legal Format",
@@ -119,13 +111,6 @@ const studentFeatures = [
     description: "Student-friendly legal question answering",
     icon: HelpCircle,
     route: "/legal-qna",
-    useChat: true
-  },
-  {
-    title: "Case Brief Generator",
-    description: "Generate student-friendly comprehensive case briefs",
-    icon: Archive,
-    route: null,
     useChat: true
   },
   {
