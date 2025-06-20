@@ -20,7 +20,6 @@ import {
   Scale,
   ChevronDown,
   ArrowRight,
-  Sparkles,
   Shield,
   Zap,
   Users
@@ -173,47 +172,73 @@ const Index = () => {
         </div>
       </nav>
 
-      {/* Ivo.ai Style Hero Section */}
+      {/* Updated Hero Section */}
       <section id="home" className="ivo-hero ivo-section relative min-h-screen flex items-center justify-center overflow-hidden">
-        <div className="ivo-container text-center relative z-10">
-          <div className="mb-8 ivo-fade-in">
-            <div className="inline-flex items-center gap-2 px-6 py-3 rounded-full border-2" style={{ 
-              background: 'var(--ivo-white)', 
-              borderColor: 'var(--ivo-gray-200)',
-              boxShadow: 'var(--ivo-shadow-sm)'
-            }}>
-              <Sparkles className="w-5 h-5" style={{ color: 'var(--ivo-secondary)' }} />
-              <span className="ivo-text-small font-semibold" style={{ color: 'var(--ivo-primary)' }}>Powered by AI</span>
-            </div>
+        <div className="ivo-container relative z-10">
+          <div className="text-center mb-16 ivo-fade-in">
+            <h1 className="ivo-text-hero mb-16">
+              Where Law Meets
+              <span className="ivo-gradient-text"> Intelligence</span>
+            </h1>
           </div>
           
-          <h1 className="ivo-text-hero mb-8 ivo-fade-in">
-            Where Law Meets
-            <span className="ivo-gradient-text"> Intelligence</span>
-          </h1>
-          
-          <p className="ivo-text-body mb-16 max-w-4xl mx-auto ivo-fade-in">
-            Explore 15+ legal tools for drafting, research, and preparation. 
-            Streamline your legal workflow with AI-powered assistance designed for modern legal professionals.
-          </p>
-          
-          <div className="flex flex-col sm:flex-row gap-6 justify-center mb-20 ivo-fade-in">
-            <Button 
-              onClick={scrollToTools}
-              className="ivo-btn-primary text-lg px-10 py-5"
-            >
-              Try LegalOps <ArrowRight className="w-5 h-5 ml-2" />
-            </Button>
-            <Button 
-              onClick={() => navigate("/about")}
-              className="ivo-btn-secondary text-lg px-10 py-5"
-            >
-              Learn More
-            </Button>
+          {/* New Two-Column Layout */}
+          <div className="content-grid grid grid-cols-1 lg:grid-cols-5 gap-12 max-w-7xl mx-auto items-center">
+            {/* Left Column - Document Interactive Component */}
+            <div className="lg:col-span-3 ivo-scale-in">
+              <div className="document-viewer bg-white rounded-xl shadow-lg overflow-hidden max-w-2xl mx-auto">
+                <div className="document-header" style={{ background: 'var(--ivo-secondary)', color: 'white', padding: '16px 20px' }}>
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">📄</span>
+                    <span className="font-semibold text-lg">SaaS Services Agreement</span>
+                  </div>
+                </div>
+                <div className="document-content p-6 space-y-4 text-left">
+                  <div className="text-lg font-semibold" style={{ color: 'var(--ivo-primary)' }}>
+                    5. TERM AND TERMINATION
+                  </div>
+                  <p className="text-gray-700 leading-relaxed">
+                    <strong>5.1</strong> Subject to earlier termination as provided below, this Agreement is for the Initial Service Term as specified in the Order Form, and shall be automatically renewed for additional periods of the same duration as the Initial Service Term.
+                  </p>
+                  <p className="text-gray-700 leading-relaxed">
+                    <strong>5.2</strong> Either party may terminate this Agreement without cause by giving the other party at least thirty (30) days prior written notice of termination.
+                  </p>
+                  <p className="text-gray-700 leading-relaxed">
+                    <strong>5.3</strong> Either party may terminate this Agreement immediately upon written notice if the other party materially breaches this Agreement and fails to cure such breach within fifteen (15) days after receiving written notice.
+                  </p>
+                  <div className="mt-6 pt-4 border-t border-gray-200">
+                    <div className="flex items-center justify-between text-sm text-gray-500">
+                      <span>Last updated: December 2024</span>
+                      <span>Page 12 of 24</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Column - Marketing Copy */}
+            <div className="lg:col-span-2 ivo-fade-in">
+              <div className="marketing-content">
+                <h2 className="catchy-heading font-bold text-3xl lg:text-4xl leading-tight mb-6" style={{ color: 'var(--ivo-primary)' }}>
+                  LegalOps is designed for Indian lawyers, firms, and enterprises seeking speed, precision, and control.
+                </h2>
+                <p className="description text-lg leading-relaxed" style={{ color: 'var(--ivo-gray-600)' }}>
+                  We blend deep legal expertise with cutting-edge AI to help you draft, review, and understand legal documents—faster and smarter than ever before.
+                </p>
+                <div className="mt-8">
+                  <Button 
+                    onClick={scrollToTools}
+                    className="ivo-btn-primary text-lg px-8 py-4"
+                  >
+                    Explore Tools <ArrowRight className="w-5 h-5 ml-2" />
+                  </Button>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Ivo.ai Style Feature Highlights */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto ivo-scale-in">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto mt-20 ivo-scale-in">
             <div className="text-center">
               <div className="ivo-icon mx-auto">
                 <Shield className="w-8 h-8 text-white" />
