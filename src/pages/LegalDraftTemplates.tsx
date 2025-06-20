@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -7,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useNavigate } from "react-router-dom";
-import { groqCompletion } from "@/utils/groqApi";
+import { askPuter } from "@/utils/openaiApi";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 
@@ -124,7 +123,17 @@ const LegalDraftTemplates = () => {
       const courtName = courtTypes.find(c => c.value === courtType)?.label || courtType;
       const stateName = jurisdictions.find(j => j.value === jurisdiction)?.label || jurisdiction;
 
-      const prompt = `Generate a professional ${templateName} for ${courtName} in ${stateName} following the state's Rules of Practice and Filing.
+      const prompt = `You are a legal drafting expert specializing in Indian court procedures and state-specific Rules of Practice. Create professional, court-ready templates with proper legal formatting, language, and compliance with specific state High Court rules. Pay special attention to jurisdiction-specific requirements:
+      
+- Karnataka: Follow Karnataka High Court Rules of Practice
+- Tamil Nadu: Apply Civil Rules of Practice (Madras High Court style)
+- Maharashtra: Bombay High Court procedures
+- Delhi: Delhi High Court Rules
+- Other states: Apply respective High Court Rules of Practice
+
+Ensure all documents are formatted for both e-filing and offline submission as applicable.
+
+Generate a professional ${templateName} for ${courtName} in ${stateName} following the state's Rules of Practice and Filing.
 
 Document Details:
 - Template Type: ${templateName}
@@ -154,21 +163,7 @@ Please provide:
 
 Make it comprehensive, court-ready, and professionally formatted for ${outputLanguage === "English" ? "English" : outputLanguage + " with legal terms in English where necessary"}.`;
 
-      const systemInstruction = `You are a legal drafting expert specializing in Indian court procedures and state-specific Rules of Practice. Create professional, court-ready templates with proper legal formatting, language, and compliance with specific state High Court rules. Pay special attention to jurisdiction-specific requirements:
-      
-- Karnataka: Follow Karnataka High Court Rules of Practice
-- Tamil Nadu: Apply Civil Rules of Practice (Madras High Court style)
-- Maharashtra: Bombay High Court procedures
-- Delhi: Delhi High Court Rules
-- Other states: Apply respective High Court Rules of Practice
-
-Ensure all documents are formatted for both e-filing and offline submission as applicable.`;
-
-      const result = await groqCompletion({
-        apiKey: "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",
-        prompt,
-        systemInstruction
-      });
+      const result = await askPuter(prompt);
 
       setGeneratedTemplate(result);
       toast({

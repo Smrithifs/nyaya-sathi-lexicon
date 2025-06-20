@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useNavigate } from "react-router-dom";
-import { groqCompletion } from "@/utils/groqApi";
+import { askPuter } from "@/utils/openaiApi";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 
@@ -38,7 +38,9 @@ const SectionExplainer = () => {
     setIsLoading(true);
     try {
       const actName = acts.find(act => act.value === selectedAct)?.label || selectedAct;
-      const prompt = `Explain Section ${sectionNumber} of the ${actName} in detail. Include:
+      const prompt = `You are an expert legal assistant specializing in Indian law. Provide accurate, detailed explanations of legal sections with practical insights.
+
+Explain Section ${sectionNumber} of the ${actName} in detail. Include:
 1. The exact text/provision
 2. Key elements and requirements
 3. Practical application and examples
@@ -46,13 +48,7 @@ const SectionExplainer = () => {
 5. Important case law or precedents if any
 Please provide a comprehensive yet clear explanation suitable for legal practitioners.`;
 
-      const systemInstruction = "You are an expert legal assistant specializing in Indian law. Provide accurate, detailed explanations of legal sections with practical insights.";
-
-      const result = await groqCompletion({
-        apiKey: "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",
-        prompt,
-        systemInstruction
-      });
+      const result = await askPuter(prompt);
 
       setExplanation(result);
       toast({

@@ -1,11 +1,10 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useNavigate } from "react-router-dom";
-import { groqCompletion } from "@/utils/groqApi";
+import { askPuter } from "@/utils/openaiApi";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Upload, X, FileText, Download } from "lucide-react";
 
@@ -116,7 +115,9 @@ const MultiLanguageSupport = () => {
     setIsLoading(true);
     try {
       const languageName = languages.find(lang => lang.value === targetLanguage)?.label || targetLanguage;
-      const prompt = `Translate the following document content into ${languageName}, maintaining legal terminology accuracy and formal tone:
+      const prompt = `You are a legal translation expert specializing in Indian languages. Provide accurate translations of legal documents while maintaining legal terminology and formal tone.
+
+Translate the following document content into ${languageName}, maintaining legal terminology and formal tone:
 
 Document: ${document.filename}
 Content: "${document.content}"
@@ -130,13 +131,7 @@ Please ensure:
 
 Provide only the translation without additional commentary.`;
 
-      const systemInstruction = "You are a legal translation expert specializing in Indian languages. Provide accurate translations of legal documents while maintaining legal terminology and formal tone.";
-
-      const result = await groqCompletion({
-        apiKey: "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",
-        prompt,
-        systemInstruction
-      });
+      const result = await askPuter(prompt);
 
       setTranslatedText(result);
       setInputText(`Document: ${document.filename}\n\nOriginal Content:\n${document.content}`);
@@ -170,7 +165,9 @@ Provide only the translation without additional commentary.`;
     setIsLoading(true);
     try {
       const languageName = languages.find(lang => lang.value === targetLanguage)?.label || targetLanguage;
-      const prompt = `Translate the following legal text into ${languageName}, maintaining legal terminology accuracy and formal tone:
+      const prompt = `You are a legal translation expert specializing in Indian languages. Provide accurate translations of legal documents while maintaining legal terminology and formal tone.
+
+Translate the following legal text into ${languageName}, maintaining legal terminology accuracy and formal tone:
 
 "${inputText}"
 
@@ -183,13 +180,7 @@ Please ensure:
 
 Provide only the translation without additional commentary.`;
 
-      const systemInstruction = "You are a legal translation expert specializing in Indian languages. Provide accurate translations of legal documents while maintaining legal terminology and formal tone.";
-
-      const result = await groqCompletion({
-        apiKey: "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",
-        prompt,
-        systemInstruction
-      });
+      const result = await askPuter(prompt);
 
       setTranslatedText(result);
       toast({

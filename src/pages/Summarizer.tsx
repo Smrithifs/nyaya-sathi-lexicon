@@ -5,10 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { marked } from "marked";
-import { groqCompletion } from "@/utils/groqApi";
-
-// Static Groq API key as supplied by user. Only use in frontend for demo/testing.
-const GROQ_API_KEY = "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";
+import { askPuter } from "@/utils/openaiApi";
 
 const languages = [
   { label: "English", code: "en" },
@@ -29,7 +26,8 @@ const Summarizer = () => {
     setOutput(null);
     try {
       const langStr = lang === "en" ? "English" : lang === "hi" ? "Hindi" : "Kannada";
-      const prompt = `
+      const prompt = `You are a professional legal AI assistant for India. Respond in clear, well-formatted markdown.
+
 Summarize the following legal document into concise bullet points (6-8), identify at least 3 key clauses with brief explanations, and provide a plain-language summary for a layperson.
 
 - The plain-language summary should be up to 200 words.
@@ -39,18 +37,13 @@ Summarize the following legal document into concise bullet points (6-8), identif
 LANGUAGE: ${langStr}
 
 DOCUMENT:
-${input}
-      `.trim();
+${input}`;
 
-      const summary = await groqCompletion({
-        apiKey: GROQ_API_KEY,
-        prompt,
-        systemInstruction: "You are a professional legal AI assistant for India. Respond in clear, well-formatted markdown."
-      });
+      const summary = await askPuter(prompt);
       setOutput(summary);
       toast({ title: "Summarization complete!", description: `Your summary is available in ${languages.find(l => l.code === lang)?.label}` });
     } catch (err: any) {
-      toast({ title: "Groq Error", description: err.message, variant: "destructive" });
+      toast({ title: "Error", description: err.message, variant: "destructive" });
     } finally {
       setLoading(false);
     }

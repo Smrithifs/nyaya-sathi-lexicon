@@ -5,9 +5,7 @@ import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Gavel, Scale, Book, Badge, Users } from "lucide-react";
 import { marked } from "marked";
-import { groqCompletion } from "@/utils/groqApi";
-
-const GROQ_API_KEY = "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";
+import { askPuter } from "@/utils/openaiApi";
 
 const languages = [
   { label: "English", code: "en" },
@@ -28,21 +26,17 @@ const QABot = () => {
     setAnswer(null);
     try {
       const langStr = lang === "en" ? "English" : lang === "hi" ? "Hindi" : "Kannada";
-      const prompt = `
+      const prompt = `You are NyayaBot, an Indian law professional answering queries in a friendly, clear, and citation-based manner.
+
 Question: ${question}
 Language: ${langStr}
-Respond as a professional Indian law assistant. Clearly: 1) state the relevant law/section, 2) give an in-depth but clear explanation grounded in statutes, 3) provide an example with citation if possible, 4) always display a disclaimer that it is not legal advice. Respond in markdown, use bulleting/sections if necessary.
-      `.trim();
+Respond as a professional Indian law assistant. Clearly: 1) state the relevant law/section, 2) give an in-depth but clear explanation grounded in statutes, 3) provide an example with citation if possible, 4) always display a disclaimer that it is not legal advice. Respond in markdown, use bulleting/sections if necessary.`;
 
-      const out = await groqCompletion({
-        apiKey: GROQ_API_KEY,
-        prompt,
-        systemInstruction: "You are NyayaBot, an Indian law professional answering queries in a friendly, clear, and citation-based manner."
-      });
+      const out = await askPuter(prompt);
       setAnswer(out);
       toast({ title: "Answer ready!", description: `The response is in ${languages.find(l => l.code === lang)?.label}` });
     } catch (err: any) {
-      toast({ title: "Groq Error", description: err.message, variant: "destructive" });
+      toast({ title: "Error", description: err.message, variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -137,7 +131,7 @@ Respond as a professional Indian law assistant. Clearly: 1) state the relevant l
               <div className="mt-10 animate-fade-in" key={answer}>
                 <div className="mb-2 flex items-center gap-2">
                   <Book className="w-5 h-5 text-yellow-700 dark:text-yellow-200" />
-                  <span className="font-semibold text-blue-900 dark:text-yellow-100 italic">NyayaBot’s Official Response</span>
+                  <span className="font-semibold text-blue-900 dark:text-yellow-100 italic">NyayaBot's Official Response</span>
                 </div>
                 <div className="rounded-xl py-6 px-7 bg-gradient-to-br from-yellow-50 via-blue-50 to-yellow-100 dark:from-blue-900 dark:via-blue-950 dark:to-yellow-900 border-2 border-yellow-300 dark:border-yellow-800 shadow-inner leading-relaxed space-y-2 text-base whitespace-pre-line text-blue-900 dark:text-yellow-100 font-serif relative prose prose-base max-w-none">
                   <div dangerouslySetInnerHTML={{ __html: marked(answer) }} />
