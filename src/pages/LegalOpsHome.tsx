@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -16,7 +17,8 @@ import {
   Calendar,
   HelpCircle,
   Flashlight,
-  ArrowLeft
+  ArrowLeft,
+  ClipboardCheck
 } from "lucide-react";
 import RoleFeatureChat from "./RoleFeatureChat";
 
@@ -112,6 +114,13 @@ const studentFeatures = [
     title: "Flashcards (Legal Terms)",
     description: "Create flashcards for legal terminology",
     icon: Flashlight,
+    route: null,
+    useChat: true
+  },
+  {
+    title: "Syllabus Tracker",
+    description: "Track your law school syllabus and study progress",
+    icon: ClipboardCheck,
     route: null,
     useChat: true
   }
