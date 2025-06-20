@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -6,6 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Edit, FileText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { askPuter } from "@/utils/openaiApi";
 
 interface DocumentFormatterProps {
   transcription: string;
@@ -37,7 +37,11 @@ const DocumentFormatter: React.FC<DocumentFormatterProps> = ({
 
     setIsLoading(true);
     try {
-      const prompt = `Convert the following voice transcription into a properly formatted legal document:
+      const systemInstruction = "You are a legal document formatter specializing in Indian legal documents. Convert voice transcriptions into properly structured legal documents with correct formatting, language, and legal provisions.";
+      
+      const prompt = `${systemInstruction}
+
+Convert the following voice transcription into a properly formatted legal document:
 
 "${transcription}"
 
@@ -52,19 +56,9 @@ Please:
 
 Format it as a complete, professional legal petition/application.`;
 
-      const systemInstruction = "You are a legal document formatter specializing in Indian legal documents. Convert voice transcriptions into properly structured legal documents with correct formatting, language, and legal provisions.";
+      const result = await askPuter(prompt);
 
-      const { data, error } = await supabase.functions.invoke('groq-completion', {
-        body: {
-          prompt,
-          systemInstruction,
-          model: "llama3-70b-8192"
-        }
-      });
-
-      if (error) throw error;
-
-      onDocumentFormatted(data.result);
+      onDocumentFormatted(result);
       toast({
         title: "Document Formatted",
         description: "Your voice input has been converted to a legal document."

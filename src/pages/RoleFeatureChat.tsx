@@ -5,6 +5,7 @@ import Flashcard from "@/components/Flashcard";
 import DocumentUpload from "@/components/DocumentUpload";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { askPuter } from "@/utils/openaiApi";
 
 // Maps for system prompts per-feature:
 const systemPrompts: Record<string, string> = {
@@ -237,22 +238,17 @@ const RoleFeatureChat: React.FC<RoleFeatureChatProps> = ({ featureName, role, on
         .map(m => (m.sender === "user" ? `User: ${m.text}` : `AI: ${m.text}`))
         .join("\n") + `\nUser: ${userInput}`; // Include document context in AI context
 
-      const { data, error } = await supabase.functions.invoke('groq-completion', {
-        body: {
-          prompt: context,
-          systemInstruction: getSystemPrompt(),
-          model: "llama3-70b-8192"
-        }
-      });
+      const systemPrompt = getSystemPrompt();
+      const fullPrompt = `${systemPrompt}\n\nConversation Context:\n${context}`;
 
-      if (error) throw error;
+      const result = await askPuter(fullPrompt);
 
-      setMessages((msgs) => [...msgs, { sender: "ai", text: data.result }]);
+      setMessages((msgs) => [...msgs, { sender: "ai", text: result }]);
     } catch (err: any) {
       console.error('Chat error:', err);
       setMessages((msgs) => [
         ...msgs,
-        { sender: "ai", text: "Sorry, I couldn't process your request. Please check that your API key is properly configured. Try again!" }
+        { sender: "ai", text: "Sorry, I couldn't process your request. Please try again!" }
       ]);
     } finally {
       setLoading(false);
@@ -271,18 +267,13 @@ const RoleFeatureChat: React.FC<RoleFeatureChatProps> = ({ featureName, role, on
         .map(m => (m.sender === "user" ? `User: ${m.text}` : `AI: ${m.text}`))
         .join("\n") + `\nUser: ${lastUser.text}`;
       
-      const { data, error } = await supabase.functions.invoke('groq-completion', {
-        body: {
-          prompt: context,
-          systemInstruction: getSystemPrompt(),
-          model: "llama3-70b-8192"
-        }
-      });
+      const systemPrompt = getSystemPrompt();
+      const fullPrompt = `${systemPrompt}\n\nConversation Context:\n${context}`;
 
-      if (error) throw error;
+      const result = await askPuter(fullPrompt);
 
       const baseMsgs = messages.slice(0, messages.lastIndexOf(lastUser) + 1);
-      setMessages([...baseMsgs, { sender: "ai", text: data.result }]);
+      setMessages([...baseMsgs, { sender: "ai", text: result }]);
     } catch {
       setMessages((msgs) => [
         ...msgs,

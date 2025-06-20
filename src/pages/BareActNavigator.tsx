@@ -1,12 +1,11 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useNavigate } from "react-router-dom";
-import { groqCompletion } from "@/utils/groqApi";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
+import { askPuter } from "@/utils/openaiApi";
 
 const BareActNavigator = () => {
   const navigate = useNavigate();
@@ -40,7 +39,11 @@ const BareActNavigator = () => {
     setIsLoading(true);
     try {
       const actName = acts.find(act => act.value === selectedAct)?.label || selectedAct;
-      const prompt = `Help me navigate the ${actName} for the topic: "${topic}"
+      const systemInstruction = "You are a legal navigation assistant. Help users find their way through complex legal acts by providing structured guidance and cross-references.";
+      
+      const prompt = `${systemInstruction}
+
+Help me navigate the ${actName} for the topic: "${topic}"
       
 Please provide:
 1. Relevant sections and their numbers
@@ -52,13 +55,7 @@ Please provide:
 
 Structure this as a navigation guide for legal practitioners.`;
 
-      const systemInstruction = "You are a legal navigation assistant. Help users find their way through complex legal acts by providing structured guidance and cross-references.";
-
-      const result = await groqCompletion({
-        apiKey: "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",
-        prompt,
-        systemInstruction
-      });
+      const result = await askPuter(prompt);
 
       setNavigation(result);
       toast({

@@ -8,6 +8,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { useForm } from "react-hook-form";
 import { supabase } from "@/integrations/supabase/client";
+import { askPuter } from "@/utils/openaiApi";
 
 const CaseLawFinder = () => {
   const navigate = useNavigate();
@@ -24,20 +25,9 @@ const CaseLawFinder = () => {
     }
   });
 
-  const callGroqCompletion = async (prompt: string, systemInstruction: string) => {
-    const { data, error } = await supabase.functions.invoke('groq-completion', {
-      body: {
-        prompt,
-        systemInstruction,
-        model: "llama3-70b-8192"
-      }
-    });
-
-    if (error) {
-      throw new Error(error.message);
-    }
-
-    return data.result;
+  const callPuterCompletion = async (prompt: string, systemInstruction: string) => {
+    const fullPrompt = `${systemInstruction}\n\n${prompt}`;
+    return await askPuter(fullPrompt);
   };
 
   const handleSearch = async () => {
@@ -166,7 +156,7 @@ NEVER include foreign cases. Focus exclusively on Indian constitutional law and 
 
 Each case brief must be structured exactly as specified with minimum word counts per section. Pull citations only from SCC Online/Manupatra/EBC databases format.`;
 
-      const result = await callGroqCompletion(prompt, systemInstruction);
+      const result = await callPuterCompletion(prompt, systemInstruction);
 
       setSearchResults(result);
       toast({

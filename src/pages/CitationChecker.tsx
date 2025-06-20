@@ -1,11 +1,10 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
-import { groqCompletion } from "@/utils/groqApi";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
+import { askPuter } from "@/utils/openaiApi";
 
 const CitationChecker = () => {
   const navigate = useNavigate();
@@ -26,7 +25,11 @@ const CitationChecker = () => {
 
     setIsLoading(true);
     try {
-      const prompt = `Check the status and validity of this legal citation: "${citation}"
+      const systemInstruction = "You are a legal research expert specializing in case law status and citation checking. Provide accurate information about the current validity and precedential value of legal cases.";
+      
+      const prompt = `${systemInstruction}
+
+Check the status and validity of this legal citation: "${citation}"
       
 Please provide:
 1. Case name and full citation details
@@ -39,13 +42,7 @@ Please provide:
 
 Focus on Indian case law and provide accurate status information.`;
 
-      const systemInstruction = "You are a legal research expert specializing in case law status and citation checking. Provide accurate information about the current validity and precedential value of legal cases.";
-
-      const result = await groqCompletion({
-        apiKey: "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",
-        prompt,
-        systemInstruction
-      });
+      const result = await askPuter(prompt);
 
       setCheckResult(result);
       toast({
