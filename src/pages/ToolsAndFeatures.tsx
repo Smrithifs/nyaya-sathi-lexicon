@@ -133,15 +133,15 @@ const ToolsAndFeatures = () => {
     : allTools.filter(tool => tool.category === selectedCategory);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-blue-950 to-indigo-950">
+    <div className="min-h-screen" style={{ background: 'var(--ivo-background)' }}>
       <TopNav />
-      <main className="pt-24 pb-12 px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex items-center gap-4 mb-8">
+      <main className="pt-24 pb-12">
+        <div className="ivo-container">
+          <div className="flex items-center gap-4 mb-12">
             <Button 
               variant="ghost" 
               onClick={() => navigate("/")}
-              className="text-slate-300 hover:text-white hover:bg-slate-800/50 border border-slate-700/50"
+              className="ivo-btn-secondary"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Home
@@ -149,63 +149,80 @@ const ToolsAndFeatures = () => {
           </div>
 
           <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-slate-800/50 backdrop-blur-sm rounded-full border border-slate-700/50 mb-6">
-              <Sparkles className="w-4 h-4 text-blue-400" />
-              <span className="text-sm text-slate-300">All Tools & Features</span>
+            <div className="inline-flex items-center gap-2 px-6 py-3 rounded-full border-2 mb-8" style={{ 
+              background: 'var(--ivo-white)', 
+              borderColor: 'var(--ivo-gray-200)',
+              boxShadow: 'var(--ivo-shadow-sm)'
+            }}>
+              <Sparkles className="w-5 h-5" style={{ color: 'var(--ivo-secondary)' }} />
+              <span className="ivo-text-small font-semibold" style={{ color: 'var(--ivo-primary)' }}>All Tools & Features</span>
             </div>
-            <h1 className="text-4xl md:text-5xl font-bold text-white mb-6">
+            <h1 className="ivo-text-heading mb-6">
               Complete Legal Toolkit
             </h1>
-            <p className="text-xl text-slate-300 max-w-3xl mx-auto leading-relaxed">
+            <p className="ivo-text-body max-w-3xl mx-auto">
               Everything you need for legal work in one place – Draft. Learn. File. Track.
             </p>
           </div>
 
           {/* Category Filters */}
-          <div className="flex flex-wrap justify-center gap-4 mb-12">
+          <div className="flex flex-wrap justify-center gap-4 mb-16">
             {categories.map((category) => (
               <button
                 key={category}
                 onClick={() => setSelectedCategory(category)}
-                className={`px-6 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
+                className={`px-6 py-3 rounded-full font-semibold ivo-transition ${
                   selectedCategory === category
-                    ? "bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/25"
-                    : "bg-slate-800/50 text-slate-300 hover:bg-slate-700/50 border border-slate-700/50"
+                    ? "text-white shadow-lg"
+                    : "text-gray-600 hover:text-gray-800"
                 }`}
+                style={{
+                  background: selectedCategory === category 
+                    ? 'var(--ivo-secondary)' 
+                    : 'var(--ivo-white)',
+                  border: selectedCategory === category 
+                    ? 'none' 
+                    : '2px solid var(--ivo-gray-200)',
+                  boxShadow: selectedCategory === category 
+                    ? 'var(--ivo-shadow-md)' 
+                    : 'var(--ivo-shadow-sm)'
+                }}
               >
                 {category}
               </button>
             ))}
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="ivo-grid-features">
             {filteredTools.map((tool, index) => {
               const IconComponent = tool.icon;
               return (
-                <Card 
+                <div 
                   key={index}
-                  className="group cursor-pointer bg-slate-800/30 backdrop-blur-sm border border-slate-700/50 hover:border-slate-600/50 transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/10 rounded-xl overflow-hidden"
+                  className="ivo-card-feature cursor-pointer group"
                   onClick={() => handleToolClick(tool.route)}
                 >
-                  <CardHeader className="pb-4">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-blue-500/25">
-                        <IconComponent className="w-6 h-6 text-white" />
-                      </div>
-                      <span className="text-xs font-medium px-3 py-1 bg-slate-700/50 text-blue-300 rounded-full border border-slate-600/50">
-                        {tool.category}
-                      </span>
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="ivo-icon">
+                      <IconComponent className="w-8 h-8 text-white" />
                     </div>
-                    <CardTitle className="text-lg font-semibold text-white group-hover:text-blue-300 transition-colors">
-                      {tool.title}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-slate-400 text-sm leading-relaxed">
-                      {tool.description}
-                    </p>
-                  </CardContent>
-                </Card>
+                    <span 
+                      className="text-xs font-semibold px-3 py-1 rounded-full"
+                      style={{ 
+                        background: 'var(--ivo-gray-100)',
+                        color: 'var(--ivo-secondary)'
+                      }}
+                    >
+                      {tool.category}
+                    </span>
+                  </div>
+                  <h3 className="text-xl font-semibold mb-4 group-hover:text-blue-600 ivo-transition" style={{ color: 'var(--ivo-primary)' }}>
+                    {tool.title}
+                  </h3>
+                  <p className="ivo-text-small leading-relaxed">
+                    {tool.description}
+                  </p>
+                </div>
               );
             })}
           </div>

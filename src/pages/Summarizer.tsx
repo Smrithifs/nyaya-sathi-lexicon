@@ -7,6 +7,8 @@ import { useToast } from "@/hooks/use-toast";
 import { marked } from "marked";
 import { useGeminiKey } from "@/hooks/useGeminiKey";
 import { callGeminiAPI } from "@/utils/geminiApi";
+import { useNavigate } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
 
 const languages = [
   { label: "English", code: "en" },
@@ -15,6 +17,7 @@ const languages = [
 ];
 
 const Summarizer = () => {
+  const navigate = useNavigate();
   const [input, setInput] = useState("");
   const [output, setOutput] = useState<string | null>(null);
   const [lang, setLang] = useState("en");
@@ -62,45 +65,57 @@ ${input}`;
   }
 
   return (
-    <Card className="w-full max-w-2xl mx-auto shadow-lg border border-input">
-      <CardHeader>
-        <CardTitle className="text-2xl font-bold">Legal Document Summarizer</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSummarize} className="space-y-4">
-          <Textarea
-            className="w-full min-h-[120px]"
-            placeholder="Paste contract, policy, or other legal text here..."
-            value={input}
-            onChange={e => setInput(e.target.value)}
-            required
-            disabled={loading}
-          />
-          <div className="flex items-center gap-4 mt-2">
-            <label htmlFor="lang" className="font-medium text-sm">Output Language:</label>
-            <select
-              id="lang"
-              className="border rounded px-2 py-1"
-              value={lang}
-              onChange={e => setLang(e.target.value)}
+    <div className="p-6 min-h-screen" style={{ background: 'var(--ivo-background)' }}>
+      <div className="flex items-center gap-4 mb-8">
+        <Button variant="ghost" onClick={() => navigate("/tools")} className="ivo-btn-secondary">
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Back to Tools
+        </Button>
+        <h1 className="ivo-text-heading">Legal Document Summarizer</h1>
+      </div>
+
+      <Card className="ivo-card w-full max-w-4xl mx-auto">
+        <CardHeader>
+          <CardTitle className="text-2xl font-bold" style={{ color: 'var(--ivo-primary)' }}>Legal Document Summarizer</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSummarize} className="space-y-6">
+            <Textarea
+              className="w-full min-h-[150px] rounded-2xl border-2"
+              style={{ borderColor: 'var(--ivo-gray-200)' }}
+              placeholder="Paste contract, policy, or other legal text here..."
+              value={input}
+              onChange={e => setInput(e.target.value)}
+              required
               disabled={loading}
-            >
-              {languages.map(l => (
-                <option key={l.code} value={l.code}>{l.label}</option>
-              ))}
-            </select>
-            <Button type="submit" disabled={loading}>
-              {loading ? "Summarizing..." : "Summarize Document"}
-            </Button>
-          </div>
-        </form>
-        {output && (
-          <div className="mt-8 space-y-6 border-t pt-6 prose prose-base max-w-none break-words">
-            <div dangerouslySetInnerHTML={{ __html: marked(output) }} />
-          </div>
-        )}
-      </CardContent>
-    </Card>
+            />
+            <div className="flex items-center gap-6">
+              <label htmlFor="lang" className="font-semibold" style={{ color: 'var(--ivo-primary)' }}>Output Language:</label>
+              <select
+                id="lang"
+                className="border-2 rounded-xl px-4 py-2"
+                style={{ borderColor: 'var(--ivo-gray-200)' }}
+                value={lang}
+                onChange={e => setLang(e.target.value)}
+                disabled={loading}
+              >
+                {languages.map(l => (
+                  <option key={l.code} value={l.code}>{l.label}</option>
+                ))}
+              </select>
+              <Button type="submit" disabled={loading} className="ivo-btn-primary">
+                {loading ? "Summarizing..." : "Summarize Document"}
+              </Button>
+            </div>
+          </form>
+          {output && (
+            <div className="mt-8 space-y-6 border-t pt-8 prose prose-lg max-w-none break-words" style={{ borderColor: 'var(--ivo-gray-200)' }}>
+              <div dangerouslySetInnerHTML={{ __html: marked(output) }} />
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 
