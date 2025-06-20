@@ -1,14 +1,17 @@
+
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
-import { askPuter } from "@/utils/openaiApi";
+import { useGeminiKey } from "@/hooks/useGeminiKey";
+import { callGeminiAPI } from "@/utils/geminiApi";
 
 const CitationChecker = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { data: geminiKey } = useGeminiKey();
   const [citation, setCitation] = useState("");
   const [checkResult, setCheckResult] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -19,6 +22,15 @@ const CitationChecker = () => {
         title: "Missing Citation",
         description: "Please enter a case citation to check.",
         variant: "destructive"
+      });
+      return;
+    }
+
+    if (!geminiKey) {
+      toast({
+        title: "API Key Required",
+        description: "Please set your Gemini API key to use this feature.",
+        variant: "destructive",
       });
       return;
     }
@@ -42,7 +54,7 @@ Please provide:
 
 Focus on Indian case law and provide accurate status information.`;
 
-      const result = await askPuter(prompt);
+      const result = await callGeminiAPI(prompt, geminiKey);
 
       setCheckResult(result);
       toast({
@@ -64,8 +76,8 @@ Focus on Indian case law and provide accurate status information.`;
   return (
     <div className="p-6 min-h-screen bg-white flex flex-col">
       <div className="flex items-center gap-4 mb-8">
-        <Button variant="ghost" onClick={() => navigate("/features")}>
-          ← Back to Dashboard
+        <Button variant="ghost" onClick={() => navigate("/tools")}>
+          ← Back to Tools
         </Button>
         <h1 className="text-2xl font-bold">Citation Checker</h1>
       </div>

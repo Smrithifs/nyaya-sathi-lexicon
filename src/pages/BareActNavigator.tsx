@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -5,11 +6,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
-import { askPuter } from "@/utils/openaiApi";
+import { useGeminiKey } from "@/hooks/useGeminiKey";
+import { callGeminiAPI } from "@/utils/geminiApi";
 
 const BareActNavigator = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { data: geminiKey } = useGeminiKey();
   const [selectedAct, setSelectedAct] = useState("");
   const [topic, setTopic] = useState("");
   const [navigation, setNavigation] = useState("");
@@ -36,6 +39,15 @@ const BareActNavigator = () => {
       return;
     }
 
+    if (!geminiKey) {
+      toast({
+        title: "API Key Required",
+        description: "Please set your Gemini API key to use this feature.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsLoading(true);
     try {
       const actName = acts.find(act => act.value === selectedAct)?.label || selectedAct;
@@ -55,7 +67,7 @@ Please provide:
 
 Structure this as a navigation guide for legal practitioners.`;
 
-      const result = await askPuter(prompt);
+      const result = await callGeminiAPI(prompt, geminiKey);
 
       setNavigation(result);
       toast({
@@ -77,8 +89,8 @@ Structure this as a navigation guide for legal practitioners.`;
   return (
     <div className="p-6 min-h-screen bg-white flex flex-col">
       <div className="flex items-center gap-4 mb-8">
-        <Button variant="ghost" onClick={() => navigate("/features")}>
-          ← Back to Dashboard
+        <Button variant="ghost" onClick={() => navigate("/tools")}>
+          ← Back to Tools
         </Button>
         <h1 className="text-2xl font-bold">Bare Act Navigator</h1>
       </div>

@@ -4,13 +4,15 @@ import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useNavigate } from "react-router-dom";
-import { askPuter } from "@/utils/openaiApi";
+import { useGeminiKey } from "@/hooks/useGeminiKey";
+import { callGeminiAPI } from "@/utils/geminiApi";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 
 const SectionExplainer = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { data: geminiKey } = useGeminiKey();
   const [selectedAct, setSelectedAct] = useState("");
   const [sectionNumber, setSectionNumber] = useState("");
   const [explanation, setExplanation] = useState("");
@@ -35,6 +37,15 @@ const SectionExplainer = () => {
       return;
     }
 
+    if (!geminiKey) {
+      toast({
+        title: "API Key Required",
+        description: "Please set your Gemini API key to use this feature.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsLoading(true);
     try {
       const actName = acts.find(act => act.value === selectedAct)?.label || selectedAct;
@@ -48,7 +59,7 @@ Explain Section ${sectionNumber} of the ${actName} in detail. Include:
 5. Important case law or precedents if any
 Please provide a comprehensive yet clear explanation suitable for legal practitioners.`;
 
-      const result = await askPuter(prompt);
+      const result = await callGeminiAPI(prompt, geminiKey);
 
       setExplanation(result);
       toast({
@@ -70,8 +81,8 @@ Please provide a comprehensive yet clear explanation suitable for legal practiti
   return (
     <div className="p-6 min-h-screen bg-white flex flex-col">
       <div className="flex items-center gap-4 mb-8">
-        <Button variant="ghost" onClick={() => navigate("/features")}>
-          ← Back to Dashboard
+        <Button variant="ghost" onClick={() => navigate("/tools")}>
+          ← Back to Tools
         </Button>
         <h1 className="text-2xl font-bold">Section Explainer</h1>
       </div>

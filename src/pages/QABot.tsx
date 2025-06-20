@@ -7,12 +7,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Scale, Bot } from "lucide-react";
-import { askPuter } from "@/utils/openaiApi";
+import { useGeminiKey } from "@/hooks/useGeminiKey";
+import { callGeminiAPI } from "@/utils/geminiApi";
 import { useToast } from "@/hooks/use-toast";
 
 const QABot = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { data: geminiKey } = useGeminiKey();
   const [question, setQuestion] = useState("");
   const [language, setLanguage] = useState("english");
   const [response, setResponse] = useState("");
@@ -23,6 +25,15 @@ const QABot = () => {
       toast({
         title: "Please enter a question",
         description: "You need to ask a legal question to get an answer.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!geminiKey) {
+      toast({
+        title: "API Key Required",
+        description: "Please set your Gemini API key to use this feature.",
         variant: "destructive",
       });
       return;
@@ -40,10 +51,10 @@ Please structure your response as:
 
 Respond in ${language}. Keep it comprehensive but easy to understand.`;
 
-      const result = await askPuter(prompt);
+      const result = await callGeminiAPI(prompt, geminiKey);
       setResponse(result);
     } catch (error) {
-      console.error("Error calling Puter AI:", error);
+      console.error("Error calling Gemini API:", error);
       toast({
         title: "Error",
         description: "Failed to get response from NyayaBot. Please try again.",
