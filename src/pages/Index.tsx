@@ -189,7 +189,7 @@ const Index = () => {
                   <div className="word-document">
                     <div className="document-page">
                       <div className="document-header-info rounded-2xl bg-yellow-50">
-                        <h3 className="case-title text-sm">CASE SUMMARY: Mr. Mehra vs State Citation: (2025) 3 SCC 512 (SC)</h3>
+                        <h3 className="case-title text-sm">CASE SUMMARY: Mr. Mehra vs State Citation: (2024) 3 SCC 512 (SC)</h3>
                       </div>
                       
                       <h4 className="section-title">5. TERM AND TERMINATION</h4>
