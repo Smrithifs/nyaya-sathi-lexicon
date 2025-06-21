@@ -183,14 +183,10 @@ const Index = () => {
         <div className="ivo-container">
           <div className="flex items-center justify-between h-20">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl flex items-center justify-center" style={{
-              background: 'linear-gradient(135deg, var(--ivo-secondary), #0099cc)'
-            }}>
-                <Scale className="w-6 h-6 text-white" />
-              </div>
+              
               <span style={{
               color: 'var(--ivo-primary)'
-            }} className="font-bold text-xl text-left mx-[8px]">legalOps</span>
+            }} className="font-bold text-xl text-left mx-[8px] px-[8px]">legalOps</span>
             </div>
             
             <div className="hidden md:flex items-center space-x-8">
