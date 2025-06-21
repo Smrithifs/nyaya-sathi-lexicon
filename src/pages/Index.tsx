@@ -150,7 +150,7 @@ const Index = () => {
                 <div className="word-interface">
                   {/* Word Header */}
                   <div className="word-header">
-                    <span className="doc-icon">📄</span>
+                    <span className="doc-icon"></span>
                     <span>Document - Word</span>
                   </div>
                   
@@ -188,8 +188,8 @@ const Index = () => {
                   {/* Document Content */}
                   <div className="word-document">
                     <div className="document-page">
-                      <div className="document-header-info">
-                        <h3 className="case-title">Mr. Mehra v. State, (2024) 3 SCC 512 (SC)</h3>
+                      <div className="document-header-info rounded-2xl bg-yellow-50">
+                        <h3 className="case-title text-sm">CASE SUMMARY: Mr. Mehra vs State Citation: (2024) 3 SCC 512 (SC)</h3>
                       </div>
                       
                       <h4 className="section-title">5. TERM AND TERMINATION</h4>
@@ -199,9 +199,9 @@ const Index = () => {
                         <span className="subsection-text">Subject to earlier termination as provided below, this Agreement is for the Initial Service Term as specified in the Order Form, and shall be automatically renewed for additional periods of the same duration as the Initial Service Term.</span>
                       </div>
                       
-                      <div className="subsection">
+                      <div className="subsection bg-yellow-100">
                         <span className="subsection-number">5.2</span>
-                        <span className="subsection-text">Either party may terminate this Agreement without cause by giving the other party at least thirty (30) days prior written notice of termination.</span>
+                        <span className="subsection-text font-normal text-gray-800">Either party may terminate this Agreement without cause by giving the other party at least thirty (30) days prior written notice of termination.</span>
                       </div>
                       
                       <div className="subsection">
