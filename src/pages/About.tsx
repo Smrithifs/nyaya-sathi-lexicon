@@ -1,15 +1,11 @@
-
-import React, { useState } from "react";
-import LandingBackground from "../components/LandingBackground";
-import TopNav from "../components/TopNav";
-import {
-  Gavel, BookOpen, Layers, FileEdit, Bot, Search, Landmark, Wand2,
-  BookText, AudioLines, Brain, Users, Languages
-} from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import SectionReveal from "../components/SectionReveal";
+import React from "react";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
+import {
+  Gavel, BookOpen, Layers, FileEdit, Search, Landmark, Wand2,
+  AudioLines, Brain, Users, Languages, Scale, Shield, CheckCircle, ArrowRight
+} from "lucide-react";
 
 const lawyerTools = [
   { name: "Contract Generator", icon: <FileEdit className="w-7 h-7 text-blue-600" /> },
@@ -39,136 +35,216 @@ const whyLegalOpsItems = [
   { bold: "Ready for modern practice:", text: " Spend less time on admin, more time acting on what matters." }
 ];
 
-const roleColumnStyles = "flex-1 min-w-[220px] max-w-xs bg-gradient-to-br from-blue-900/70 to-blue-700/60 border border-white/10 rounded-xl shadow-lg px-7 py-10 m-4 text-white text-center flex flex-col gap-3 transition-all duration-300";
-const roleIconCommon = "mx-auto mb-2 rounded-full bg-white/10 p-4 w-16 h-16 flex items-center justify-center";
-
 const About = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="relative min-h-screen flex flex-col items-center bg-transparent">
-      <LandingBackground />
-      <TopNav />
-      <main className="relative z-10 w-full flex flex-col items-center px-4">
+    <div className="min-h-screen" style={{ background: 'var(--ivo-background)' }}>
+      {/* Ivo.ai Style Navigation */}
+      <nav className="ivo-nav">
+        <div className="ivo-container">
+          <div className="flex items-center justify-between h-20">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl flex items-center justify-center" style={{
+                background: 'linear-gradient(135deg, var(--ivo-secondary), #0099cc)'
+              }}>
+                <Scale className="w-6 h-6 text-white" />
+              </div>
+              <span className="text-2xl font-bold" style={{ color: 'var(--ivo-primary)' }}>LegalOps</span>
+            </div>
+            
+            <div className="hidden md:flex items-center space-x-8">
+              <button onClick={() => navigate("/")} className="ivo-nav-link">Home</button>
+              <a href="/#tools-section" className="ivo-nav-link">Tools</a>
+              <a href="#about" className="ivo-nav-link">About</a>
+              <a href="#contact" className="ivo-nav-link">Contact</a>
+            </div>
+
+            <Button onClick={() => navigate("/")} className="ivo-btn-primary">
+              Launch LegalOps
+            </Button>
+          </div>
+        </div>
+      </nav>
+
+      <main className="relative">
         {/* Hero Section */}
-        <section className="w-full text-center pt-28 pb-16">
-          <h1 className="text-4xl md:text-6xl font-extrabold font-serif tracking-tight text-white mb-6 drop-shadow-lg animate-fade-in">
-            About LegalOps
-          </h1>
-          <p className="max-w-4xl mx-auto text-xl md:text-2xl text-white/90 leading-relaxed font-medium animate-fade-in" style={{ animationDelay: '200ms' }}>
-            Power up your legal practice with intelligent, automated tools—built by lawyers, for lawyers.
-          </p>
+        <section className="ivo-hero ivo-section relative">
+          <div className="ivo-container">
+            <div className="text-center mb-16 ivo-fade-in">
+              <h1 className="ivo-text-hero mb-6">
+                About LegalOps
+              </h1>
+              <p className="ivo-text-body max-w-4xl mx-auto">
+                Power up your legal practice with intelligent, automated tools—built by lawyers, for lawyers.
+              </p>
+            </div>
+          </div>
         </section>
 
         {/* Mission/Vision Section */}
-        <SectionReveal className="w-full">
-          <section className="max-w-4xl w-full mx-auto pb-16">
-            <div className="bg-black/20 backdrop-blur-md rounded-2xl p-8 md:p-12 border border-white/10 shadow-xl">
-              <h2 className="text-3xl font-bold text-blue-200 mb-6 font-serif text-center">Our Mission</h2>
-              <p className="text-lg text-white/85 leading-relaxed text-center">
-                LegalOps is designed for Indian lawyers, firms, and enterprises seeking <span className="font-semibold text-white">speed, precision, and control</span>. We blend deep legal expertise with cutting-edge AI to help you draft, review, and understand legal documents—<b>faster and smarter than ever before.</b> Our goal is to handle the repetitive, time-consuming tasks, so you can focus on high-value legal work that truly matters.
+        <section className="ivo-section">
+          <div className="ivo-container">
+            <div className="ivo-card max-w-4xl mx-auto p-8 md:p-12">
+              <h2 className="ivo-text-heading text-center mb-6">Our Mission</h2>
+              <p className="ivo-text-body text-center">
+                LegalOps is designed for Indian lawyers, firms, and enterprises seeking <span className="font-semibold" style={{ color: 'var(--ivo-primary)' }}>speed, precision, and control</span>. We blend deep legal expertise with cutting-edge AI to help you draft, review, and understand legal documents—<strong>faster and smarter than ever before.</strong> Our goal is to handle the repetitive, time-consuming tasks, so you can focus on high-value legal work that truly matters.
               </p>
             </div>
-          </section>
-        </SectionReveal>
+          </div>
+        </section>
 
         {/* Why Choose Us Section */}
-        <SectionReveal className="w-full">
-          <section className="max-w-4xl w-full mx-auto pb-16">
-            <Card className="bg-gradient-to-br from-[#23233c]/90 to-[#1a1a2e]/90 backdrop-blur-lg border-white/10 text-white shadow-2xl">
+        <section className="ivo-section" style={{ background: 'var(--ivo-gray-50)' }}>
+          <div className="ivo-container">
+            <Card className="ivo-card max-w-4xl mx-auto">
               <CardHeader>
-                <CardTitle className="text-3xl font-bold text-blue-200 font-serif text-center mb-4">Why Choose LegalOps?</CardTitle>
+                <CardTitle className="ivo-text-heading text-center mb-4">Why Choose LegalOps?</CardTitle>
               </CardHeader>
               <CardContent>
                 <ul className="space-y-6">
                   {whyLegalOpsItems.map((item, index) => (
                     <li key={index} className="flex items-start gap-4">
-                      <svg className="w-6 h-6 text-green-400 mt-1 flex-shrink-0" fill="none" viewBox="0 0 24 24"><path d="M9 12l2 2l4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" /></svg>
-                      <span className="text-lg text-white/90">
-                        <b>{item.bold}</b>{item.text}
+                      <CheckCircle className="w-6 h-6 text-green-500 mt-1 flex-shrink-0" />
+                      <span className="ivo-text-body">
+                        <strong style={{ color: 'var(--ivo-primary)' }}>{item.bold}</strong>{item.text}
                       </span>
                     </li>
                   ))}
                 </ul>
               </CardContent>
             </Card>
-          </section>
-        </SectionReveal>
+          </div>
+        </section>
 
-        {/* Features Section + Role Display */}
-        <SectionReveal className="w-full">
-          <section className="w-full max-w-6xl mx-auto px-2 pb-20 flex flex-col items-center">
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-12 font-serif mt-4 text-center">
-              Explore Our Features
-            </h2>
-            {/* Non-interactive role display columns */}
-            <div className="w-full flex flex-wrap justify-center gap-6 mb-10">
-              <div className={roleColumnStyles}>
-                <div className={`${roleIconCommon} bg-blue-500/20`}>
-                  <Gavel className="w-10 h-10 text-yellow-200" />
+        {/* Features Section */}
+        <section className="ivo-section">
+          <div className="ivo-container">
+            <div className="text-center mb-16">
+              <h2 className="ivo-text-heading mb-6">Explore Our Features</h2>
+            </div>
+
+            {/* Role Display */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto mb-16">
+              <div className="ivo-card-feature text-center">
+                <div className="ivo-icon mx-auto">
+                  <Gavel className="w-10 h-10 text-white" />
                 </div>
-                <div className="text-xl font-bold mb-2 font-serif">Practicing Lawyer</div>
-                <div className="text-base text-white/80">Access tools designed for professionals—contracts, advanced Q&amp;A, citation checker, and more.</div>
+                <h3 className="text-xl font-bold mb-4" style={{ color: 'var(--ivo-primary)' }}>Practicing Lawyer</h3>
+                <p className="ivo-text-small">Access tools designed for professionals—contracts, advanced Q&A, citation checker, and more.</p>
               </div>
-              <div className={roleColumnStyles}>
-                <div className={`${roleIconCommon} bg-yellow-500/20`}>
-                  <BookOpen className="w-10 h-10 text-blue-300" />
+              <div className="ivo-card-feature text-center">
+                <div className="ivo-icon mx-auto">
+                  <BookOpen className="w-10 h-10 text-white" />
                 </div>
-                <div className="text-xl font-bold mb-2 font-serif">Law Student</div>
-                <div className="text-base text-white/80">Get learning aids—flashcards, syllabus tracking, and Q&A built just for you.</div>
+                <h3 className="text-xl font-bold mb-4" style={{ color: 'var(--ivo-primary)' }}>Law Student</h3>
+                <p className="ivo-text-small">Get learning aids—flashcards, syllabus tracking, and Q&A built just for you.</p>
               </div>
             </div>
 
-            {/* Display both tool sets for preview */}
-            <div className="w-full flex flex-col items-center animate-fade-in">
-              <h3 className="text-2xl font-bold text-white mb-6 font-serif">Lawyer Tools</h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-7 w-full mb-12">
-                {lawyerTools.map((tool) => (
-                  <Card
-                    key={tool.name}
-                    className="flex flex-col bg-black/30 backdrop-blur-lg border border-white/15 text-white shadow-lg max-w-xs mx-auto"
-                  >
-                    <CardHeader className="items-center text-center">
-                      <div className="p-4 bg-white/10 rounded-full mb-4">
-                        {tool.icon}
-                      </div>
-                      <CardTitle className="text-lg font-bold text-white font-serif">{tool.name}</CardTitle>
-                    </CardHeader>
-                  </Card>
-                ))}
+            {/* Tool Categories */}
+            <div className="space-y-16">
+              <div>
+                <h3 className="ivo-text-subheading text-center mb-8">Lawyer Tools</h3>
+                <div className="ivo-grid-features">
+                  {lawyerTools.map((tool) => (
+                    <Card key={tool.name} className="ivo-card-feature">
+                      <CardHeader className="items-center text-center">
+                        <div className="p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-full mb-4">
+                          {tool.icon}
+                        </div>
+                        <CardTitle className="text-lg font-bold" style={{ color: 'var(--ivo-primary)' }}>{tool.name}</CardTitle>
+                      </CardHeader>
+                    </Card>
+                  ))}
+                </div>
               </div>
 
-              <h3 className="text-2xl font-bold text-white mb-6 font-serif">Student Tools</h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-7 w-full mb-8">
-                {studentTools.map((tool) => (
-                  <Card
-                    key={tool.name}
-                    className="flex flex-col bg-black/30 backdrop-blur-lg border border-white/15 text-white shadow-lg max-w-xs mx-auto"
-                  >
-                    <CardHeader className="items-center text-center">
-                      <div className="p-4 bg-white/10 rounded-full mb-4">
-                        {tool.icon}
-                      </div>
-                      <CardTitle className="text-lg font-bold text-white font-serif">{tool.name}</CardTitle>
-                    </CardHeader>
-                  </Card>
-                ))}
+              <div>
+                <h3 className="ivo-text-subheading text-center mb-8">Student Tools</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+                  {studentTools.map((tool) => (
+                    <Card key={tool.name} className="ivo-card-feature">
+                      <CardHeader className="items-center text-center">
+                        <div className="p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-full mb-4">
+                          {tool.icon}
+                        </div>
+                        <CardTitle className="text-lg font-bold" style={{ color: 'var(--ivo-primary)' }}>{tool.name}</CardTitle>
+                      </CardHeader>
+                    </Card>
+                  ))}
+                </div>
               </div>
+            </div>
 
+            <div className="text-center mt-16">
               <Button 
-                onClick={() => navigate("/tools")}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg font-semibold rounded-xl shadow-lg"
+                onClick={() => navigate("/")}
+                className="ivo-btn-primary text-lg px-8 py-4"
               >
-                Try These Features →
+                Try These Features <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
-
-              <div className="text-xs text-gray-300 mt-6 text-center italic w-full">
+              <p className="ivo-text-small mt-6 italic">
                 This is not a substitute for professional legal advice.
-              </div>
+              </p>
             </div>
-          </section>
-        </SectionReveal>
+          </div>
+        </section>
       </main>
+
+      {/* Ivo.ai Style Footer */}
+      <footer className="border-t py-20" style={{ background: 'var(--ivo-white)', borderColor: 'var(--ivo-gray-200)' }}>
+        <div className="ivo-container">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
+            <div>
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 rounded-2xl flex items-center justify-center" style={{
+                  background: 'linear-gradient(135deg, var(--ivo-secondary), #0099cc)'
+                }}>
+                  <Scale className="w-6 h-6 text-white" />
+                </div>
+                <span className="text-2xl font-bold" style={{ color: 'var(--ivo-primary)' }}>LegalOps</span>
+              </div>
+              <p className="ivo-text-small leading-relaxed">
+                AI-powered legal assistance for the modern legal professional.
+              </p>
+            </div>
+            
+            <div>
+              <h3 className="font-semibold mb-6" style={{ color: 'var(--ivo-primary)' }}>Product</h3>
+              <ul className="space-y-4">
+                <li><a href="#tools-section" className="ivo-text-small hover:text-blue-600 ivo-transition">All Tools</a></li>
+                <li><button onClick={() => navigate("/about")} className="ivo-text-small hover:text-blue-600 ivo-transition">About</button></li>
+                <li><a href="#" className="ivo-text-small hover:text-blue-600 ivo-transition">Pricing</a></li>
+              </ul>
+            </div>
+            
+            <div>
+              <h3 className="font-semibold mb-6" style={{ color: 'var(--ivo-primary)' }}>Support</h3>
+              <ul className="space-y-4">
+                <li><a href="#" className="ivo-text-small hover:text-blue-600 ivo-transition">Help Center</a></li>
+                <li><a href="#" className="ivo-text-small hover:text-blue-600 ivo-transition">Feedback</a></li>
+                <li><a href="#" className="ivo-text-small hover:text-blue-600 ivo-transition">Contact</a></li>
+              </ul>
+            </div>
+            
+            <div>
+              <h3 className="font-semibold mb-6" style={{ color: 'var(--ivo-primary)' }}>Legal</h3>
+              <ul className="space-y-4">
+                <li><a href="#" className="ivo-text-small hover:text-blue-600 ivo-transition">Privacy Policy</a></li>
+                <li><a href="#" className="ivo-text-small hover:text-blue-600 ivo-transition">Legal Disclaimer</a></li>
+                <li><a href="#" className="ivo-text-small hover:text-blue-600 ivo-transition">Terms of Service</a></li>
+              </ul>
+            </div>
+          </div>
+          
+          <div className="border-t pt-8 text-center" style={{ borderColor: 'var(--ivo-gray-200)' }}>
+            <p className="ivo-text-small">
+              © 2024 LegalOps. All rights reserved. Built with ❤️ for the legal community.
+            </p>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };
