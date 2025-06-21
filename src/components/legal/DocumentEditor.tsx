@@ -103,12 +103,12 @@ const DocumentEditor: React.FC<DocumentEditorProps> = ({
       type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
     });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    const a = window.document.createElement('a');
     a.href = url;
     a.download = `${title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.doc`;
-    document.body.appendChild(a);
+    window.document.body.appendChild(a);
     a.click();
-    document.body.removeChild(a);
+    window.document.body.removeChild(a);
     URL.revokeObjectURL(url);
     
     toast({
@@ -120,12 +120,12 @@ const DocumentEditor: React.FC<DocumentEditorProps> = ({
   const exportToText = () => {
     const blob = new Blob([editableContent], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    const a = window.document.createElement('a');
     a.href = url;
     a.download = `${title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.txt`;
-    document.body.appendChild(a);
+    window.document.body.appendChild(a);
     a.click();
-    document.body.removeChild(a);
+    window.document.body.removeChild(a);
     URL.revokeObjectURL(url);
     
     toast({
