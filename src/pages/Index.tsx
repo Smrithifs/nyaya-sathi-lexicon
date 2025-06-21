@@ -106,6 +106,8 @@ const Index = () => {
   const [selectedFeatureIndex, setSelectedFeatureIndex] = useState(-1);
   const [showCursor, setShowCursor] = useState(false);
   const [cursorClicked, setCursorClicked] = useState(false);
+  const [showToolsSection, setShowToolsSection] = useState(false);
+  const [selectedToolIndex, setSelectedToolIndex] = useState(-1);
 
   useEffect(() => {
     // Animation sequence with updated timings
@@ -137,23 +139,40 @@ const Index = () => {
   useEffect(() => {
     if (showFeatures) {
       const bounceTimers = [0, 1, 2].map((index) =>
-        setTimeout(() => setBounceIndex(index), index * 500)
+        setTimeout(() => setBounceIndex(index), index * 800)
       );
-      
-      // Feature selection animations
-      const selectionTimers = [
-        setTimeout(() => setSelectedFeatureIndex(0), 500), // Contract Generator - light yellow
-        setTimeout(() => setSelectedFeatureIndex(1), 2500), // Legal Q&A - light pink  
-        setTimeout(() => setSelectedFeatureIndex(2), 4500), // Case Law Finder - light green
-        setTimeout(() => setSelectedFeatureIndex(-1), 6500), // Clear selection
-      ];
       
       return () => {
         bounceTimers.forEach(clearTimeout);
-        selectionTimers.forEach(clearTimeout);
       };
     }
   }, [showFeatures]);
+
+  // Intersection Observer for tools section
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && entry.target.id === 'tools-section') {
+            setShowToolsSection(true);
+            // Start tool selection animations
+            setTimeout(() => setSelectedToolIndex(0), 500); // Contract Generator - yellow
+            setTimeout(() => setSelectedToolIndex(1), 2500); // Legal Q&A - pink  
+            setTimeout(() => setSelectedToolIndex(2), 4500); // Case Law Finder - green
+            setTimeout(() => setSelectedToolIndex(-1), 6500); // Clear selection
+          }
+        });
+      },
+      { threshold: 0.3 }
+    );
+
+    const toolsSection = document.getElementById('tools-section');
+    if (toolsSection) {
+      observer.observe(toolsSection);
+    }
+
+    return () => observer.disconnect();
+  }, []);
 
   const scrollToTools = () => {
     const toolsSection = document.getElementById('tools-section');
@@ -175,7 +194,7 @@ const Index = () => {
       {/* Animated Cursor */}
       {showCursor && (
         <div className={`animated-cursor ${cursorClicked ? 'cursor-clicked' : ''}`}>
-          <div className="cursor-icon">👆</div>
+          <div className="cursor-icon">🖱️</div>
         </div>
       )}
 
@@ -327,21 +346,21 @@ const Index = () => {
 
           {/* Ivo.ai Style Feature Highlights with Animation */}
           <div className={`grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto mt-20 transition-all duration-1000 ${showFeatures ? 'opacity-100' : 'opacity-0'}`}>
-            <div className={`text-center transition-all duration-500 ${bounceIndex >= 0 ? 'animate-bounce' : ''} ${selectedFeatureIndex === 0 ? 'feature-selected-yellow' : ''}`}>
+            <div className={`text-center transition-all duration-500 ${bounceIndex >= 0 ? 'ivo-soft-bounce' : ''}`}>
               <div className="ivo-icon mx-auto">
                 <Shield className="w-8 h-8 text-white" />
               </div>
               <h3 className="text-xl font-semibold mb-2" style={{ color: 'var(--ivo-primary)' }}>Secure & Reliable</h3>
               <p className="ivo-text-small">Enterprise-grade security for your legal documents</p>
             </div>
-            <div className={`text-center transition-all duration-500 delay-500 ${bounceIndex >= 1 ? 'animate-bounce' : ''} ${selectedFeatureIndex === 1 ? 'feature-selected-pink' : ''}`}>
+            <div className={`text-center transition-all duration-500 delay-500 ${bounceIndex >= 1 ? 'ivo-soft-bounce' : ''}`}>
               <div className="ivo-icon mx-auto">
                 <Zap className="w-8 h-8 text-white" />
               </div>
               <h3 className="text-xl font-semibold mb-2" style={{ color: 'var(--ivo-primary)' }}>Lightning Fast</h3>
               <p className="ivo-text-small">Generate documents and research in seconds</p>
             </div>
-            <div className={`text-center transition-all duration-500 delay-1000 ${bounceIndex >= 2 ? 'animate-bounce' : ''} ${selectedFeatureIndex === 2 ? 'feature-selected-green' : ''}`}>
+            <div className={`text-center transition-all duration-500 delay-1000 ${bounceIndex >= 2 ? 'ivo-soft-bounce' : ''}`}>
               <div className="ivo-icon mx-auto">
                 <Users className="w-8 h-8 text-white" />
               </div>
@@ -402,7 +421,17 @@ const Index = () => {
               return (
                 <div
                   key={index}
-                  className="ivo-card-feature cursor-pointer group"
+                  className={`ivo-card-feature cursor-pointer group transition-all duration-500 ${
+                    showToolsSection && selectedToolIndex === index
+                      ? index === 0 
+                        ? 'feature-selected-yellow'
+                        : index === 1
+                          ? 'feature-selected-pink'
+                          : index === 2
+                            ? 'feature-selected-green'
+                            : ''
+                      : ''
+                  }`}
                   onClick={() => handleToolClick(tool.route)}
                 >
                   <div className="flex items-center justify-between mb-6">
