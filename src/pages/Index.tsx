@@ -146,7 +146,7 @@ const Index = () => {
           <div className="content-grid grid grid-cols-1 lg:grid-cols-5 gap-12 max-w-7xl mx-auto items-center">
             {/* Left Column - Word Document Interactive Component */}
             <div className="lg:col-span-3 ivo-scale-in">
-              <div className="legal-doc-container">
+              <div className="legal-doc-container bg-gray-50">
                 <div className="word-interface">
                   {/* Word Header */}
                   <div className="word-header">
@@ -162,7 +162,9 @@ const Index = () => {
                         <option>Calibri</option>
                         <option>Times New Roman</option>
                       </select>
-                      <select className="font-dropdown" style={{width: '50px'}}>
+                      <select className="font-dropdown" style={{
+                      width: '50px'
+                    }}>
                         <option>12</option>
                         <option>11</option>
                         <option>14</option>
@@ -399,5 +401,4 @@ const Index = () => {
       </footer>
     </div>;
 };
-
 export default Index;
