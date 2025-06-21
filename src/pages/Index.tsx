@@ -86,7 +86,6 @@ const categories = ["All", "Drafting", "Research", "Learning", "Trackers"];
 const Index = () => {
   const navigate = useNavigate();
   const [selectedCategory, setSelectedCategory] = useState("All");
-
   const scrollToTools = () => {
     const toolsSection = document.getElementById('tools-section');
     if (toolsSection) {
@@ -95,30 +94,28 @@ const Index = () => {
       });
     }
   };
-
   const handleToolClick = (route: string) => {
     if (route) {
       navigate(route);
     }
   };
-
   const filteredTools = selectedCategory === "All" ? allTools : allTools.filter(tool => tool.category === selectedCategory);
-
-  return (
-    <div className="min-h-screen" style={{ background: 'var(--ivo-background)' }}>
+  return <div className="min-h-screen" style={{
+    background: 'var(--ivo-background)'
+  }}>
       {/* Ivo.ai Style Navigation */}
       <nav className="ivo-nav">
         <div className="ivo-container">
           <div className="flex items-center justify-between h-20">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-2xl flex items-center justify-center" style={{
-                background: 'linear-gradient(135deg, var(--ivo-secondary), #0099cc)'
-              }}>
+              background: 'linear-gradient(135deg, var(--ivo-secondary), #0099cc)'
+            }}>
                 <Scale className="w-6 h-6 text-white" />
               </div>
               <span className="text-2xl font-bold" style={{
-                color: 'var(--ivo-primary)'
-              }}>LegalOps</span>
+              color: 'var(--ivo-primary)'
+            }}>LegalOps</span>
             </div>
             
             <div className="hidden md:flex items-center space-x-8">
@@ -165,7 +162,9 @@ const Index = () => {
                         <option>Calibri</option>
                         <option>Times New Roman</option>
                       </select>
-                      <select className="font-dropdown" style={{ width: '50px' }}>
+                      <select className="font-dropdown" style={{
+                      width: '50px'
+                    }}>
                         <option>12</option>
                         <option>11</option>
                         <option>14</option>
@@ -203,7 +202,7 @@ const Index = () => {
                       
                       <div className="subsection bg-yellow-100">
                         <span className="subsection-number">5.2</span>
-                        <span className="subsection-text font-normal text-gray-800">Either party may terminate this Agreement without cause by giving the other party at least thirty (30) days prior written notice of termination.</span>
+                        <span className="subsection-text font-normal text-gray-800">Either party may terminate this Agreement without any reason by giving the other party thirty (30) days prior notice in writing.</span>
                       </div>
                       
                       <div className="subsection">
@@ -224,13 +223,13 @@ const Index = () => {
             <div className="lg:col-span-2 ivo-fade-in">
               <div className="marketing-content">
                 <h2 className="catchy-heading font-bold text-3xl lg:text-4xl leading-tight mb-6" style={{
-                  color: 'var(--ivo-primary)'
-                }}>
+                color: 'var(--ivo-primary)'
+              }}>
                   LegalOps is designed for Indian lawyers, firms, and enterprises seeking speed, precision, and control.
                 </h2>
                 <p className="description text-lg leading-relaxed" style={{
-                  color: 'var(--ivo-gray-600)'
-                }}>
+                color: 'var(--ivo-gray-600)'
+              }}>
                   We blend deep legal expertise with cutting-edge AI to help you draft, review, and understand legal documents—faster and smarter than ever before.
                 </p>
                 <div className="mt-8">
@@ -401,8 +400,6 @@ const Index = () => {
           </div>
         </div>
       </footer>
-    </div>
-  );
+    </div>;
 };
-
 export default Index;
