@@ -190,7 +190,7 @@ const Index = () => {
               </div>
               <span style={{
               color: 'var(--ivo-primary)'
-            }} className="font-bold text-xl text-left mx-[8px]">LegalOps</span>
+            }} className="font-bold text-xl text-left mx-[8px]">legalOps</span>
             </div>
             
             <div className="hidden md:flex items-center space-x-8">
