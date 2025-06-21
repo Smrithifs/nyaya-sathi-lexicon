@@ -146,7 +146,7 @@ const Index = () => {
           <div className="content-grid grid grid-cols-1 lg:grid-cols-5 gap-12 max-w-7xl mx-auto items-center">
             {/* Left Column - Word Document Interactive Component */}
             <div className="lg:col-span-3 ivo-scale-in">
-              <div className="legal-doc-container bg-sky-50">
+              <div className="legal-doc-container bg-sky-50 rounded-3xl px-[7px] py-[24px] my-0 mx-0">
                 <div className="word-interface">
                   {/* Word Header */}
                   <div className="word-header">
