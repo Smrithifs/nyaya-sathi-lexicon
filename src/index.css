@@ -1,3 +1,4 @@
+
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 @tailwind base;
 @tailwind components;
@@ -269,7 +270,7 @@
   }
 
   .ivo-soft-bounce {
-    animation: ivoSoftBounce 0.6s ease-out forwards;
+    animation: ivoSoftBounce 1.2s ease-out forwards;
   }
 
   @keyframes ivoFadeIn {
@@ -317,15 +318,23 @@
   @keyframes ivoSoftBounce {
     0% {
       transform: translateY(0) scale(1);
+      opacity: 1;
     }
     30% {
-      transform: translateY(-8px) scale(1.02);
+      transform: translateY(-12px) scale(1.03);
+      opacity: 1;
     }
     60% {
-      transform: translateY(-4px) scale(1.01);
+      transform: translateY(-6px) scale(1.015);
+      opacity: 1;
+    }
+    80% {
+      transform: translateY(-2px) scale(1.005);
+      opacity: 1;
     }
     100% {
       transform: translateY(0) scale(1);
+      opacity: 1;
     }
   }
 
@@ -751,11 +760,12 @@
 /* Animated Cursor */
 .animated-cursor {
   position: fixed;
-  top: 20px;
-  right: 20px;
-  z-index: 1000;
-  animation: moveCursor 2s ease-in-out forwards;
+  z-index: 9999;
+  animation: moveCursor 3s ease-in-out forwards;
   pointer-events: none;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 
 .cursor-icon {
@@ -768,6 +778,12 @@
 }
 
 /* Launch button animation */
+.launch-button {
+  position: relative;
+  z-index: 60;
+  pointer-events: all;
+}
+
 .launch-button.button-clicked {
   background: #000 !important;
   transform: scale(0.95);
@@ -777,12 +793,17 @@
 @keyframes moveCursor {
   0% {
     top: 50%;
-    right: 50%;
-    transform: translate(50%, -50%);
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+  70% {
+    top: 20px;
+    left: calc(100% - 200px);
+    transform: translate(0, 0);
   }
   100% {
     top: 20px;
-    right: 320px;
+    left: calc(100% - 200px);
     transform: translate(0, 0);
   }
 }
@@ -801,13 +822,30 @@
   @keyframes moveCursor {
     0% {
       top: 50%;
-      right: 50%;
-      transform: translate(50%, -50%);
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+    70% {
+      top: 20px;
+      left: calc(100% - 160px);
+      transform: translate(0, 0);
     }
     100% {
       top: 20px;
-      right: 20px;
+      left: calc(100% - 160px);
       transform: translate(0, 0);
     }
   }
+}
+
+/* Navigation fixes for button clickability */
+.ivo-nav .ivo-container {
+  position: relative;
+  z-index: 55;
+}
+
+.ivo-nav .launch-button {
+  position: relative;
+  z-index: 60;
+  margin-left: auto;
 }

@@ -110,7 +110,7 @@ const Index = () => {
   const [selectedToolIndex, setSelectedToolIndex] = useState(-1);
 
   useEffect(() => {
-    // Animation sequence with updated timings
+    // Animation sequence with updated timings for longer durations
     const timer1 = setTimeout(() => setShowDocument(true), 500);
     const timer2 = setTimeout(() => setShowText(true), 1500);
     const timer3 = setTimeout(() => setShowHighlight(true), 3000);
@@ -119,9 +119,9 @@ const Index = () => {
     const timer6 = setTimeout(() => setShowNewText(true), 9000); // 2 seconds after changing
     const timer7 = setTimeout(() => setShowFeatures(true), 11000);
     
-    // Cursor animation
+    // Cursor animation - start after features appear
     const timer8 = setTimeout(() => setShowCursor(true), 12000);
-    const timer9 = setTimeout(() => setCursorClicked(true), 14000);
+    const timer9 = setTimeout(() => setCursorClicked(true), 15000);
     
     return () => {
       clearTimeout(timer1);
@@ -138,8 +138,9 @@ const Index = () => {
 
   useEffect(() => {
     if (showFeatures) {
+      // Sequential bouncing with longer delays for smoother effect
       const bounceTimers = [0, 1, 2].map((index) =>
-        setTimeout(() => setBounceIndex(index), index * 800)
+        setTimeout(() => setBounceIndex(index), index * 1200)
       );
       
       return () => {
@@ -155,11 +156,11 @@ const Index = () => {
         entries.forEach((entry) => {
           if (entry.isIntersecting && entry.target.id === 'tools-section') {
             setShowToolsSection(true);
-            // Start tool selection animations
+            // Start tool selection animations with longer delays
             setTimeout(() => setSelectedToolIndex(0), 500); // Contract Generator - yellow
-            setTimeout(() => setSelectedToolIndex(1), 2500); // Legal Q&A - pink  
-            setTimeout(() => setSelectedToolIndex(2), 4500); // Case Law Finder - green
-            setTimeout(() => setSelectedToolIndex(-1), 6500); // Clear selection
+            setTimeout(() => setSelectedToolIndex(1), 3000); // Legal Q&A - pink  
+            setTimeout(() => setSelectedToolIndex(2), 5500); // Case Law Finder - green
+            setTimeout(() => setSelectedToolIndex(-1), 8000); // Clear selection
           }
         });
       },
