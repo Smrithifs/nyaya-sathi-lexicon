@@ -99,19 +99,28 @@ const Index = () => {
   const [cursorClicked, setCursorClicked] = useState(false);
   const [showToolsSection, setShowToolsSection] = useState(false);
   const [selectedToolIndex, setSelectedToolIndex] = useState(-1);
+  const [featureBoxJump, setFeatureBoxJump] = useState(-1);
   useEffect(() => {
     // Animation sequence with updated timings for longer durations
     const timer1 = setTimeout(() => setShowDocument(true), 500);
     const timer2 = setTimeout(() => setShowText(true), 1500);
     const timer3 = setTimeout(() => setShowHighlight(true), 3000);
-    const timer4 = setTimeout(() => setShowRedUnderline(true), 5000); // 2 seconds after highlight
-    const timer5 = setTimeout(() => setShowChanging(true), 7000); // 2 seconds after red underline
-    const timer6 = setTimeout(() => setShowNewText(true), 9000); // 2 seconds after changing
+    const timer4 = setTimeout(() => setShowRedUnderline(true), 5000);
+    const timer5 = setTimeout(() => setShowChanging(true), 7000);
+    const timer6 = setTimeout(() => setShowNewText(true), 9000);
     const timer7 = setTimeout(() => setShowFeatures(true), 11000);
 
     // Cursor animation - start after features appear
     const timer8 = setTimeout(() => setShowCursor(true), 12000);
     const timer9 = setTimeout(() => setCursorClicked(true), 15000);
+    
+    // Hide cursor and start feature box jumping after click
+    const timer10 = setTimeout(() => setShowCursor(false), 16000);
+    const timer11 = setTimeout(() => setFeatureBoxJump(0), 16500); // First box jumps
+    const timer12 = setTimeout(() => setFeatureBoxJump(1), 17500); // Second box jumps
+    const timer13 = setTimeout(() => setFeatureBoxJump(2), 18500); // Third box jumps
+    const timer14 = setTimeout(() => setFeatureBoxJump(-1), 20000); // Reset jumping
+
     return () => {
       clearTimeout(timer1);
       clearTimeout(timer2);
@@ -122,6 +131,11 @@ const Index = () => {
       clearTimeout(timer7);
       clearTimeout(timer8);
       clearTimeout(timer9);
+      clearTimeout(timer10);
+      clearTimeout(timer11);
+      clearTimeout(timer12);
+      clearTimeout(timer13);
+      clearTimeout(timer14);
     };
   }, []);
   useEffect(() => {
@@ -312,7 +326,7 @@ const Index = () => {
 
           {/* Ivo.ai Style Feature Highlights with Animation */}
           <div className={`grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto mt-20 transition-all duration-1000 ${showFeatures ? 'opacity-100' : 'opacity-0'}`}>
-            <div className={`text-center transition-all duration-500 ${bounceIndex >= 0 ? 'ivo-soft-bounce' : ''}`}>
+            <div className={`text-center transition-all duration-500 ${featureBoxJump === 0 ? 'feature-box-jump' : ''}`}>
               <div className="ivo-icon mx-auto">
                 <Shield className="w-8 h-8 text-white" />
               </div>
@@ -321,7 +335,7 @@ const Index = () => {
             }}>Secure & Reliable</h3>
               <p className="ivo-text-small">Enterprise-grade security for your legal documents</p>
             </div>
-            <div className={`text-center transition-all duration-500 delay-500 ${bounceIndex >= 1 ? 'ivo-soft-bounce' : ''}`}>
+            <div className={`text-center transition-all duration-500 delay-500 ${featureBoxJump === 1 ? 'feature-box-jump' : ''}`}>
               <div className="ivo-icon mx-auto">
                 <Zap className="w-8 h-8 text-white" />
               </div>
@@ -330,7 +344,7 @@ const Index = () => {
             }}>Lightning Fast</h3>
               <p className="ivo-text-small">Generate documents and research in seconds</p>
             </div>
-            <div className={`text-center transition-all duration-500 delay-1000 ${bounceIndex >= 2 ? 'ivo-soft-bounce' : ''}`}>
+            <div className={`text-center transition-all duration-500 delay-1000 ${featureBoxJump === 2 ? 'feature-box-jump' : ''}`}>
               <div className="ivo-icon mx-auto">
                 <Users className="w-8 h-8 text-white" />
               </div>
@@ -470,4 +484,5 @@ const Index = () => {
       </footer>
     </div>;
 };
+
 export default Index;
