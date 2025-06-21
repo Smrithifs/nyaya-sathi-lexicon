@@ -1,3 +1,4 @@
+
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 @tailwind base;
 @tailwind components;
@@ -466,7 +467,6 @@
   display: flex;
   justify-content: center;
   padding: 2rem 1rem;
-  background: #e5e5e5;
   min-height: 100vh;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
@@ -579,26 +579,29 @@
 }
 
 .document-header-info {
-  text-align: center;
+  text-align: left;
   margin-bottom: 40px;
   padding: 16px;
-  background: linear-gradient(135deg, #4a90e2, #357abd);
-  color: white;
+  background: #fff5e6;
+  border-left: 4px solid #ff9500;
   border-radius: 4px;
   font-family: 'Segoe UI', sans-serif;
 }
 
 .case-title {
-  font-size: 18px;
-  font-weight: 600;
-  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+  color: #2c3e50;
   letter-spacing: 0.5px;
+  text-transform: uppercase;
 }
 
 .case-citation {
-  font-size: 14px;
-  margin: 4px 0 0 0;
-  opacity: 0.9;
+  font-size: 12px;
+  margin: 0;
+  color: #7f8c8d;
+  font-weight: 500;
 }
 
 .section-title {
