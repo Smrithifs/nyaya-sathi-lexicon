@@ -8,7 +8,8 @@ import { marked } from "marked";
 import { useGeminiKey } from "@/hooks/useGeminiKey";
 import { callGeminiAPI } from "@/utils/geminiApi";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Upload } from "lucide-react";
+import DocumentUploader from "@/components/legal/DocumentUploader";
 
 const languages = [
   { label: "English", code: "en" },
@@ -22,8 +23,18 @@ const Summarizer = () => {
   const [output, setOutput] = useState<string | null>(null);
   const [lang, setLang] = useState("en");
   const [loading, setLoading] = useState(false);
+  const [showUploader, setShowUploader] = useState(false);
   const { toast } = useToast();
   const { data: geminiKey } = useGeminiKey();
+
+  const handleDocumentUploaded = (extractedText: string) => {
+    setInput(extractedText);
+    setShowUploader(false);
+    toast({
+      title: "Document Uploaded",
+      description: "Text has been extracted and added for summarization."
+    });
+  };
 
   async function handleSummarize(e: React.FormEvent) {
     e.preventDefault();
@@ -80,7 +91,21 @@ ${input}`;
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSummarize} className="space-y-6">
+            <div className="flex justify-between items-center">
+              <label htmlFor="document-input" className="text-sm font-medium">Legal Document Text</label>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setShowUploader(true)}
+              >
+                <Upload className="w-4 h-4 mr-2" />
+                Upload Document
+              </Button>
+            </div>
+            
             <Textarea
+              id="document-input"
               className="w-full min-h-[150px] rounded-2xl border-2"
               style={{ borderColor: 'var(--ivo-gray-200)' }}
               placeholder="Paste contract, policy, or other legal text here..."
@@ -89,6 +114,7 @@ ${input}`;
               required
               disabled={loading}
             />
+            
             <div className="flex items-center gap-6">
               <label htmlFor="lang" className="font-semibold" style={{ color: 'var(--ivo-primary)' }}>Output Language:</label>
               <select
@@ -108,6 +134,16 @@ ${input}`;
               </Button>
             </div>
           </form>
+          
+          {showUploader && (
+            <div className="mt-6">
+              <DocumentUploader
+                onDocumentProcessed={handleDocumentUploaded}
+                onClose={() => setShowUploader(false)}
+              />
+            </div>
+          )}
+          
           {output && (
             <div className="mt-8 space-y-6 border-t pt-8 prose prose-lg max-w-none break-words" style={{ borderColor: 'var(--ivo-gray-200)' }}>
               <div dangerouslySetInnerHTML={{ __html: marked(output) }} />

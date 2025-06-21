@@ -15,6 +15,7 @@ import CaseLawFinder from "./pages/CaseLawFinder";
 import SectionExplainer from "./pages/SectionExplainer";
 import BareActNavigator from "./pages/BareActNavigator";
 import LegalDraftTemplates from "./pages/LegalDraftTemplates";
+import LegalDraftGenerator from "./pages/LegalDraftGenerator";
 import VoiceDictation from "./pages/VoiceDictation";
 import MultiLanguageSupport from "./pages/MultiLanguageSupport";
 import CitationChecker from "./pages/CitationChecker";
@@ -40,6 +41,7 @@ const App = () => (
           <Route path="/section-explainer" element={<SectionExplainer />} />
           <Route path="/bare-act-navigator" element={<BareActNavigator />} />
           <Route path="/legal-draft-templates" element={<LegalDraftTemplates />} />
+          <Route path="/legal-draft-generator" element={<LegalDraftGenerator />} />
           <Route path="/voice-dictation" element={<VoiceDictation />} />
           <Route path="/multi-language-support" element={<MultiLanguageSupport />} />
           <Route path="/citation-checker" element={<CitationChecker />} />
