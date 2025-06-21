@@ -1,4 +1,3 @@
-
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 @tailwind base;
 @tailwind components;
@@ -459,5 +458,246 @@
 @media (min-width: 1025px) {
   .ivo-grid-features {
     @apply grid-cols-3;
+  }
+}
+
+/* Word Document Styling */
+.legal-doc-container {
+  display: flex;
+  justify-content: center;
+  padding: 2rem 1rem;
+  background: #e5e5e5;
+  min-height: 100vh;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.word-interface {
+  background: white;
+  max-width: 1000px;
+  width: 100%;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  border-radius: 0;
+  overflow: hidden;
+}
+
+.word-header {
+  background: #2b579a;
+  color: white;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.word-header .doc-icon {
+  font-size: 16px;
+}
+
+.word-toolbar {
+  background: #f3f2f1;
+  border-bottom: 1px solid #d1d1d1;
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 12px;
+  color: #323130;
+}
+
+.toolbar-section {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 8px;
+  border-right: 1px solid #d1d1d1;
+}
+
+.toolbar-section:last-child {
+  border-right: none;
+}
+
+.toolbar-btn {
+  padding: 4px 8px;
+  border: none;
+  background: transparent;
+  border-radius: 2px;
+  cursor: pointer;
+  font-size: 11px;
+  color: #323130;
+}
+
+.toolbar-btn:hover {
+  background: #e1dfdd;
+}
+
+.font-dropdown {
+  padding: 2px 8px;
+  border: 1px solid #d1d1d1;
+  background: white;
+  font-size: 11px;
+  border-radius: 2px;
+}
+
+.word-document {
+  background: #fafafa;
+  padding: 40px;
+  min-height: 600px;
+}
+
+.document-page {
+  background: white;
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 96px 72px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  font-family: 'Times New Roman', Times, serif;
+  line-height: 1.5;
+  color: #000;
+  position: relative;
+}
+
+.document-page::before {
+  content: '';
+  position: absolute;
+  top: 20px;
+  left: 72px;
+  right: 72px;
+  height: 1px;
+  background: #e5e5e5;
+}
+
+.document-page::after {
+  content: 'Page 12 of 24';
+  position: absolute;
+  bottom: 30px;
+  right: 72px;
+  font-size: 10px;
+  color: #666;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.document-header-info {
+  text-align: center;
+  margin-bottom: 40px;
+  padding: 16px;
+  background: linear-gradient(135deg, #4a90e2, #357abd);
+  color: white;
+  border-radius: 4px;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.case-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+  letter-spacing: 0.5px;
+}
+
+.case-citation {
+  font-size: 14px;
+  margin: 4px 0 0 0;
+  opacity: 0.9;
+}
+
+.section-title {
+  font-size: 16px;
+  font-weight: bold;
+  color: #1a1a1a;
+  margin: 32px 0 16px 0;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border-bottom: 2px solid #333;
+  padding-bottom: 4px;
+}
+
+.subsection {
+  margin: 16px 0;
+  text-align: justify;
+}
+
+.subsection-number {
+  font-weight: bold;
+  display: inline;
+  margin-right: 8px;
+}
+
+.subsection-text {
+  display: inline;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.document-footer {
+  position: absolute;
+  bottom: 30px;
+  left: 72px;
+  font-size: 10px;
+  color: #666;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.ruler {
+  background: #f8f8f8;
+  height: 20px;
+  border-bottom: 1px solid #d1d1d1;
+  position: relative;
+}
+
+.ruler::before {
+  content: '';
+  position: absolute;
+  left: 72px;
+  right: 72px;
+  top: 50%;
+  height: 1px;
+  background: repeating-linear-gradient(
+    to right,
+    #ccc 0px,
+    #ccc 1px,
+    transparent 1px,
+    transparent 10px
+  );
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .legal-doc-container {
+    padding: 1rem 0.5rem;
+  }
+  
+  .word-document {
+    padding: 20px;
+  }
+  
+  .document-page {
+    padding: 48px 36px;
+  }
+  
+  .toolbar-section {
+    display: none;
+  }
+  
+  .toolbar-section:first-child {
+    display: flex;
+  }
+}
+
+/* Print-like styling */
+@media print {
+  .word-header,
+  .word-toolbar,
+  .ruler {
+    display: none;
+  }
+  
+  .legal-doc-container {
+    background: white;
+  }
+  
+  .document-page {
+    box-shadow: none;
+    margin: 0;
   }
 }

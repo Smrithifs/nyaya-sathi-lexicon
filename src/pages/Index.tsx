@@ -144,40 +144,72 @@ const Index = () => {
           
           {/* New Two-Column Layout */}
           <div className="content-grid grid grid-cols-1 lg:grid-cols-5 gap-12 max-w-7xl mx-auto items-center">
-            {/* Left Column - Document Interactive Component */}
+            {/* Left Column - Word Document Interactive Component */}
             <div className="lg:col-span-3 ivo-scale-in">
-              <div className="document-viewer bg-white rounded-xl shadow-lg overflow-hidden max-w-2xl mx-auto">
-                <div style={{
-                background: 'var(--ivo-secondary)',
-                color: 'white',
-                padding: '16px 20px'
-              }} className="document-header bg-yellow-50">
-                  <div className="flex items-center gap-3">
-                    <span className="text-2xl"></span>
-                    <span className="font-semibold text-lg">Mr. Mehra v. State, (2024) 3 SCC 512 (SC)
-
-                  </span>
+              <div className="legal-doc-container">
+                <div className="word-interface">
+                  {/* Word Header */}
+                  <div className="word-header">
+                    <span className="doc-icon">📄</span>
+                    <span>Document - Word</span>
                   </div>
-                </div>
-                <div className="document-content p-6 space-y-4 text-left bg-slate-50">
-                  <div className="text-lg font-semibold" style={{
-                  color: 'var(--ivo-primary)'
-                }}>
-                    5. TERM AND TERMINATION
+                  
+                  {/* Word Toolbar */}
+                  <div className="word-toolbar">
+                    <div className="toolbar-section">
+                      <select className="font-dropdown">
+                        <option>Aptos (Body)</option>
+                        <option>Calibri</option>
+                        <option>Times New Roman</option>
+                      </select>
+                      <select className="font-dropdown" style={{width: '50px'}}>
+                        <option>12</option>
+                        <option>11</option>
+                        <option>14</option>
+                      </select>
+                    </div>
+                    <div className="toolbar-section">
+                      <button className="toolbar-btn"><strong>B</strong></button>
+                      <button className="toolbar-btn"><em>I</em></button>
+                      <button className="toolbar-btn"><u>U</u></button>
+                    </div>
+                    <div className="toolbar-section">
+                      <button className="toolbar-btn">≡</button>
+                      <button className="toolbar-btn">≣</button>
+                      <button className="toolbar-btn">≡</button>
+                    </div>
                   </div>
-                  <p className="text-gray-700 leading-relaxed">
-                    <strong>5.1</strong> Subject to earlier termination as provided below, this Agreement is for the Initial Service Term as specified in the Order Form, and shall be automatically renewed for additional periods of the same duration as the Initial Service Term.
-                  </p>
-                  <p className="text-gray-700 leading-relaxed">
-                    <strong>5.2</strong> Either party may terminate this Agreement without cause by giving the other party at least thirty (30) days prior written notice of termination.
-                  </p>
-                  <p className="text-gray-700 leading-relaxed">
-                    <strong>5.3</strong> Either party may terminate this Agreement immediately upon written notice if the other party materially breaches this Agreement and fails to cure such breach within fifteen (15) days after receiving written notice.
-                  </p>
-                  <div className="mt-6 pt-4 border-t border-gray-200">
-                    <div className="flex items-center justify-between text-sm text-gray-500">
-                      <span>Last updated: June 2025</span>
-                      <span>Page 12 of 24</span>
+                  
+                  {/* Ruler */}
+                  <div className="ruler"></div>
+                  
+                  {/* Document Content */}
+                  <div className="word-document">
+                    <div className="document-page">
+                      <div className="document-header-info">
+                        <h3 className="case-title">Mr. Mehra v. State, (2024) 3 SCC 512 (SC)</h3>
+                      </div>
+                      
+                      <h4 className="section-title">5. TERM AND TERMINATION</h4>
+                      
+                      <div className="subsection">
+                        <span className="subsection-number">5.1</span>
+                        <span className="subsection-text">Subject to earlier termination as provided below, this Agreement is for the Initial Service Term as specified in the Order Form, and shall be automatically renewed for additional periods of the same duration as the Initial Service Term.</span>
+                      </div>
+                      
+                      <div className="subsection">
+                        <span className="subsection-number">5.2</span>
+                        <span className="subsection-text">Either party may terminate this Agreement without cause by giving the other party at least thirty (30) days prior written notice of termination.</span>
+                      </div>
+                      
+                      <div className="subsection">
+                        <span className="subsection-number">5.3</span>
+                        <span className="subsection-text">Either party may terminate this Agreement immediately upon written notice if the other party materially breaches this Agreement and fails to cure such breach within fifteen (15) days after receiving written notice.</span>
+                      </div>
+                      
+                      <div className="document-footer">
+                        Last updated: June 2025
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -367,4 +399,5 @@ const Index = () => {
       </footer>
     </div>;
 };
+
 export default Index;
