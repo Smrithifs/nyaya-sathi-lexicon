@@ -1,4 +1,3 @@
-
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 @tailwind base;
 @tailwind components;
@@ -702,5 +701,94 @@
   .document-page {
     box-shadow: none;
     margin: 0;
+  }
+}
+
+/* Feature Selection Animations */
+.feature-selected-yellow {
+  background: rgba(255, 255, 0, 0.1) !important;
+  border-radius: 20px;
+  padding: 20px;
+  transition: all 0.5s ease-in-out;
+  box-shadow: 0 0 20px rgba(255, 255, 0, 0.3);
+}
+
+.feature-selected-pink {
+  background: rgba(255, 192, 203, 0.1) !important;
+  border-radius: 20px;
+  padding: 20px;
+  transition: all 0.5s ease-in-out;
+  box-shadow: 0 0 20px rgba(255, 192, 203, 0.3);
+}
+
+.feature-selected-green {
+  background: rgba(144, 238, 144, 0.1) !important;
+  border-radius: 20px;
+  padding: 20px;
+  transition: all 0.5s ease-in-out;
+  box-shadow: 0 0 20px rgba(144, 238, 144, 0.3);
+}
+
+/* Animated Cursor */
+.animated-cursor {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+  animation: moveCursor 2s ease-in-out forwards;
+  pointer-events: none;
+}
+
+.cursor-icon {
+  font-size: 24px;
+  filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+.cursor-clicked {
+  animation: clickAnimation 0.3s ease-in-out;
+}
+
+/* Launch button animation */
+.launch-button.button-clicked {
+  background: #000 !important;
+  transform: scale(0.95);
+  transition: all 0.3s ease;
+}
+
+@keyframes moveCursor {
+  0% {
+    top: 50%;
+    right: 50%;
+    transform: translate(50%, -50%);
+  }
+  100% {
+    top: 20px;
+    right: 320px;
+    transform: translate(0, 0);
+  }
+}
+
+@keyframes clickAnimation {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(0.8);
+  }
+}
+
+/* Responsive adjustments for cursor */
+@media (max-width: 768px) {
+  @keyframes moveCursor {
+    0% {
+      top: 50%;
+      right: 50%;
+      transform: translate(50%, -50%);
+    }
+    100% {
+      top: 20px;
+      right: 20px;
+      transform: translate(0, 0);
+    }
   }
 }

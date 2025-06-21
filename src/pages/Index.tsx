@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -98,18 +99,27 @@ const Index = () => {
   const [showText, setShowText] = useState(false);
   const [showHighlight, setShowHighlight] = useState(false);
   const [showRedUnderline, setShowRedUnderline] = useState(false);
+  const [showChanging, setShowChanging] = useState(false);
   const [showNewText, setShowNewText] = useState(false);
   const [showFeatures, setShowFeatures] = useState(false);
   const [bounceIndex, setBounceIndex] = useState(-1);
+  const [selectedFeatureIndex, setSelectedFeatureIndex] = useState(-1);
+  const [showCursor, setShowCursor] = useState(false);
+  const [cursorClicked, setCursorClicked] = useState(false);
 
   useEffect(() => {
-    // Animation sequence
+    // Animation sequence with updated timings
     const timer1 = setTimeout(() => setShowDocument(true), 500);
     const timer2 = setTimeout(() => setShowText(true), 1500);
     const timer3 = setTimeout(() => setShowHighlight(true), 3000);
-    const timer4 = setTimeout(() => setShowRedUnderline(true), 4000);
-    const timer5 = setTimeout(() => setShowNewText(true), 5000);
-    const timer6 = setTimeout(() => setShowFeatures(true), 6000);
+    const timer4 = setTimeout(() => setShowRedUnderline(true), 5000); // 2 seconds after highlight
+    const timer5 = setTimeout(() => setShowChanging(true), 7000); // 2 seconds after red underline
+    const timer6 = setTimeout(() => setShowNewText(true), 9000); // 2 seconds after changing
+    const timer7 = setTimeout(() => setShowFeatures(true), 11000);
+    
+    // Cursor animation
+    const timer8 = setTimeout(() => setShowCursor(true), 12000);
+    const timer9 = setTimeout(() => setCursorClicked(true), 14000);
     
     return () => {
       clearTimeout(timer1);
@@ -118,6 +128,9 @@ const Index = () => {
       clearTimeout(timer4);
       clearTimeout(timer5);
       clearTimeout(timer6);
+      clearTimeout(timer7);
+      clearTimeout(timer8);
+      clearTimeout(timer9);
     };
   }, []);
 
@@ -126,7 +139,19 @@ const Index = () => {
       const bounceTimers = [0, 1, 2].map((index) =>
         setTimeout(() => setBounceIndex(index), index * 500)
       );
-      return () => bounceTimers.forEach(clearTimeout);
+      
+      // Feature selection animations
+      const selectionTimers = [
+        setTimeout(() => setSelectedFeatureIndex(0), 500), // Contract Generator - light yellow
+        setTimeout(() => setSelectedFeatureIndex(1), 2500), // Legal Q&A - light pink  
+        setTimeout(() => setSelectedFeatureIndex(2), 4500), // Case Law Finder - light green
+        setTimeout(() => setSelectedFeatureIndex(-1), 6500), // Clear selection
+      ];
+      
+      return () => {
+        bounceTimers.forEach(clearTimeout);
+        selectionTimers.forEach(clearTimeout);
+      };
     }
   }, [showFeatures]);
 
@@ -147,6 +172,13 @@ const Index = () => {
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--ivo-background)' }}>
+      {/* Animated Cursor */}
+      {showCursor && (
+        <div className={`animated-cursor ${cursorClicked ? 'cursor-clicked' : ''}`}>
+          <div className="cursor-icon">👆</div>
+        </div>
+      )}
+
       {/* Ivo.ai Style Navigation */}
       <nav className="ivo-nav">
         <div className="ivo-container">
@@ -167,7 +199,10 @@ const Index = () => {
               <a href="#contact" className="ivo-nav-link">Contact</a>
             </div>
 
-            <Button onClick={scrollToTools} className="ivo-btn-primary">
+            <Button 
+              onClick={scrollToTools} 
+              className={`ivo-btn-primary launch-button ${cursorClicked ? 'button-clicked' : ''}`}
+            >
               Launch LegalOps
             </Button>
           </div>
@@ -241,13 +276,15 @@ const Index = () => {
                       <div className={`subsection transition-all duration-1000 ${
                         showNewText 
                           ? 'bg-white' 
-                          : showHighlight 
-                            ? 'bg-yellow-100' 
-                            : 'bg-white'
+                          : showChanging
+                            ? 'bg-blue-50'
+                            : showHighlight 
+                              ? 'bg-yellow-100' 
+                              : 'bg-white'
                       }`}>
                         <span className="subsection-number">5.2</span>
                         <span className={`subsection-text font-normal text-gray-800 transition-all duration-500 ${
-                          showRedUnderline && !showNewText ? 'border-b-2 border-red-500' : ''
+                          showRedUnderline && !showChanging ? 'border-b-2 border-red-500' : ''
                         }`}>
                           {showNewText 
                             ? "Either party may terminate this Agreement without cause, by providing the other party with no less than thirty (30) days' prior written notice of termination."
@@ -290,21 +327,21 @@ const Index = () => {
 
           {/* Ivo.ai Style Feature Highlights with Animation */}
           <div className={`grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto mt-20 transition-all duration-1000 ${showFeatures ? 'opacity-100' : 'opacity-0'}`}>
-            <div className={`text-center transition-all duration-500 ${bounceIndex >= 0 ? 'animate-bounce' : ''}`}>
+            <div className={`text-center transition-all duration-500 ${bounceIndex >= 0 ? 'animate-bounce' : ''} ${selectedFeatureIndex === 0 ? 'feature-selected-yellow' : ''}`}>
               <div className="ivo-icon mx-auto">
                 <Shield className="w-8 h-8 text-white" />
               </div>
               <h3 className="text-xl font-semibold mb-2" style={{ color: 'var(--ivo-primary)' }}>Secure & Reliable</h3>
               <p className="ivo-text-small">Enterprise-grade security for your legal documents</p>
             </div>
-            <div className={`text-center transition-all duration-500 delay-500 ${bounceIndex >= 1 ? 'animate-bounce' : ''}`}>
+            <div className={`text-center transition-all duration-500 delay-500 ${bounceIndex >= 1 ? 'animate-bounce' : ''} ${selectedFeatureIndex === 1 ? 'feature-selected-pink' : ''}`}>
               <div className="ivo-icon mx-auto">
                 <Zap className="w-8 h-8 text-white" />
               </div>
               <h3 className="text-xl font-semibold mb-2" style={{ color: 'var(--ivo-primary)' }}>Lightning Fast</h3>
               <p className="ivo-text-small">Generate documents and research in seconds</p>
             </div>
-            <div className={`text-center transition-all duration-500 delay-1000 ${bounceIndex >= 2 ? 'animate-bounce' : ''}`}>
+            <div className={`text-center transition-all duration-500 delay-1000 ${bounceIndex >= 2 ? 'animate-bounce' : ''} ${selectedFeatureIndex === 2 ? 'feature-selected-green' : ''}`}>
               <div className="ivo-icon mx-auto">
                 <Users className="w-8 h-8 text-white" />
               </div>
