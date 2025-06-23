@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -6,7 +7,7 @@ import { useGeminiKey } from "@/hooks/useGeminiKey";
 import { callGeminiAPI } from "@/utils/geminiApi";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
-import { searchSectionInIndianKanoon, getIndianKanoonDocument } from "@/utils/indianKanoonApi";
+import { searchIndianKanoon, getIndianKanoonDocument } from "@/utils/indianKanoonApi";
 
 const SectionExplainer = () => {
   const navigate = useNavigate();
@@ -51,7 +52,7 @@ const SectionExplainer = () => {
       
       try {
         console.log('Searching Indian Kanoon for:', sectionNumber, actName);
-        const sectionResults = await searchSectionInIndianKanoon(sectionNumber, actName);
+        const sectionResults = await searchIndianKanoon(`Section ${sectionNumber} ${actName}`);
         console.log('Indian Kanoon search results:', sectionResults);
         
         if (sectionResults && sectionResults.length > 0) {
@@ -195,7 +196,7 @@ Please provide a comprehensive yet clear explanation suitable for legal practiti
           searchQuery += ` ${courtLevel}`;
         }
         
-        const sectionResults = await searchSectionInIndianKanoon(sectionNumber, actName);
+        const sectionResults = await searchIndianKanoon(searchQuery);
         console.log('Found', sectionResults?.length || 0, 'results from Indian Kanoon');
         
         if (sectionResults && sectionResults.length > 0) {

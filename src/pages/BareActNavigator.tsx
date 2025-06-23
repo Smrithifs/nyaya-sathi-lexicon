@@ -6,7 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 import { useGeminiKey } from "@/hooks/useGeminiKey";
 import { callGeminiAPI } from "@/utils/geminiApi";
-import { searchSectionInIndianKanoon, searchIndianKanoon, getIndianKanoonDocument } from "@/utils/indianKanoonApi";
+import { searchIndianKanoon, getIndianKanoonDocument } from "@/utils/indianKanoonApi";
 
 const BareActNavigator = () => {
   const navigate = useNavigate();
@@ -150,7 +150,7 @@ Structure this as a navigation guide for legal practitioners.`;
       let caseContext = "";
       
       try {
-        const sectionResults = await searchSectionInIndianKanoon(sectionNumber, actName);
+        const sectionResults = await searchIndianKanoon(`Section ${sectionNumber} ${actName}`);
         
         if (sectionResults.length > 0) {
           // Get case law that specifically cites this section

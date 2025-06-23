@@ -7,7 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 import { useGeminiKey } from "@/hooks/useGeminiKey";
 import { callGeminiAPI } from "@/utils/geminiApi";
-import { searchCitationInIndianKanoon } from "@/utils/indianKanoonApi";
+import { searchIndianKanoon } from "@/utils/indianKanoonApi";
 
 const CitationChecker = () => {
   const navigate = useNavigate();
@@ -45,19 +45,20 @@ const CitationChecker = () => {
       let legalContext = "";
       
       try {
-        citationResult = await searchCitationInIndianKanoon(citation);
+        const searchResults = await searchIndianKanoon(citation);
         
-        if (citationResult.found && citationResult.document) {
-          const doc = citationResult.document;
+        if (searchResults && searchResults.length > 0) {
+          const doc = searchResults[0];
+          citationResult = { found: true, document: doc };
           legalContext = `**📚 Citation Found in Indian Kanoon:**
 
 **Case Title:** ${doc.title}
 **Citation:** ${doc.citation}
 **Court:** ${doc.court}
 **Date:** ${doc.date}
-**Judges:** ${doc.judges.join(', ')}
+**Judges:** ${doc.judges ? doc.judges.join(', ') : 'Not specified'}
 
-**Document Content:** ${doc.content.substring(0, 1500)}...`;
+**Document Content:** ${doc.content ? doc.content.substring(0, 1500) : doc.snippet}...`;
         }
       } catch (indianKanoonError) {
         console.warn('Indian Kanoon citation search failed:', indianKanoonError);
