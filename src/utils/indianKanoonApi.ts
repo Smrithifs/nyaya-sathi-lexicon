@@ -1,4 +1,4 @@
-const BACKEND_BASE_URL = 'http://localhost:8000/api/indian-kanoon';
+const INDIAN_KANOON_BASE_URL = 'https://api.indiankanoon.org';
 
 export interface IndianKanoonSearchResult {
   title: string;
@@ -19,46 +19,49 @@ export interface IndianKanoonDocument {
   judges: string[];
 }
 
-// Function to get API key - no longer needed since backend handles it
-const getIndianKanoonApiKey = async (): Promise<string | null> => {
-  // Backend proxy handles the API key authentication
-  return 'proxy-handled';
-};
-
-export const searchIndianKanoon = async (query: string, filters?: {
-  fromdate?: string; // DD-MM-YYYY format
-  todate?: string;   // DD-MM-YYYY format  
-  doctypes?: string; // supremecourt,highcourts,tribunal,etc
-  author?: string;   // judge name
-  bench?: string;    // bench type
-}): Promise<IndianKanoonSearchResult[]> => {
+export const searchIndianKanoon = async (
+  query: string, 
+  filters?: {
+    fromdate?: string; // DD-MM-YYYY format
+    todate?: string;   // DD-MM-YYYY format  
+    doctypes?: string; // supremecourt,highcourts,tribunal,etc
+    author?: string;   // judge name
+    bench?: string;    // bench type
+  }
+): Promise<IndianKanoonSearchResult[]> => {
   try {
-    console.log('Starting Indian Kanoon search via backend proxy for query:', query, 'with filters:', filters);
+    console.log('Starting Indian Kanoon search for query:', query, 'with filters:', filters);
     
-    const response = await fetch(`${BACKEND_BASE_URL}/search`, {
-      method: 'POST',
+    // Build query parameters
+    const params = new URLSearchParams({
+      formInput: query,
+      pagenum: '0'
+    });
+    
+    if (filters) {
+      if (filters.fromdate) params.append('fromdate', filters.fromdate);
+      if (filters.todate) params.append('todate', filters.todate);
+      if (filters.doctypes) params.append('doctypes', filters.doctypes);
+      if (filters.author) params.append('author', filters.author);
+      if (filters.bench) params.append('bench', filters.bench);
+    }
+
+    const response = await fetch(`${INDIAN_KANOON_BASE_URL}/search/?${params.toString()}`, {
+      method: 'GET',
       headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        query,
-        filters: filters || {}
-      })
+        'Accept': 'application/json',
+        'User-Agent': 'Mozilla/5.0 (compatible; LegalResearchBot/1.0)'
+      }
     });
 
-    console.log('Backend proxy response status:', response.status);
-
     if (!response.ok) {
-      const errorData = await response.text();
-      console.error('Backend proxy error response:', response.status, errorData);
-      throw new Error(`Backend proxy error: ${response.status} - ${errorData}`);
+      throw new Error(`Indian Kanoon API error: ${response.status}`);
     }
 
     const data = await response.json();
-    console.log('Indian Kanoon search successful via proxy, found', data.docs?.length || 0, 'results');
+    console.log('Indian Kanoon search successful, found', data.docs?.length || 0, 'results');
     
-    // Transform the results to match our interface
-    const results = (data.docs || []).map((doc: any) => ({
+    return (data.docs || []).map((doc: any) => ({
       title: doc.title || '',
       tid: doc.tid || '',
       url: doc.url || `https://indiankanoon.org/doc/${doc.tid}/`,
@@ -67,27 +70,26 @@ export const searchIndianKanoon = async (query: string, filters?: {
       court: doc.court || '',
       date: doc.date || ''
     }));
-    
-    return results;
   } catch (error) {
-    console.error('Indian Kanoon search error via proxy:', error);
+    console.error('Indian Kanoon search error:', error);
     throw error;
   }
 };
 
 export const getIndianKanoonDocument = async (docId: string): Promise<IndianKanoonDocument | null> => {
   try {
-    console.log('Fetching Indian Kanoon document via backend proxy for docId:', docId);
+    console.log('Fetching Indian Kanoon document for docId:', docId);
     
-    const response = await fetch(`${BACKEND_BASE_URL}/doc/${docId}`, {
-      method: 'POST',
+    const response = await fetch(`${INDIAN_KANOON_BASE_URL}/doc/${docId}/`, {
+      method: 'GET',
       headers: {
-        'Content-Type': 'application/json',
-      },
+        'Accept': 'application/json',
+        'User-Agent': 'Mozilla/5.0 (compatible; LegalResearchBot/1.0)'
+      }
     });
 
     if (!response.ok) {
-      console.error('Backend proxy document API error:', response.status);
+      console.error('Indian Kanoon document API error:', response.status);
       return null;
     }
 
@@ -101,83 +103,89 @@ export const getIndianKanoonDocument = async (docId: string): Promise<IndianKano
       judges: data.judges || []
     };
   } catch (error) {
-    console.error('Indian Kanoon document fetch error via proxy:', error);
+    console.error('Indian Kanoon document fetch error:', error);
     return null;
   }
 };
 
-// NEW: Get full judgment document
+// Get full judgment document
 export const getFullJudgment = async (docId: string): Promise<string | null> => {
   try {
-    console.log('Fetching full judgment via backend proxy for docId:', docId);
+    console.log('Fetching full judgment for docId:', docId);
     
-    const response = await fetch(`${BACKEND_BASE_URL}/doc/${docId}`, {
-      method: 'POST',
+    const response = await fetch(`${INDIAN_KANOON_BASE_URL}/doc/${docId}/`, {
+      method: 'GET',
       headers: {
-        'Content-Type': 'application/json',
-      },
+        'Accept': 'application/json',
+        'User-Agent': 'Mozilla/5.0 (compatible; LegalResearchBot/1.0)'
+      }
     });
 
     if (!response.ok) {
-      console.error('Backend proxy full judgment API error:', response.status);
+      console.error('Indian Kanoon full judgment API error:', response.status);
       return null;
     }
 
     const data = await response.json();
     return data.doc || null;
   } catch (error) {
-    console.error('Full judgment fetch error via proxy:', error);
+    console.error('Full judgment fetch error:', error);
     return null;
   }
 };
 
-// NEW: Get original court copy
+// Get original court copy
 export const getOriginalCourtCopy = async (docId: string): Promise<string | null> => {
   try {
-    console.log('Fetching original court copy via backend proxy for docId:', docId);
+    console.log('Fetching original court copy for docId:', docId);
     
-    const response = await fetch(`${BACKEND_BASE_URL}/origdoc/${docId}`, {
-      method: 'POST',
+    const response = await fetch(`${INDIAN_KANOON_BASE_URL}/origdoc/${docId}/`, {
+      method: 'GET',
       headers: {
-        'Content-Type': 'application/json',
-      },
+        'Accept': 'application/json',
+        'User-Agent': 'Mozilla/5.0 (compatible; LegalResearchBot/1.0)'
+      }
     });
 
     if (!response.ok) {
-      console.error('Backend proxy original court copy API error:', response.status);
+      console.error('Indian Kanoon original court copy API error:', response.status);
       return null;
     }
 
     const data = await response.json();
     return data.doc || data.url || null;
   } catch (error) {
-    console.error('Original court copy fetch error via proxy:', error);
+    console.error('Original court copy fetch error:', error);
     return null;
   }
 };
 
-// NEW: Get document fragment based on query
+// Get document fragment based on query
 export const getDocumentFragment = async (docId: string, query: string): Promise<string | null> => {
   try {
-    console.log('Fetching document fragment via backend proxy for docId:', docId, 'query:', query);
+    console.log('Fetching document fragment for docId:', docId, 'query:', query);
     
-    const response = await fetch(`${BACKEND_BASE_URL}/docfragment/${docId}`, {
-      method: 'POST',
+    const params = new URLSearchParams({
+      formInput: query
+    });
+    
+    const response = await fetch(`${INDIAN_KANOON_BASE_URL}/docfragment/${docId}/?${params.toString()}`, {
+      method: 'GET',
       headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ query })
+        'Accept': 'application/json',
+        'User-Agent': 'Mozilla/5.0 (compatible; LegalResearchBot/1.0)'
+      }
     });
 
     if (!response.ok) {
-      console.error('Backend proxy document fragment API error:', response.status);
+      console.error('Indian Kanoon document fragment API error:', response.status);
       return null;
     }
 
     const data = await response.json();
     return data.fragment || data.doc || null;
   } catch (error) {
-    console.error('Document fragment fetch error via proxy:', error);
+    console.error('Document fragment fetch error:', error);
     return null;
   }
 };
