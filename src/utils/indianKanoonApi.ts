@@ -1,125 +1,81 @@
-const INDIAN_KANOON_BASE_URL = 'https://api.indiankanoon.org';
-const KANOON_API_TOKEN = process.env.NEXT_PUBLIC_KANOON_API_KEY;
+const headers = {
+  'Authorization': `Bearer ${process.env.NEXT_PUBLIC_KANOON_API_KEY}`,
+  'Content-Type': 'application/json'
+};
 
-export interface IndianKanoonSearchResult {
-  title: string;
-  tid: string;
-  url: string;
-  snippet: string;
-  citation?: string;
-  court?: string;
-  date?: string;
-}
+/**
+ * Search Indian Kanoon for judgments by keyword or citation.
+ */
+export const searchIndianKanoon = async (query: string) => {
+  const response = await fetch(`https://api.indiankanoon.ai/search?q=${encodeURIComponent(query)}`, {
+    method: "GET",
+    headers
+  });
 
-export interface IndianKanoonDocument {
-  title: string;
-  content: string;
-  citation: string;
-  court: string;
-  date: string;
-  judges: string[];
-}
-
-// 1. Search cases
-export const searchIndianKanoon = async (query: string, filters?: any): Promise<IndianKanoonSearchResult[]> => {
-  const params = new URLSearchParams({ formInput: query, pagenum: '0' });
-
-  if (filters) {
-    if (filters.fromdate) params.append('fromdate', filters.fromdate);
-    if (filters.todate) params.append('todate', filters.todate);
-    if (filters.doctypes) params.append('doctypes', filters.doctypes);
-    if (filters.author) params.append('author', filters.author);
-    if (filters.bench) params.append('bench', filters.bench);
+  if (!response.ok) {
+    throw new Error("Failed to search Indian Kanoon");
   }
 
-  const res = await fetch(`${INDIAN_KANOON_BASE_URL}/search/?${params.toString()}`, {
-    headers: {
-      'Accept': 'application/json',
-      'Authorization': `Bearer ${KANOON_API_TOKEN}`,
-      'User-Agent': 'Mozilla/5.0 (compatible; LegalResearchBot/1.0)'
-    }
-  });
-
-  if (!res.ok) throw new Error(`Search failed: ${res.status}`);
-  const data = await res.json();
-
-  return (data.docs || []).map((doc: any) => ({
-    title: doc.title || '',
-    tid: doc.tid || '',
-    url: doc.url || `https://indiankanoon.org/doc/${doc.tid}/`,
-    snippet: doc.snippet || '',
-    citation: doc.citation || '',
-    court: doc.court || '',
-    date: doc.date || ''
-  }));
+  return await response.json();
 };
 
-// 2. Get detailed doc
-export const getIndianKanoonDocument = async (docId: string): Promise<IndianKanoonDocument | null> => {
-  const res = await fetch(`${INDIAN_KANOON_BASE_URL}/doc/${docId}/`, {
-    headers: {
-      'Accept': 'application/json',
-      'Authorization': `Bearer ${KANOON_API_TOKEN}`,
-      'User-Agent': 'Mozilla/5.0 (compatible; LegalResearchBot/1.0)'
-    }
+/**
+ * Get the full document content of a judgment by TID.
+ */
+export const getIndianKanoonDocument = async (tid: string) => {
+  const response = await fetch(`https://api.indiankanoon.ai/doc/${tid}`, {
+    method: "GET",
+    headers
   });
 
-  if (!res.ok) return null;
-  const data = await res.json();
+  if (!response.ok) {
+    throw new Error("Failed to fetch document content");
+  }
 
-  return {
-    title: data.title || '',
-    content: data.doc || '',
-    citation: data.citation || '',
-    court: data.court || '',
-    date: data.date || '',
-    judges: data.judges || []
-  };
+  return await response.json();
 };
 
-// 3. Full judgment (alias)
-export const getFullJudgment = async (docId: string): Promise<string | null> => {
-  const res = await fetch(`${INDIAN_KANOON_BASE_URL}/doc/${docId}/`, {
-    headers: {
-      'Accept': 'application/json',
-      'Authorization': `Bearer ${KANOON_API_TOKEN}`,
-      'User-Agent': 'Mozilla/5.0 (compatible; LegalResearchBot/1.0)'
-    }
+/**
+ * Get the full judgment text (/doc) content only.
+ */
+export const getFullJudgment = async (tid: string) => {
+  const response = await fetch(`https://api.indiankanoon.ai/doc/${tid}`, {
+    method: "GET",
+    headers
   });
 
-  if (!res.ok) return null;
-  const data = await res.json();
-  return data.doc || null;
+  if (!response.ok) return null;
+
+  const data = await response.json();
+  return data?.content || null;
 };
 
-// 4. Original court copy
-export const getOriginalCourtCopy = async (docId: string): Promise<string | null> => {
-  const res = await fetch(`${INDIAN_KANOON_BASE_URL}/origdoc/${docId}/`, {
-    headers: {
-      'Accept': 'application/json',
-      'Authorization': `Bearer ${KANOON_API_TOKEN}`,
-      'User-Agent': 'Mozilla/5.0 (compatible; LegalResearchBot/1.0)'
-    }
+/**
+ * Get the original scanned court copy (/origdoc) if available.
+ */
+export const getOriginalCourtCopy = async (tid: string) => {
+  const response = await fetch(`https://api.indiankanoon.ai/origdoc/${tid}`, {
+    method: "GET",
+    headers
   });
 
-  if (!res.ok) return null;
-  const data = await res.json();
-  return data.doc || data.url || null;
+  if (!response.ok) return null;
+
+  const data = await response.json();
+  return data?.content || null;
 };
 
-// 5. Doc fragment
-export const getDocumentFragment = async (docId: string, query: string): Promise<string | null> => {
-  const params = new URLSearchParams({ formInput: query });
-  const res = await fetch(`${INDIAN_KANOON_BASE_URL}/docfragment/${docId}/?${params.toString()}`, {
-    headers: {
-      'Accept': 'application/json',
-      'Authorization': `Bearer ${KANOON_API_TOKEN}`,
-      'User-Agent': 'Mozilla/5.0 (compatible; LegalResearchBot/1.0)'
-    }
+/**
+ * Get document fragments (/docfragment) that match a specific search query.
+ */
+export const getDocumentFragment = async (tid: string, query: string) => {
+  const response = await fetch(`https://api.indiankanoon.ai/docfragment/${tid}?q=${encodeURIComponent(query)}`, {
+    method: "GET",
+    headers
   });
 
-  if (!res.ok) return null;
-  const data = await res.json();
-  return data.fragment || data.doc || null;
+  if (!response.ok) return null;
+
+  const data = await response.json();
+  return data?.content || null;
 };
-xs
