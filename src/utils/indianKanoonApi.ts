@@ -1,4 +1,12 @@
+
 const INDIAN_KANOON_BASE_URL = 'https://api.indiankanoon.org';
+const API_KEY = '7bab131b7fdd98e4d9e7c7c62c1aa7afaaccec40'; // From .env file
+
+const headers = {
+  'Authorization': `Token ${API_KEY}`,
+  'Content-Type': 'application/json',
+  'User-Agent': 'Mozilla/5.0 (compatible; LegalResearchBot/1.0)'
+};
 
 export interface IndianKanoonSearchResult {
   title: string;
@@ -19,6 +27,9 @@ export interface IndianKanoonDocument {
   judges: string[];
 }
 
+/**
+ * Search Indian Kanoon for judgments by keyword or citation.
+ */
 export const searchIndianKanoon = async (
   query: string, 
   filters?: {
@@ -48,13 +59,11 @@ export const searchIndianKanoon = async (
 
     const response = await fetch(`${INDIAN_KANOON_BASE_URL}/search/?${params.toString()}`, {
       method: 'GET',
-      headers: {
-        'Accept': 'application/json',
-        'User-Agent': 'Mozilla/5.0 (compatible; LegalResearchBot/1.0)'
-      }
+      headers
     });
 
     if (!response.ok) {
+      console.error(`Indian Kanoon API error: ${response.status} ${response.statusText}`);
       throw new Error(`Indian Kanoon API error: ${response.status}`);
     }
 
@@ -76,16 +85,16 @@ export const searchIndianKanoon = async (
   }
 };
 
+/**
+ * Get the full document content of a judgment by TID.
+ */
 export const getIndianKanoonDocument = async (docId: string): Promise<IndianKanoonDocument | null> => {
   try {
     console.log('Fetching Indian Kanoon document for docId:', docId);
     
     const response = await fetch(`${INDIAN_KANOON_BASE_URL}/doc/${docId}/`, {
       method: 'GET',
-      headers: {
-        'Accept': 'application/json',
-        'User-Agent': 'Mozilla/5.0 (compatible; LegalResearchBot/1.0)'
-      }
+      headers
     });
 
     if (!response.ok) {
@@ -108,17 +117,16 @@ export const getIndianKanoonDocument = async (docId: string): Promise<IndianKano
   }
 };
 
-// Get full judgment document
+/**
+ * Get the full judgment text (/doc) content only.
+ */
 export const getFullJudgment = async (docId: string): Promise<string | null> => {
   try {
     console.log('Fetching full judgment for docId:', docId);
     
     const response = await fetch(`${INDIAN_KANOON_BASE_URL}/doc/${docId}/`, {
       method: 'GET',
-      headers: {
-        'Accept': 'application/json',
-        'User-Agent': 'Mozilla/5.0 (compatible; LegalResearchBot/1.0)'
-      }
+      headers
     });
 
     if (!response.ok) {
@@ -134,17 +142,16 @@ export const getFullJudgment = async (docId: string): Promise<string | null> => 
   }
 };
 
-// Get original court copy
+/**
+ * Get the original scanned court copy (/origdoc) if available.
+ */
 export const getOriginalCourtCopy = async (docId: string): Promise<string | null> => {
   try {
     console.log('Fetching original court copy for docId:', docId);
     
     const response = await fetch(`${INDIAN_KANOON_BASE_URL}/origdoc/${docId}/`, {
       method: 'GET',
-      headers: {
-        'Accept': 'application/json',
-        'User-Agent': 'Mozilla/5.0 (compatible; LegalResearchBot/1.0)'
-      }
+      headers
     });
 
     if (!response.ok) {
@@ -160,7 +167,9 @@ export const getOriginalCourtCopy = async (docId: string): Promise<string | null
   }
 };
 
-// Get document fragment based on query
+/**
+ * Get document fragments (/docfragment) that match a specific search query.
+ */
 export const getDocumentFragment = async (docId: string, query: string): Promise<string | null> => {
   try {
     console.log('Fetching document fragment for docId:', docId, 'query:', query);
@@ -171,10 +180,7 @@ export const getDocumentFragment = async (docId: string, query: string): Promise
     
     const response = await fetch(`${INDIAN_KANOON_BASE_URL}/docfragment/${docId}/?${params.toString()}`, {
       method: 'GET',
-      headers: {
-        'Accept': 'application/json',
-        'User-Agent': 'Mozilla/5.0 (compatible; LegalResearchBot/1.0)'
-      }
+      headers
     });
 
     if (!response.ok) {
@@ -190,7 +196,8 @@ export const getDocumentFragment = async (docId: string, query: string): Promise
   }
 };
 
-// Search for section-specific content
+// Additional utility functions for backwards compatibility
+
 export const searchSectionInIndianKanoon = async (sectionNumber: string, actName: string): Promise<IndianKanoonSearchResult[]> => {
   try {
     const query = `Section ${sectionNumber} ${actName}`;
@@ -201,49 +208,6 @@ export const searchSectionInIndianKanoon = async (sectionNumber: string, actName
   }
 };
 
-// Legal Q&A - Search for section and get explanation
-export const searchSectionExplanation = async (section: string): Promise<{
-  legalOutput: string;
-  simplifiedOutput: string;
-} | null> => {
-  try {
-    // Search for the section
-    const searchResults = await searchIndianKanoon(section);
-    
-    if (searchResults.length === 0) {
-      return null;
-    }
-
-    // Get the top result's document
-    const topResult = searchResults[0];
-    const document = await getIndianKanoonDocument(topResult.tid);
-    
-    if (!document) {
-      return null;
-    }
-
-    return {
-      legalOutput: document.content,
-      simplifiedOutput: '' // Will be filled by Gemini
-    };
-  } catch (error) {
-    console.error('Section explanation search error:', error);
-    return null;
-  }
-};
-
-// Search cases related to a section
-export const searchSectionCases = async (section: string): Promise<IndianKanoonSearchResult[]> => {
-  try {
-    const query = `Section ${section}`;
-    return await searchIndianKanoon(query);
-  } catch (error) {
-    console.error('Section cases search error:', error);
-    return [];
-  }
-};
-
-// Citation checker
 export const searchCitationInIndianKanoon = async (citation: string): Promise<{
   found: boolean;
   document?: IndianKanoonDocument;
@@ -269,80 +233,5 @@ export const searchCitationInIndianKanoon = async (citation: string): Promise<{
   } catch (error) {
     console.error('Citation search error:', error);
     return { found: false, searchResults: [] };
-  }
-};
-
-// Advanced case search with filters
-export const advancedCaseSearch = async (params: {
-  query?: string;
-  fromYear?: string;
-  toYear?: string;
-  court?: string;
-  judge?: string;
-  bench?: string;
-}): Promise<IndianKanoonSearchResult[]> => {
-  try {
-    const filters: any = {};
-    
-    // Convert years to DD-MM-YYYY format
-    if (params.fromYear) {
-      filters.fromdate = `01-01-${params.fromYear}`;
-    }
-    if (params.toYear) {
-      filters.todate = `31-12-${params.toYear}`;
-    }
-    
-    // Map court to doctypes
-    if (params.court) {
-      if (params.court.toLowerCase().includes('supreme')) {
-        filters.doctypes = 'supremecourt';
-      } else if (params.court.toLowerCase().includes('high')) {
-        filters.doctypes = 'highcourts';
-      }
-    }
-    
-    if (params.judge) {
-      filters.author = params.judge;
-    }
-    
-    if (params.bench) {
-      filters.bench = params.bench;
-    }
-    
-    const query = params.query || '';
-    return await searchIndianKanoon(query, filters);
-  } catch (error) {
-    console.error('Advanced case search error:', error);
-    return [];
-  }
-};
-
-// Bare Act search
-export const searchBareAct = async (actName: string): Promise<{
-  actContent: string;
-  document?: IndianKanoonDocument;
-} | null> => {
-  try {
-    const searchResults = await searchIndianKanoon(actName);
-    
-    if (searchResults.length === 0) {
-      return null;
-    }
-
-    // Get the top result which should be the Act itself
-    const topResult = searchResults[0];
-    const document = await getIndianKanoonDocument(topResult.tid);
-    
-    if (!document) {
-      return null;
-    }
-
-    return {
-      actContent: document.content,
-      document
-    };
-  } catch (error) {
-    console.error('Bare Act search error:', error);
-    return null;
   }
 };
