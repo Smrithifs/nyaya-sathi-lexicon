@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -9,7 +10,6 @@ import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { useGeminiKey } from "@/hooks/useGeminiKey";
 import { callGeminiAPI } from "@/utils/geminiApi";
-import { searchIndianKanoon, getIndianKanoonDocument } from "@/utils/indianKanoonApi";
 
 const QABot = () => {
   const navigate = useNavigate();
@@ -56,44 +56,9 @@ const QABot = () => {
     try {
       console.log('Processing Legal Q&A for:', userMessage);
       
-      // Check if this is a section-related query
-      let legalOutput = "";
-      let indianKanoonResults = [];
+      const systemInstruction = "You are an expert Indian legal assistant. Provide comprehensive legal answers for Indian law, including relevant sections, case law, and practical guidance where applicable.";
       
-      try {
-        // Search Indian Kanoon for relevant legal documents
-        indianKanoonResults = await searchIndianKanoon(userMessage);
-        
-        if (indianKanoonResults.length > 0) {
-          // Get detailed content from top result
-          const topResult = indianKanoonResults[0];
-          const doc = await getIndianKanoonDocument(topResult.tid);
-          
-          if (doc && doc.content) {
-            legalOutput = `📘 **Legal Output (Indian Kanoon):**\n\n**${doc.title}**\n${doc.citation ? `Citation: ${doc.citation}` : ''}\n\n${doc.content.substring(0, 2000)}...`;
-          }
-        }
-      } catch (indianKanoonError) {
-        console.warn('Indian Kanoon API error:', indianKanoonError);
-      }
-
-      // Prepare enhanced prompt for Gemini
-      const systemInstruction = "You are an expert Indian legal assistant. Use the provided legal documents to answer questions accurately. Always cite sources when available.";
-      
-      const enhancedPrompt = legalOutput 
-        ? `${systemInstruction}
-
-**Legal Context from Indian Kanoon:**
-${legalOutput}
-
-**User Question:** ${userMessage}
-
-Please provide:
-1. 📜 **Legal Answer** (based on the provided legal content)
-2. ✨ **Simplified Explanation** (in plain language for non-lawyers)
-
-Use the actual legal content provided above to give accurate answers about Indian law.`
-        : `${systemInstruction}
+      const prompt = `${systemInstruction}
 
 **User Question:** ${userMessage}
 
@@ -103,26 +68,13 @@ Format your response as:
 1. 📜 **Legal Answer**
 2. ✨ **Simplified Explanation**`;
 
-      const result = await callGeminiAPI(enhancedPrompt, geminiKey);
+      const result = await callGeminiAPI(prompt, geminiKey);
 
-      let responseContent = result;
-      
-      // If we have Indian Kanoon results, add them as additional context
-      if (indianKanoonResults.length > 0) {
-        const formattedResults = indianKanoonResults.slice(0, 3).map(result => 
-          `• **${result.title}**${result.citation ? ` (${result.citation})` : ''}\n  ${result.snippet}`
-        ).join('\n\n');
-        
-        responseContent = `${result}\n\n---\n**📚 Additional Legal Sources:**\n\n${formattedResults}`;
-      }
-
-      setMessages(prev => [...prev, { role: "assistant", content: responseContent }]);
+      setMessages(prev => [...prev, { role: "assistant", content: result }]);
       
       toast({
         title: "Response Generated",
-        description: indianKanoonResults.length > 0 
-          ? `Enhanced with ${indianKanoonResults.length} legal sources from Indian Kanoon`
-          : "Generated response using AI analysis"
+        description: "Legal response generated using AI analysis"
       });
     } catch (error) {
       console.error('Error generating response:', error);

@@ -7,7 +7,6 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 import { useGeminiKey } from "@/hooks/useGeminiKey";
 import { callGeminiAPI } from "@/utils/geminiApi";
-import { searchIndianKanoon } from "@/utils/indianKanoonApi";
 
 const CitationChecker = () => {
   const navigate = useNavigate();
@@ -40,73 +39,30 @@ const CitationChecker = () => {
     try {
       console.log('Checking citation:', citation);
       
-      // Search citation in Indian Kanoon
-      let citationResult = null;
-      let legalContext = "";
-      
-      try {
-        const searchResults = await searchIndianKanoon(citation);
-        
-        if (searchResults && searchResults.length > 0) {
-          const doc = searchResults[0];
-          citationResult = { found: true, document: doc };
-          legalContext = `**📚 Citation Found in Indian Kanoon:**
-
-**Case Title:** ${doc.title}
-**Citation:** ${doc.citation}
-**Court:** ${doc.court}
-**Date:** ${doc.date}
-**Judges:** ${doc.judges ? doc.judges.join(', ') : 'Not specified'}
-
-**Document Content:** ${doc.content ? doc.content.substring(0, 1500) : doc.snippet}...`;
-        }
-      } catch (indianKanoonError) {
-        console.warn('Indian Kanoon citation search failed:', indianKanoonError);
-      }
-
       const systemInstruction = "You are a legal citation expert. Analyze and validate legal citations for Indian case law.";
       
-      const enhancedPrompt = citationResult?.found 
-        ? `${systemInstruction}
-
-${legalContext}
+      const prompt = `${systemInstruction}
 
 **Citation to Check:** "${citation}"
 
-Based on the actual case found in Indian Kanoon database, provide:
+Please provide:
 
-🎯 **Citation Status:** Valid ✅
-📚 **Full Legal Document Information:**
-   - Case Name: [from database]
-   - Citation: [from database] 
-   - Court: [from database]
-   - Date: [from database]
-   - Judges: [from database]
-✨ **Analysis:** [Verify if the citation format is correct and provide any formatting suggestions]
-📊 **Legal Significance:** [Brief summary of the case's importance]`
-        : `${systemInstruction}
-
-**Citation to Check:** "${citation}"
-
-Since this citation was not found in the Indian Kanoon database, provide:
-
-🎯 **Citation Status:** Not Found ❌ or Invalid Format
+🎯 **Citation Status:** [Analyze if the format appears valid or invalid]
 📚 **Analysis:** 
    - Check if the citation format follows standard Indian legal citation formats (AIR, SCC, SCR, etc.)
    - Suggest correct format if there are obvious errors
-   - Indicate if this might be a very recent case or from a lower court
+   - Indicate common citation patterns and standards
 ✨ **Formatting Guidance:** 
    - Provide the correct Indian legal citation format
-   - Examples of proper citations: "AIR 1973 SC 1461", "(2018) 10 SCC 1", etc.`;
+   - Examples of proper citations: "AIR 1973 SC 1461", "(2018) 10 SCC 1", etc.
+📊 **General Information:** Brief explanation of citation importance and usage`;
 
-      const result = await callGeminiAPI(enhancedPrompt, geminiKey);
+      const result = await callGeminiAPI(prompt, geminiKey);
 
       setCheckResult(result);
       toast({
         title: "Citation Analysis Complete",
-        description: citationResult?.found 
-          ? "Citation verified using Indian Kanoon database"
-          : "Citation analysis using AI validation"
+        description: "Citation analysis completed using AI validation"
       });
     } catch (error) {
       console.error('Error checking citation:', error);
@@ -132,7 +88,7 @@ Since this citation was not found in the Indian Kanoon database, provide:
       <div className="max-w-4xl mx-auto w-full space-y-6">
         <Card>
           <CardHeader>
-            <CardTitle>Check Case Law Status</CardTitle>
+            <CardTitle>Check Case Law Citation Format</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
@@ -157,7 +113,7 @@ Since this citation was not found in the Indian Kanoon database, provide:
                   Checking Citation...
                 </>
               ) : (
-                "Check Citation Status"
+                "Check Citation Format"
               )}
             </Button>
           </CardContent>
@@ -166,7 +122,7 @@ Since this citation was not found in the Indian Kanoon database, provide:
         {checkResult && (
           <Card>
             <CardHeader>
-              <CardTitle>Citation Status Report</CardTitle>
+              <CardTitle>Citation Analysis Report</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="prose max-w-none">

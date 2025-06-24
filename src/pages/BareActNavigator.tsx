@@ -6,7 +6,6 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 import { useGeminiKey } from "@/hooks/useGeminiKey";
 import { callGeminiAPI } from "@/utils/geminiApi";
-import { searchIndianKanoon, getIndianKanoonDocument } from "@/utils/indianKanoonApi";
 
 const BareActNavigator = () => {
   const navigate = useNavigate();
@@ -46,52 +45,9 @@ const BareActNavigator = () => {
 
     setIsLoading(true);
     try {
-      let actContext = "";
-      
-      try {
-        const actQuery = `${actName} ${topic}`;
-        const actResults = await searchIndianKanoon(actQuery);
-        
-        if (actResults.length > 0) {
-          // Get detailed content from top results
-          const detailedResults = await Promise.all(
-            actResults.slice(0, 2).map(async (result) => {
-              const doc = await getIndianKanoonDocument(result.tid);
-              return {
-                title: result.title,
-                content: doc?.content?.substring(0, 2000) || result.snippet
-              };
-            })
-          );
-          
-          actContext = detailedResults.map(result => 
-            `**${result.title}**\n${result.content}`
-          ).join('\n\n---\n\n');
-        }
-      } catch (indianKanoonError) {
-        console.warn('Indian Kanoon API unavailable, falling back to Gemini only:', indianKanoonError);
-      }
-
       const systemInstruction = "You are a legal navigation assistant. Help users find their way through complex legal acts by providing structured guidance and cross-references.";
       
-      const enhancedPrompt = actContext 
-        ? `${systemInstruction}
-
-**Act Content from Indian Kanoon:**
-${actContext}
-
-Help me navigate the ${actName} for the topic: "${topic}"
-
-Based on the provided act content, please provide:
-1. **Relevant sections and their numbers** (from the content above)
-2. **Chapter/Part organization** related to this topic
-3. **Cross-references** to related provisions
-4. **Key definitions** from the act
-5. **Step-by-step guidance** for finding relevant provisions
-6. **Any amendments** or important notifications
-
-Structure this as a navigation guide for legal practitioners using the actual act content provided.`
-        : `${systemInstruction}
+      const prompt = `${systemInstruction}
 
 Help me navigate the ${actName} for the topic: "${topic}"
       
@@ -105,14 +61,12 @@ Please provide:
 
 Structure this as a navigation guide for legal practitioners.`;
 
-      const result = await callGeminiAPI(enhancedPrompt, geminiKey);
+      const result = await callGeminiAPI(prompt, geminiKey);
 
       setNavigation(result);
       toast({
         title: "Navigation Guide Generated",
-        description: actContext 
-          ? "Guide created using actual act content from Indian Kanoon"
-          : "Navigation guide generated using AI analysis"
+        description: "Navigation guide generated using AI analysis"
       });
     } catch (error) {
       console.error('Error generating navigation:', error);
@@ -147,36 +101,6 @@ Structure this as a navigation guide for legal practitioners.`;
 
     setIsCaseLoading(true);
     try {
-      let caseContext = "";
-      
-      try {
-        const sectionResults = await searchIndianKanoon(`Section ${sectionNumber} ${actName}`);
-        
-        if (sectionResults.length > 0) {
-          // Get case law that specifically cites this section
-          const caseResults = sectionResults.filter(result => 
-            result.title.toLowerCase().includes('v.') || result.title.toLowerCase().includes('vs.')
-          );
-          
-          const detailedCases = await Promise.all(
-            caseResults.slice(0, 3).map(async (result) => {
-              const doc = await getIndianKanoonDocument(result.tid);
-              return {
-                title: result.title,
-                citation: result.citation,
-                content: doc?.content?.substring(0, 1500) || result.snippet
-              };
-            })
-          );
-          
-          caseContext = detailedCases.map(caseItem => 
-            `**${caseItem.title}**\nCitation: ${caseItem.citation}\nContent: ${caseItem.content}\n---`
-          ).join('\n\n');
-        }
-      } catch (indianKanoonError) {
-        console.warn('Indian Kanoon API unavailable, falling back to Gemini only:', indianKanoonError);
-      }
-
       let courtFilter = "";
       if (courtLevel && specificCourt) {
         courtFilter = ` decided by ${specificCourt}`;
@@ -189,23 +113,7 @@ Structure this as a navigation guide for legal practitioners.`;
         yearFilter = ` from the year ${searchYear}`;
       }
 
-      const enhancedPrompt = caseContext 
-        ? `You are a legal research assistant specializing in Indian case law. Use the provided case law to analyze Section ${sectionNumber} of the ${actName}.
-
-**Case Law from Indian Kanoon:**
-${caseContext}
-
-Based on the case law provided above, analyze how Section ${sectionNumber} of the ${actName} has been interpreted and applied${courtFilter}${yearFilter}.
-
-Please provide:
-1. **Case names with full citations** (from the provided context)
-2. **How the section was interpreted** in each case
-3. **Key judicial observations** about this section
-4. **Significant precedents established**
-5. **Current legal position** based on these cases
-
-Focus on the specific cases provided that deal with Section ${sectionNumber} of the ${actName}.`
-        : `You are a legal research assistant specializing in Indian case law. Find relevant cases that have cited or interpreted Section ${sectionNumber} of the ${actName}.
+      const prompt = `You are a legal research assistant specializing in Indian case law. Find relevant cases that have cited or interpreted Section ${sectionNumber} of the ${actName}.
 
 Search for Indian case law${courtFilter}${yearFilter} that has cited, interpreted, or applied Section ${sectionNumber} of the ${actName}.
 
@@ -218,14 +126,12 @@ Please provide:
 
 Focus on cases that specifically deal with Section ${sectionNumber} of the ${actName}.`;
 
-      const result = await callGeminiAPI(enhancedPrompt, geminiKey);
+      const result = await callGeminiAPI(prompt, geminiKey);
 
       setCaseResults(result);
       toast({
         title: "Case Search Complete",
-        description: caseContext 
-          ? "Cases analyzed using Indian Kanoon database"
-          : "Case analysis generated using AI research"
+        description: "Case analysis generated using AI research"
       });
     } catch (error) {
       console.error('Error searching cases:', error);
@@ -239,6 +145,7 @@ Focus on cases that specifically deal with Section ${sectionNumber} of the ${act
     }
   };
 
+  
   return (
     <div className="p-6 min-h-screen bg-white flex flex-col">
       <div className="flex items-center gap-4 mb-8">

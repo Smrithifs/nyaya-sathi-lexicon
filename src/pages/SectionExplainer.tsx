@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -7,7 +6,6 @@ import { useGeminiKey } from "@/hooks/useGeminiKey";
 import { callGeminiAPI } from "@/utils/geminiApi";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
-import { searchIndianKanoon, getIndianKanoonDocument } from "@/utils/indianKanoonApi";
 
 const SectionExplainer = () => {
   const navigate = useNavigate();
@@ -46,85 +44,7 @@ const SectionExplainer = () => {
 
     setIsLoading(true);
     try {
-      let sectionContext = "";
-      let relatedCases = [];
-      let usingIndianKanoon = false;
-      
-      try {
-        console.log('Searching Indian Kanoon for:', sectionNumber, actName);
-        const sectionResults = await searchIndianKanoon(`Section ${sectionNumber} ${actName}`);
-        console.log('Indian Kanoon search results:', sectionResults);
-        
-        if (sectionResults && sectionResults.length > 0) {
-          usingIndianKanoon = true;
-          console.log('Processing', sectionResults.length, 'results from Indian Kanoon');
-          
-          // Get detailed content from top results
-          const detailedResults = await Promise.all(
-            sectionResults.slice(0, 3).map(async (result) => {
-              try {
-                const doc = await getIndianKanoonDocument(result.tid);
-                return {
-                  title: result.title,
-                  citation: result.citation,
-                  content: doc?.content?.substring(0, 1500) || result.snippet,
-                  isCase: result.title.toLowerCase().includes('v.') || result.title.toLowerCase().includes('vs.')
-                };
-              } catch (error) {
-                console.error('Error fetching document:', result.tid, error);
-                return {
-                  title: result.title,
-                  citation: result.citation,
-                  content: result.snippet,
-                  isCase: result.title.toLowerCase().includes('v.') || result.title.toLowerCase().includes('vs.')
-                };
-              }
-            })
-          );
-          
-          // Separate section text from case law
-          const bareActResults = detailedResults.filter(r => !r.isCase);
-          relatedCases = detailedResults.filter(r => r.isCase);
-          
-          if (bareActResults.length > 0) {
-            sectionContext = bareActResults.map(result => 
-              `**${result.title}**\n${result.content}`
-            ).join('\n\n---\n\n');
-          }
-          
-          console.log('Found', bareActResults.length, 'bare act results and', relatedCases.length, 'case results');
-        }
-      } catch (indianKanoonError) {
-        console.error('Indian Kanoon API error:', indianKanoonError);
-        toast({
-          title: "Indian Kanoon Unavailable",
-          description: "Using AI analysis only. Indian Kanoon API is temporarily unavailable.",
-          variant: "default",
-        });
-      }
-
-      // Create comprehensive explanation using both sources
-      const enhancedPrompt = usingIndianKanoon && sectionContext 
-        ? `You are an expert legal assistant specializing in Indian law. Use the provided legal text and case law to explain the section comprehensively.
-
-**Section Context from Indian Kanoon:**
-${sectionContext}
-
-**Related Cases:**
-${relatedCases.map(c => `• ${c.title} ${c.citation ? `(${c.citation})` : ''}\n  ${c.content.substring(0, 300)}...`).join('\n\n')}
-
-Based on the above legal sources, please explain Section ${sectionNumber} of the ${actName} in detail:
-
-📘 **ACT & SECTION:** Section ${sectionNumber} of ${actName}
-📜 **LEGAL TEXT:** [Extract exact provision text from the sources above]
-✨ **SIMPLIFIED EXPLANATION:** [Clear, practical explanation]
-📚 **KEY ELEMENTS:** [Essential requirements and conditions]
-⚖️ **PRACTICAL APPLICATION:** [Real-world examples and usage]
-🏛️ **RELATED PROVISIONS:** [Connected sections or acts]
-📊 **LANDMARK JUDGMENTS:** [2-3 important case summaries from the provided context]
-
-Use the legal context provided above to give accurate, source-based explanations.`
-        : `You are an expert legal assistant specializing in Indian law. Provide accurate, detailed explanations of legal sections with practical insights.
+      const prompt = `You are an expert legal assistant specializing in Indian law. Provide accurate, detailed explanations of legal sections with practical insights.
 
 Explain Section ${sectionNumber} of the ${actName} in detail. Structure your response as follows:
 
@@ -139,14 +59,12 @@ Explain Section ${sectionNumber} of the ${actName} in detail. Structure your res
 Please provide a comprehensive yet clear explanation suitable for legal practitioners.`;
 
       console.log('Calling Gemini API with enhanced prompt');
-      const result = await callGeminiAPI(enhancedPrompt, geminiKey);
+      const result = await callGeminiAPI(prompt, geminiKey);
 
       setExplanation(result);
       toast({
         title: "Explanation Generated",
-        description: usingIndianKanoon 
-          ? `Section explained using ${relatedCases.length} related cases from Indian Kanoon`
-          : "Section explanation generated using AI analysis"
+        description: "Section explanation generated using AI analysis"
       });
     } catch (error) {
       console.error('Error generating explanation:', error);
@@ -181,77 +99,6 @@ Please provide a comprehensive yet clear explanation suitable for legal practiti
 
     setIsCaseLoading(true);
     try {
-      // First try to get cases from Indian Kanoon
-      let indianKanoonCases = [];
-      let usingIndianKanoon = false;
-      
-      try {
-        console.log('Searching Indian Kanoon for cases using section:', sectionNumber, actName);
-        let searchQuery = `Section ${sectionNumber} ${actName}`;
-        
-        // Add court filter if specified
-        if (courtLevel && specificCourt) {
-          searchQuery += ` ${specificCourt}`;
-        } else if (courtLevel) {
-          searchQuery += ` ${courtLevel}`;
-        }
-        
-        const sectionResults = await searchIndianKanoon(searchQuery);
-        console.log('Found', sectionResults?.length || 0, 'results from Indian Kanoon');
-        
-        if (sectionResults && sectionResults.length > 0) {
-          usingIndianKanoon = true;
-          // Filter for cases only and apply year filter if specified
-          const caseResults = sectionResults.filter(result => 
-            result.title.toLowerCase().includes('v.') || result.title.toLowerCase().includes('vs.')
-          );
-          
-          // Apply year filter if specified
-          let filteredCases = caseResults;
-          if (searchYear) {
-            filteredCases = caseResults.filter(result => {
-              const year = searchYear.trim();
-              if (year.includes('-')) {
-                const [startYear, endYear] = year.split('-').map(y => parseInt(y.trim()));
-                const resultYear = parseInt(result.date?.substring(0, 4) || '0');
-                return resultYear >= startYear && resultYear <= endYear;
-              } else {
-                return result.date?.includes(year) || result.title.includes(year);
-              }
-            });
-          }
-          
-          // Get detailed content for top cases
-          indianKanoonCases = await Promise.all(
-            filteredCases.slice(0, 5).map(async (result) => {
-              try {
-                const doc = await getIndianKanoonDocument(result.tid);
-                return {
-                  title: result.title,
-                  citation: result.citation,
-                  court: result.court,
-                  date: result.date,
-                  content: doc?.content?.substring(0, 2000) || result.snippet
-                };
-              } catch (error) {
-                console.error('Error fetching case document:', result.tid, error);
-                return {
-                  title: result.title,
-                  citation: result.citation,
-                  court: result.court,
-                  date: result.date,
-                  content: result.snippet
-                };
-              }
-            })
-          );
-          
-          console.log('Processed', indianKanoonCases.length, 'detailed cases');
-        }
-      } catch (indianKanoonError) {
-        console.error('Indian Kanoon case search error:', indianKanoonError);
-      }
-
       let courtFilter = "";
       if (courtLevel && specificCourt) {
         courtFilter = ` decided by ${specificCourt}`;
@@ -264,29 +111,7 @@ Please provide a comprehensive yet clear explanation suitable for legal practiti
         yearFilter = ` from the year ${searchYear}`;
       }
 
-      const prompt = usingIndianKanoon && indianKanoonCases.length > 0
-        ? `You are a legal research assistant specializing in Indian case law. Based on the following actual cases from Indian Kanoon that have cited Section ${sectionNumber} of the ${actName}, provide a comprehensive analysis:
-
-**Cases Found:**
-${indianKanoonCases.map(c => `
-**${c.title}**
-Citation: ${c.citation || 'Not available'}
-Court: ${c.court || 'Not specified'}
-Date: ${c.date || 'Not specified'}
-Content: ${c.content}
-`).join('\n---\n')}
-
-Please analyze these cases and provide:
-
-📊 **CASE SUMMARY:** Brief overview of ${indianKanoonCases.length} cases found
-📜 **SECTION INTERPRETATION:** How Section ${sectionNumber} was interpreted in these cases
-⚖️ **JUDICIAL OBSERVATIONS:** Key observations made by courts about this section
-🏛️ **PRECEDENTS ESTABLISHED:** Significant precedents from these cases
-📈 **CURRENT LEGAL POSITION:** Current state of law based on these judgments
-🔍 **PRACTICAL INSIGHTS:** How this section is applied in practice
-
-Focus on the actual cases provided above that specifically deal with Section ${sectionNumber} of the ${actName}.`
-        : `You are a legal research assistant specializing in Indian case law. Find relevant cases that have cited or interpreted Section ${sectionNumber} of the ${actName}.
+      const prompt = `You are a legal research assistant specializing in Indian case law. Find relevant cases that have cited or interpreted Section ${sectionNumber} of the ${actName}.
 
 Search for Indian case law${courtFilter}${yearFilter} that has cited, interpreted, or applied Section ${sectionNumber} of the ${actName}.
 
@@ -307,9 +132,7 @@ Focus on cases that specifically deal with Section ${sectionNumber} of the ${act
       setCaseResults(result);
       toast({
         title: "Case Search Complete",
-        description: usingIndianKanoon 
-          ? `Found ${indianKanoonCases.length} relevant cases from Indian Kanoon`
-          : "Case analysis generated using AI knowledge"
+        description: "Case analysis generated using AI knowledge"
       });
     } catch (error) {
       console.error('Error searching cases:', error);
