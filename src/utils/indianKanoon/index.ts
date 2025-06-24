@@ -7,5 +7,4 @@ export {
   getOriginalCourtCopy, 
   getDocumentFragment 
 } from './documents';
-export { getApiKey } from './config';
 export type { SearchFilters } from './types';
