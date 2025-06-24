@@ -8,22 +8,55 @@ export const searchIndianKanoon = async (query: string, filters: SearchFilters =
     formInput: query.trim()
   }
   
-  // Add filters if provided
+  // Add filters if provided - using correct Indian Kanoon field names
   if (filters.jurisdiction && filters.jurisdiction !== "All High Courts") {
-    requestBody.doctypes = filters.jurisdiction.toLowerCase().replace(' ', '')
+    // Map jurisdiction to doctypes field
+    const jurisdictionMap: { [key: string]: string } = {
+      "Supreme Court": "supremecourt",
+      "Allahabad High Court": "allahabad",
+      "Andhra Pradesh High Court": "andhrapradesh", 
+      "Bombay High Court": "bombay",
+      "Calcutta High Court": "calcutta",
+      "Delhi High Court": "delhi",
+      "Gujarat High Court": "gujarat",
+      "Karnataka High Court": "karnataka",
+      "Kerala High Court": "kerala",
+      "Madras High Court": "madras",
+      "Madhya Pradesh High Court": "madhyapradesh",
+      "Orissa High Court": "orissa",
+      "Patna High Court": "patna",
+      "Punjab & Haryana High Court": "punjabharyana",
+      "Rajasthan High Court": "rajasthan"
+    }
+    
+    if (jurisdictionMap[filters.jurisdiction]) {
+      requestBody.doctypes = jurisdictionMap[filters.jurisdiction]
+    }
   }
   
+  // Add date filters if provided
   if (filters.yearFrom || filters.yearTo) {
     if (filters.yearFrom) requestBody.fromdate = `${filters.yearFrom}-01-01`
     if (filters.yearTo) requestBody.todate = `${filters.yearTo}-12-31`
   }
   
+  // Add judge filter if provided
   if (filters.judge) {
     requestBody.author = filters.judge
   }
   
+  // Add bench type filter if provided
   if (filters.benchType && filters.benchType !== "All Benches") {
-    requestBody.bench = filters.benchType.toLowerCase()
+    const benchMap: { [key: string]: string } = {
+      "Division Bench": "division",
+      "Constitution Bench": "constitution", 
+      "Full Bench": "full",
+      "Single Judge": "single"
+    }
+    
+    if (benchMap[filters.benchType]) {
+      requestBody.bench = benchMap[filters.benchType]
+    }
   }
   
   console.log('Indian Kanoon search via Supabase proxy:', {

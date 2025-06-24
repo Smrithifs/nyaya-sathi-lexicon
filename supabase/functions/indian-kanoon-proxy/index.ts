@@ -33,6 +33,12 @@ serve(async (req) => {
         url = 'https://api.indiankanoon.org/search/'
         console.log('Making search request to:', url)
         console.log('Request body:', JSON.stringify(params.requestBody))
+        
+        // Ensure we have a valid search query
+        if (!params.requestBody?.formInput || params.requestBody.formInput.trim() === '') {
+          throw new Error('Search query is required')
+        }
+        
         response = await fetch(url, {
           method: 'POST',
           headers,
@@ -97,6 +103,12 @@ serve(async (req) => {
 
     const data = await response.json()
     console.log('Successful response data keys:', Object.keys(data))
+    
+    // Check for API-level errors in the response
+    if (data.errmsg) {
+      console.error('Indian Kanoon API returned error:', data.errmsg)
+      throw new Error(`Indian Kanoon API: ${data.errmsg}`)
+    }
     
     return new Response(
       JSON.stringify(data),
