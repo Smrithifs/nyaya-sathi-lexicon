@@ -5,7 +5,7 @@ const getApiKey = () => {
   const apiKey = import.meta.env.VITE_NEXT_PUBLIC_KANOON_API_KEY || 
                  import.meta.env.NEXT_PUBLIC_KANOON_API_KEY ||
                  process.env.NEXT_PUBLIC_KANOON_API_KEY || 
-                 '7bab131b7fdd98e4d9e7c7c62c1aa7afaaccec40'; // Fallback from .env
+                 '53c9ce4ce9cece18f8f866be2e47eab43f9eeccb'; // Fallback API key
   
   console.log('Indian Kanoon API Key check:', {
     fromViteNext: import.meta.env.VITE_NEXT_PUBLIC_KANOON_API_KEY ? 'found' : 'missing',
@@ -30,33 +30,63 @@ const getHeaders = () => {
   
   console.log('Indian Kanoon headers:', {
     authHeader: `Token ${apiKey.substring(0, 8)}...${apiKey.substring(apiKey.length - 4)}`,
-    hasValidKey: apiKey && apiKey !== 'undefined' && apiKey.length > 10
+    hasValidKey: apiKey && apiKey !== 'undefined' && apiKey.length > 10,
+    contentType: headers['Content-Type']
   });
   
   return headers;
 };
 
-export const searchIndianKanoon = async (query: string) => {
+export const searchIndianKanoon = async (query: string, filters = {}) => {
   const headers = getHeaders();
-  const url = `https://api.indiankanoon.org/search?formInput=${encodeURIComponent(query)}`;
+  const url = 'https://api.indiankanoon.org/search/';
+  
+  // Build the request body according to Indian Kanoon API specs
+  const requestBody = {
+    formInput: query.trim()
+  };
+  
+  // Add filters if provided
+  if (filters.jurisdiction && filters.jurisdiction !== "All High Courts") {
+    requestBody.doctypes = filters.jurisdiction.toLowerCase().replace(' ', '');
+  }
+  
+  if (filters.yearFrom || filters.yearTo) {
+    if (filters.yearFrom) requestBody.fromdate = `${filters.yearFrom}-01-01`;
+    if (filters.yearTo) requestBody.todate = `${filters.yearTo}-12-31`;
+  }
+  
+  if (filters.judge) {
+    requestBody.author = filters.judge;
+  }
+  
+  if (filters.benchType && filters.benchType !== "All Benches") {
+    requestBody.bench = filters.benchType.toLowerCase();
+  }
   
   console.log('Indian Kanoon search request:', {
     url,
+    method: 'POST',
     query,
-    authPreview: headers.Authorization.substring(0, 15) + '...'
+    filters,
+    requestBody,
+    authPreview: headers.Authorization.substring(0, 15) + '...',
+    contentType: headers['Content-Type']
   });
   
   try {
     const response = await fetch(url, {
-      method: "GET",
-      headers
+      method: "POST",
+      headers,
+      body: JSON.stringify(requestBody)
     });
     
     console.log('Indian Kanoon search response:', {
       status: response.status,
       statusText: response.statusText,
       ok: response.ok,
-      headers: Object.fromEntries(response.headers.entries())
+      headers: Object.fromEntries(response.headers.entries()),
+      url: response.url
     });
     
     if (!response.ok) {
@@ -64,7 +94,9 @@ export const searchIndianKanoon = async (query: string) => {
       console.error('Indian Kanoon API error response:', {
         status: response.status,
         statusText: response.statusText,
-        errorBody: errorText
+        errorBody: errorText,
+        requestBody,
+        url
       });
       throw new Error(`Indian Kanoon API error: ${response.status} ${response.statusText} - ${errorText}`);
     }
@@ -74,9 +106,12 @@ export const searchIndianKanoon = async (query: string) => {
       resultCount: Array.isArray(data) ? data.length : 'not array',
       hasResults: data && data.length > 0,
       dataType: typeof data,
+      dataKeys: data ? Object.keys(data) : [],
       firstResultPreview: Array.isArray(data) && data.length > 0 ? {
         title: data[0].title,
-        tid: data[0].tid
+        tid: data[0].tid,
+        court: data[0].court,
+        date: data[0].date
       } : null
     });
     
@@ -86,7 +121,9 @@ export const searchIndianKanoon = async (query: string) => {
       error: error.message,
       stack: error.stack,
       url,
-      query
+      query,
+      filters,
+      requestBody
     });
     throw error;
   }
@@ -94,10 +131,11 @@ export const searchIndianKanoon = async (query: string) => {
 
 export const getIndianKanoonDocument = async (tid: string) => {
   const headers = getHeaders();
-  const url = `https://api.indiankanoon.org/doc/${tid}`;
+  const url = `https://api.indiankanoon.org/doc/${tid}/`;
   
   console.log('Indian Kanoon document request:', { 
     url, 
+    method: 'GET',
     tid,
     authPreview: headers.Authorization.substring(0, 15) + '...'
   });
@@ -111,7 +149,9 @@ export const getIndianKanoonDocument = async (tid: string) => {
     console.log('Indian Kanoon document response:', {
       status: response.status,
       statusText: response.statusText,
-      ok: response.ok
+      ok: response.ok,
+      tid,
+      url: response.url
     });
     
     if (!response.ok) {
@@ -120,7 +160,8 @@ export const getIndianKanoonDocument = async (tid: string) => {
         status: response.status,
         statusText: response.statusText,
         errorBody: errorText,
-        tid
+        tid,
+        url
       });
       throw new Error(`Failed to fetch document: ${response.status} - ${errorText}`);
     }
@@ -130,7 +171,8 @@ export const getIndianKanoonDocument = async (tid: string) => {
       hasContent: !!data.content,
       title: data.title,
       contentLength: data.content ? data.content.length : 0,
-      tid
+      tid,
+      dataKeys: Object.keys(data)
     });
     
     return data;
@@ -147,10 +189,11 @@ export const getIndianKanoonDocument = async (tid: string) => {
 
 export const getFullJudgment = async (tid: string) => {
   const headers = getHeaders();
-  const url = `https://api.indiankanoon.org/doc/${tid}`;
+  const url = `https://api.indiankanoon.org/doc/${tid}/`;
   
   console.log('Indian Kanoon full judgment request:', { 
     url, 
+    method: 'GET',
     tid,
     authPreview: headers.Authorization.substring(0, 15) + '...'
   });
@@ -164,7 +207,8 @@ export const getFullJudgment = async (tid: string) => {
     console.log('Indian Kanoon full judgment response:', {
       status: response.status,
       ok: response.ok,
-      tid
+      tid,
+      url: response.url
     });
     
     if (!response.ok) {
@@ -172,7 +216,8 @@ export const getFullJudgment = async (tid: string) => {
       console.warn('Full judgment fetch failed:', {
         status: response.status,
         errorBody: errorText,
-        tid
+        tid,
+        url
       });
       return null;
     }
@@ -181,7 +226,8 @@ export const getFullJudgment = async (tid: string) => {
     console.log('Indian Kanoon full judgment success:', {
       hasContent: !!data?.content,
       contentLength: data?.content ? data.content.length : 0,
-      tid
+      tid,
+      dataKeys: data ? Object.keys(data) : []
     });
     
     return data?.content || null;
@@ -197,10 +243,11 @@ export const getFullJudgment = async (tid: string) => {
 
 export const getOriginalCourtCopy = async (tid: string) => {
   const headers = getHeaders();
-  const url = `https://api.indiankanoon.org/origdoc/${tid}`;
+  const url = `https://api.indiankanoon.org/origdoc/${tid}/`;
   
   console.log('Indian Kanoon original court copy request:', { 
     url, 
+    method: 'GET',
     tid,
     authPreview: headers.Authorization.substring(0, 15) + '...'
   });
@@ -214,7 +261,8 @@ export const getOriginalCourtCopy = async (tid: string) => {
     console.log('Indian Kanoon original court copy response:', {
       status: response.status,
       ok: response.ok,
-      tid
+      tid,
+      url: response.url
     });
     
     if (!response.ok) {
@@ -222,7 +270,8 @@ export const getOriginalCourtCopy = async (tid: string) => {
       console.warn('Original court copy fetch failed:', {
         status: response.status,
         errorBody: errorText,
-        tid
+        tid,
+        url
       });
       return null;
     }
@@ -231,7 +280,8 @@ export const getOriginalCourtCopy = async (tid: string) => {
     console.log('Indian Kanoon original court copy success:', {
       hasContent: !!data?.content,
       contentLength: data?.content ? data.content.length : 0,
-      tid
+      tid,
+      dataKeys: data ? Object.keys(data) : []
     });
     
     return data?.content || null;
@@ -247,10 +297,11 @@ export const getOriginalCourtCopy = async (tid: string) => {
 
 export const getDocumentFragment = async (tid: string, query: string) => {
   const headers = getHeaders();
-  const url = `https://api.indiankanoon.org/docfragment/${tid}?formInput=${encodeURIComponent(query)}`;
+  const url = `https://api.indiankanoon.org/docfragment/${tid}/?query=${encodeURIComponent(query)}`;
   
   console.log('Indian Kanoon document fragment request:', { 
     url, 
+    method: 'GET',
     tid,
     query,
     authPreview: headers.Authorization.substring(0, 15) + '...'
@@ -266,7 +317,8 @@ export const getDocumentFragment = async (tid: string, query: string) => {
       status: response.status,
       ok: response.ok,
       tid,
-      query
+      query,
+      url: response.url
     });
     
     if (!response.ok) {
@@ -275,7 +327,8 @@ export const getDocumentFragment = async (tid: string, query: string) => {
         status: response.status,
         errorBody: errorText,
         tid,
-        query
+        query,
+        url
       });
       return null;
     }
@@ -285,7 +338,8 @@ export const getDocumentFragment = async (tid: string, query: string) => {
       hasContent: !!data?.content,
       contentLength: data?.content ? data.content.length : 0,
       tid,
-      query
+      query,
+      dataKeys: data ? Object.keys(data) : []
     });
     
     return data?.content || null;
