@@ -1,38 +1,36 @@
 
-// Get API key from environment with proper Vite support
+import { createClient } from '@supabase/supabase-js'
+
+const supabase = createClient(
+  import.meta.env.VITE_SUPABASE_URL,
+  import.meta.env.VITE_SUPABASE_ANON_KEY
+)
+
+export const callIndianKanoonProxy = async (action: string, params: any = {}) => {
+  const { data, error } = await supabase.functions.invoke('indian-kanoon-proxy', {
+    body: { action, ...params }
+  })
+
+  if (error) {
+    console.error('Supabase function error:', error)
+    throw new Error(`Proxy error: ${error.message}`)
+  }
+
+  if (data?.error) {
+    console.error('Indian Kanoon API error:', data.error)
+    throw new Error(data.error)
+  }
+
+  return data
+}
+
+// Legacy function for backward compatibility
 export const getApiKey = () => {
-  // Try multiple possible environment variable sources for Vite
-  const apiKey = import.meta.env.VITE_NEXT_PUBLIC_KANOON_API_KEY || 
-                 import.meta.env.NEXT_PUBLIC_KANOON_API_KEY ||
-                 process.env.NEXT_PUBLIC_KANOON_API_KEY || 
-                 '53c9ce4ce9cece18f8f866be2e47eab43f9eeccb'; // Fallback API key
-  
-  console.log('Indian Kanoon API Key check:', {
-    fromViteNext: import.meta.env.VITE_NEXT_PUBLIC_KANOON_API_KEY ? 'found' : 'missing',
-    fromViteDirect: import.meta.env.NEXT_PUBLIC_KANOON_API_KEY ? 'found' : 'missing',
-    fromProcessEnv: process.env.NEXT_PUBLIC_KANOON_API_KEY ? 'found' : 'missing',
-    usingFallback: !import.meta.env.VITE_NEXT_PUBLIC_KANOON_API_KEY && 
-                   !import.meta.env.NEXT_PUBLIC_KANOON_API_KEY && 
-                   !process.env.NEXT_PUBLIC_KANOON_API_KEY,
-    keyLength: apiKey ? apiKey.length : 0,
-    keyPreview: apiKey ? `${apiKey.substring(0, 8)}...${apiKey.substring(apiKey.length - 4)}` : 'none'
-  });
-  
-  return apiKey;
-};
+  console.log('Using Supabase proxy for Indian Kanoon API')
+  return 'proxy-mode'
+}
 
 export const getHeaders = () => {
-  const apiKey = getApiKey();
-  const headers = {
-    'Authorization': `Token ${apiKey}`,
-    'Content-Type': 'application/json'
-  };
-  
-  console.log('Indian Kanoon headers:', {
-    authHeader: `Token ${apiKey.substring(0, 8)}...${apiKey.substring(apiKey.length - 4)}`,
-    hasValidKey: apiKey && apiKey !== 'undefined' && apiKey.length > 10,
-    contentType: headers['Content-Type']
-  });
-  
-  return headers;
-};
+  console.log('Using Supabase proxy - headers not needed')
+  return {}
+}
