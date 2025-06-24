@@ -1,7 +1,4 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-console.log("Sending request to Indian Kanoon API");
-console.log("Request body:", req.body);
-console.log("Using token:", token);
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const token = process.env.NEXT_PUBLIC_KANOON_API_KEY;
