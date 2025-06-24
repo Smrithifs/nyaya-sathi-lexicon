@@ -37,12 +37,22 @@ const getHeaders = () => {
   return headers;
 };
 
-export const searchIndianKanoon = async (query: string, filters = {}) => {
+// Define proper types for filters
+interface SearchFilters {
+  jurisdiction?: string;
+  yearFrom?: string;
+  yearTo?: string;
+  judge?: string;
+  benchType?: string;
+  [key: string]: any;
+}
+
+export const searchIndianKanoon = async (query: string, filters: SearchFilters = {}) => {
   const headers = getHeaders();
   const url = 'https://api.indiankanoon.org/search/';
   
   // Build the request body according to Indian Kanoon API specs
-  const requestBody = {
+  const requestBody: any = {
     formInput: query.trim()
   };
   
