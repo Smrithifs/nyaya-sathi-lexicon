@@ -2,7 +2,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { corsHeaders } from '../_shared/cors.ts'
 
-const INDIAN_KANOON_API_KEY = Deno.env.get('INDIAN_KANOON_API_KEY')
+const INDIAN_KANOON_API_KEY = '53c9ce4ce9cece18f8f866be2e47eab43f9eeccb'
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -14,6 +14,7 @@ serve(async (req) => {
     const { action, ...params } = await req.json()
     
     console.log('Indian Kanoon proxy request:', { action, params })
+    console.log('Using API key:', INDIAN_KANOON_API_KEY ? 'Present' : 'Missing')
     
     if (!INDIAN_KANOON_API_KEY) {
       throw new Error('Indian Kanoon API key not configured')
@@ -30,6 +31,8 @@ serve(async (req) => {
     switch (action) {
       case 'search':
         url = 'https://api.indiankanoon.org/search/'
+        console.log('Making search request to:', url)
+        console.log('Request body:', JSON.stringify(params.requestBody))
         response = await fetch(url, {
           method: 'POST',
           headers,
@@ -86,12 +89,14 @@ serve(async (req) => {
         status: response.status,
         error: errorText,
         action,
-        url
+        url,
+        headers: headers
       })
       throw new Error(`Indian Kanoon API error: ${response.status} - ${errorText}`)
     }
 
     const data = await response.json()
+    console.log('Successful response data keys:', Object.keys(data))
     
     return new Response(
       JSON.stringify(data),

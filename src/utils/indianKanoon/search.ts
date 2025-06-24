@@ -26,18 +26,19 @@ export const searchIndianKanoon = async (query: string, filters: SearchFilters =
     requestBody.bench = filters.benchType.toLowerCase()
   }
   
-  console.log('Indian Kanoon search via proxy:', {
+  console.log('Indian Kanoon search via Supabase proxy:', {
     query,
     filters,
     requestBody
   })
   
   try {
+    // Use the Supabase proxy instead of direct API calls
     const data = await callIndianKanoonProxy('search', { requestBody })
     
-    console.log('Indian Kanoon search success:', {
+    console.log('Indian Kanoon search success via proxy:', {
       resultCount: Array.isArray(data) ? data.length : 'not array',
-      hasResults: data && data.length > 0,
+      hasResults: data && Array.isArray(data) && data.length > 0,
       dataType: typeof data,
       dataKeys: data ? Object.keys(data) : [],
       firstResultPreview: Array.isArray(data) && data.length > 0 ? {
@@ -50,7 +51,7 @@ export const searchIndianKanoon = async (query: string, filters: SearchFilters =
     
     return data
   } catch (error) {
-    console.error('Indian Kanoon search failed:', {
+    console.error('Indian Kanoon search failed via proxy:', {
       error: error.message,
       stack: error.stack,
       query,

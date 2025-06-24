@@ -7,6 +7,8 @@ const supabase = createClient(
 )
 
 export const callIndianKanoonProxy = async (action: string, params: any = {}) => {
+  console.log('Calling Indian Kanoon proxy via Supabase:', { action, params })
+  
   const { data, error } = await supabase.functions.invoke('indian-kanoon-proxy', {
     body: { action, ...params }
   })
@@ -17,9 +19,15 @@ export const callIndianKanoonProxy = async (action: string, params: any = {}) =>
   }
 
   if (data?.error) {
-    console.error('Indian Kanoon API error:', data.error)
+    console.error('Indian Kanoon API error via proxy:', data.error)
     throw new Error(data.error)
   }
+
+  console.log('Proxy response successful:', { 
+    hasData: !!data,
+    dataType: typeof data,
+    dataKeys: data ? Object.keys(data) : []
+  })
 
   return data
 }
