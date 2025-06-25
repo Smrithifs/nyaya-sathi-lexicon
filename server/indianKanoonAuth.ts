@@ -12,9 +12,37 @@ export class IndianKanoonAuth {
   private customerEmail: string = 'smritzz0007@gmail.com';
 
   constructor() {
-    this.privateKey = process.env.INDIAN_KANOON_PRIVATE_KEY || '';
-    if (!this.privateKey) {
-      throw new Error('INDIAN_KANOON_PRIVATE_KEY environment variable is required');
+    const rawKey = process.env.INDIAN_KANOON_PRIVATE_KEY || '';
+    if (!rawKey) {
+      console.warn('INDIAN_KANOON_PRIVATE_KEY not found - Indian Kanoon API will not work');
+      this.privateKey = '';
+      return;
+    }
+    
+    try {
+      // Clean and format the private key
+      let cleanKey = rawKey.replace(/\\n/g, '\n').trim();
+      
+      // Handle different possible formats
+      if (!cleanKey.includes('-----BEGIN')) {
+        // Try different PEM headers
+        if (cleanKey.includes('RSA')) {
+          cleanKey = `-----BEGIN RSA PRIVATE KEY-----\n${cleanKey}\n-----END RSA PRIVATE KEY-----`;
+        } else {
+          cleanKey = `-----BEGIN PRIVATE KEY-----\n${cleanKey}\n-----END PRIVATE KEY-----`;
+        }
+      }
+      
+      this.privateKey = cleanKey;
+      
+      // Test the key format
+      const testSign = crypto.createSign('sha256');
+      testSign.update('test');
+      testSign.sign(this.privateKey, 'base64');
+      
+    } catch (error) {
+      console.error('Invalid private key format:', error);
+      this.privateKey = '';
     }
   }
 
@@ -27,11 +55,12 @@ export class IndianKanoonAuth {
 
   private signMessage(message: string): string {
     try {
-      const sign = crypto.createSign('RSA-SHA256');
+      const sign = crypto.createSign('sha256');
       sign.update(message);
       const signature = sign.sign(this.privateKey, 'base64');
       return signature;
     } catch (error) {
+      console.error('Private key format:', this.privateKey.substring(0, 100) + '...');
       throw new Error(`Failed to sign message: ${error}`);
     }
   }
