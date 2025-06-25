@@ -1,6 +1,9 @@
+
 const express = require('express');
 const cors = require('cors');
 const axios = require('axios');
+const indianKanoonService = require('./services/indianKanoonService');
+const geminiService = require('./services/geminiService');
 require('dotenv').config();
 
 const app = express();
@@ -14,77 +17,27 @@ app.use(cors({
   credentials: true
 }));
 
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
 
 // Preflight handler for all routes
 app.options('*', cors());
 
-// Indian Kanoon API configuration
-const INDIAN_KANOON_BASE_URL = 'https://api.indiankanoon.org';
-const INDIAN_KANOON_API_KEY = '7061433e91576225eb89bbbeb11c9a350146a264';
-
-// Helper function to make Indian Kanoon API requests
-const makeIndianKanoonRequest = async (endpoint, params = {}) => {
-  try {
-    const config = {
-      method: 'GET',
-      url: `${INDIAN_KANOON_BASE_URL}${endpoint}`,
-      headers: {
-        'Authorization': `Token ${INDIAN_KANOON_API_KEY}`,
-        'Accept': 'application/json',
-        'User-Agent': 'LegalResearchApp/1.0'
-      },
-      params,
-      timeout: 30000 // 30 second timeout
-    };
-
-    console.log('Making request to Indian Kanoon:', config.url);
-    console.log('With params:', params);
-    
-    const response = await axios(config);
-    return response.data;
-  } catch (error) {
-    console.error('Indian Kanoon API Error:', error.response?.data || error.message);
-    if (error.code === 'ECONNABORTED') {
-      throw new Error('Request timeout - Indian Kanoon API is taking too long to respond');
-    }
-    throw error;
-  }
-};
-
-// Health check endpoints - both GET and POST
+// Health check endpoints
 app.get('/api/health', (req, res) => {
   res.json({ 
     status: 'OK', 
-    message: 'Backend proxy server is running',
+    message: 'Backend server is running with Indian Kanoon integration',
     timestamp: new Date().toISOString(),
     endpoints: [
-      '/api/indian-kanoon/search',
-      '/api/indian-kanoon/doc/:docId',
-      '/api/indian-kanoon/origdoc/:docId',
-      '/api/indian-kanoon/docfragment/:docId',
-      '/api/indian-kanoon/docmeta/:docId'
+      '/api/case-search',
+      '/api/case-details/:docId',
+      '/api/case-summary/:docId'
     ]
   });
 });
 
-app.post('/api/health', (req, res) => {
-  res.json({ 
-    status: 'OK', 
-    message: 'Backend proxy server is running (POST)',
-    timestamp: new Date().toISOString(),
-    endpoints: [
-      '/api/indian-kanoon/search',
-      '/api/indian-kanoon/doc/:docId',
-      '/api/indian-kanoon/origdoc/:docId',
-      '/api/indian-kanoon/docfragment/:docId',
-      '/api/indian-kanoon/docmeta/:docId'
-    ]
-  });
-});
-
-// Search endpoint
-app.post('/api/indian-kanoon/search', async (req, res) => {
+// Search cases endpoint
+app.post('/api/case-search', async (req, res) => {
   try {
     const { query, filters = {} } = req.body;
     
@@ -94,126 +47,126 @@ app.post('/api/indian-kanoon/search', async (req, res) => {
         details: 'Please provide a search query' 
       });
     }
-    
-    // Clean up filters - remove undefined values that are being sent as objects
-    const cleanFilters = {};
-    Object.keys(filters).forEach(key => {
-      const value = filters[key];
-      // Only add filter if it's not undefined and not an object with undefined value
-      if (value !== undefined && 
-          !(typeof value === 'object' && value._type === 'undefined')) {
-        cleanFilters[key] = value;
-      }
-    });
 
-    const searchParams = {
-      formInput: query,
-      pagenum: cleanFilters.pagenum || 0
+    console.log('Searching cases with query:', query, 'filters:', filters);
+    
+    const searchResults = await indianKanoonService.searchCases(query, filters);
+    
+    // Limit to top 5 results as requested
+    const limitedResults = {
+      ...searchResults,
+      docs: searchResults.docs ? searchResults.docs.slice(0, 5) : []
     };
     
-    // Add valid filters
-    if (cleanFilters.fromdate) searchParams.fromdate = cleanFilters.fromdate;
-    if (cleanFilters.todate) searchParams.todate = cleanFilters.todate;
-    if (cleanFilters.doctypes) searchParams.doctypes = cleanFilters.doctypes;
-    if (cleanFilters.author) searchParams.author = cleanFilters.author;
-    if (cleanFilters.bench) searchParams.bench = cleanFilters.bench;
-    if (cleanFilters.title) searchParams.title = cleanFilters.title;
-    if (cleanFilters.cite) searchParams.cite = cleanFilters.cite;
-    if (cleanFilters.maxcites) searchParams.maxcites = cleanFilters.maxcites;
-
-    console.log('Cleaned search params:', searchParams);
-    
-    const data = await makeIndianKanoonRequest('/search/', searchParams);
-    res.json(data);
+    res.json(limitedResults);
   } catch (error) {
-    console.error('Search error:', error.message);
+    console.error('Case search error:', error.message);
     res.status(500).json({ 
-      error: 'Failed to search Indian Kanoon API',
-      details: error.message || 'Unknown error occurred',
+      error: 'Failed to search cases',
+      details: error.message,
       timestamp: new Date().toISOString()
     });
   }
 });
 
-// Get document endpoint
-app.post('/api/indian-kanoon/doc/:docId', async (req, res) => {
+// Get case details with AI summary
+app.post('/api/case-details/:docId', async (req, res) => {
   try {
     const { docId } = req.params;
-    const { maxcites = 10, maxcitedby = 10 } = req.body;
     
-    console.log('Fetching document:', docId);
+    console.log('Fetching case details for:', docId);
     
-    const searchParams = {
-      maxcites,
-      maxcitedby
+    // Fetch case document, metadata, and original document in parallel
+    const [docData, metaData, origDoc] = await Promise.allSettled([
+      indianKanoonService.getDocument(docId),
+      indianKanoonService.getDocumentMeta(docId),
+      indianKanoonService.getOriginalDocument(docId)
+    ]);
+
+    const caseDetails = {
+      docId,
+      document: docData.status === 'fulfilled' ? docData.value : null,
+      metadata: metaData.status === 'fulfilled' ? metaData.value : null,
+      originalDoc: origDoc.status === 'fulfilled' ? origDoc.value : null
+    };
+
+    res.json(caseDetails);
+  } catch (error) {
+    console.error('Case details fetch error:', error.message);
+    res.status(500).json({ 
+      error: 'Failed to fetch case details',
+      details: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
+// Get AI-powered case summary
+app.post('/api/case-summary/:docId', async (req, res) => {
+  try {
+    const { docId } = req.params;
+    
+    console.log('Generating AI summary for case:', docId);
+    
+    // First get the case details
+    const [docData, metaData] = await Promise.all([
+      indianKanoonService.getDocument(docId),
+      indianKanoonService.getDocumentMeta(docId)
+    ]);
+
+    if (!docData || !docData.doc) {
+      return res.status(404).json({
+        error: 'Case document not found',
+        details: `No document found for ID: ${docId}`
+      });
+    }
+
+    // Generate AI summary using Gemini
+    const summary = await geminiService.summarizeJudgment(docData.doc, metaData);
+    
+    const result = {
+      docId,
+      summary,
+      metadata: metaData,
+      timestamp: new Date().toISOString()
+    };
+
+    res.json(result);
+  } catch (error) {
+    console.error('Case summary generation error:', error.message);
+    res.status(500).json({ 
+      error: 'Failed to generate case summary',
+      details: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
+// Get next page of results (pagination)
+app.post('/api/case-search/next', async (req, res) => {
+  try {
+    const { query, filters = {}, currentPage = 0 } = req.body;
+    
+    const nextPageFilters = {
+      ...filters,
+      pagenum: currentPage + 1
     };
     
-    const data = await makeIndianKanoonRequest(`/doc/${docId}/`, searchParams);
-    res.json(data);
-  } catch (error) {
-    console.error('Document fetch error:', error.message);
-    res.status(500).json({ 
-      error: 'Failed to fetch document from Indian Kanoon API',
-      details: error.message || 'Unknown error occurred',
-      timestamp: new Date().toISOString()
-    });
-  }
-});
-
-// Get original court copy endpoint
-app.post('/api/indian-kanoon/origdoc/:docId', async (req, res) => {
-  try {
-    const { docId } = req.params;
-    console.log('Fetching original court copy:', docId);
+    const searchResults = await indianKanoonService.searchCases(query, nextPageFilters);
     
-    const data = await makeIndianKanoonRequest(`/origdoc/${docId}/`);
-    res.json(data);
-  } catch (error) {
-    console.error('Original court copy fetch error:', error.message);
-    res.status(500).json({ 
-      error: 'Failed to fetch original court copy from Indian Kanoon API',
-      details: error.message || 'Unknown error occurred',
-      timestamp: new Date().toISOString()
-    });
-  }
-});
-
-// Get document fragment endpoint
-app.post('/api/indian-kanoon/docfragment/:docId', async (req, res) => {
-  try {
-    const { docId } = req.params;
-    const { query } = req.body;
-    console.log('Fetching document fragment:', docId, 'with query:', query);
-    
-    const searchParams = {
-      formInput: query
+    // Limit to top 5 results
+    const limitedResults = {
+      ...searchResults,
+      docs: searchResults.docs ? searchResults.docs.slice(0, 5) : [],
+      currentPage: currentPage + 1
     };
     
-    const data = await makeIndianKanoonRequest(`/docfragment/${docId}/`, searchParams);
-    res.json(data);
+    res.json(limitedResults);
   } catch (error) {
-    console.error('Document fragment fetch error:', error.message);
+    console.error('Next page search error:', error.message);
     res.status(500).json({ 
-      error: 'Failed to fetch document fragment from Indian Kanoon API',
-      details: error.message || 'Unknown error occurred',
-      timestamp: new Date().toISOString()
-    });
-  }
-});
-
-// Get document metadata endpoint  
-app.post('/api/indian-kanoon/docmeta/:docId', async (req, res) => {
-  try {
-    const { docId } = req.params;
-    console.log('Fetching document metadata:', docId);
-    
-    const data = await makeIndianKanoonRequest(`/docmeta/${docId}/`);
-    res.json(data);
-  } catch (error) {
-    console.error('Document metadata fetch error:', error.message);
-    res.status(500).json({ 
-      error: 'Failed to fetch document metadata from Indian Kanoon API',
-      details: error.message || 'Unknown error occurred',
+      error: 'Failed to fetch next page',
+      details: error.message,
       timestamp: new Date().toISOString()
     });
   }
@@ -230,7 +183,8 @@ app.use((err, req, res, next) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`🚀 LegalOps Backend Proxy running on port ${PORT}`);
-  console.log(`📡 Indian Kanoon API proxy endpoints available at http://localhost:${PORT}/api/indian-kanoon/`);
-  console.log(`🔍 Health check available at http://localhost:${PORT}/api/health`);
+  console.log(`🚀 LegalOps Backend with Indian Kanoon Integration running on port ${PORT}`);
+  console.log(`🔐 Using private key authentication for Indian Kanoon API`);
+  console.log(`🤖 Gemini AI integration available for case summarization`);
+  console.log(`📡 API endpoints available at http://localhost:${PORT}/api/`);
 });

@@ -1,13 +1,10 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Search, Filter, ChevronDown, ChevronUp } from "lucide-react";
-import { useGeminiKey } from "@/hooks/useGeminiKey";
-import { callGeminiAPI } from "@/utils/geminiApi";
+import { Loader2, Search, Filter, ChevronDown, ChevronUp, RefreshCw, FileText, Calendar, User, Building, Scale } from "lucide-react";
 
 const jurisdictions = [
   "Supreme Court",
@@ -64,7 +61,6 @@ const caseTypes = [
 const CaseLawFinder = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { data: geminiKey } = useGeminiKey();
   
   // Form states
   const [caseKeyword, setCaseKeyword] = useState("");
@@ -78,10 +74,53 @@ const CaseLawFinder = () => {
   
   // UI states
   const [searchResults, setSearchResults] = useState([]);
+  const [caseDetails, setCaseDetails] = useState({});
+  const [caseSummaries, setCaseSummaries] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingSummary, setIsLoadingSummary] = useState({});
   const [showFilters, setShowFilters] = useState(false);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [lastSearchQuery, setLastSearchQuery] = useState("");
 
-  const handleSearch = async () => {
+  const mapFiltersToBackend = () => {
+    const filters = {};
+    
+    // Map year filters to date format
+    if (yearFrom) filters.fromdate = `1-1-${yearFrom}`;
+    if (yearTo) filters.todate = `31-12-${yearTo}`;
+    
+    // Map other filters
+    if (judge) filters.bench = judge;
+    if (citation) filters.cite = citation;
+    
+    // Map jurisdiction to doctypes
+    const jurisdictionMap = {
+      'Supreme Court': 'supremecourt',
+      'Delhi High Court': 'delhi',
+      'Bombay High Court': 'bombay',
+      'Calcutta High Court': 'kolkata',
+      'Madras High Court': 'chennai',
+      'Allahabad High Court': 'allahabad',
+      'Andhra Pradesh High Court': 'andhra',
+      'Gujarat High Court': 'gujarat',
+      'Karnataka High Court': 'karnataka',
+      'Kerala High Court': 'kerala',
+      'Madhya Pradesh High Court': 'madhyapradesh',
+      'Orissa High Court': 'orissa',
+      'Patna High Court': 'patna',
+      'Punjab & Haryana High Court': 'punjab',
+      'Rajasthan High Court': 'rajasthan',
+      'All High Courts': 'highcourts'
+    };
+    
+    if (jurisdiction && jurisdictionMap[jurisdiction]) {
+      filters.doctypes = jurisdictionMap[jurisdiction];
+    }
+    
+    return filters;
+  };
+
+  const handleSearch = async (isRefresh = false) => {
     if (!caseKeyword.trim() && !citation.trim() && !provision.trim()) {
       toast({
         title: "Missing Search Criteria",
@@ -91,81 +130,101 @@ const CaseLawFinder = () => {
       return;
     }
 
-    if (!geminiKey) {
-      toast({
-        title: "API Key Required",
-        description: "Please set your Gemini API key to use this feature.",
-        variant: "destructive",
-      });
-      return;
-    }
-
     setIsLoading(true);
     try {
-      console.log('Starting case law search with AI analysis...');
+      console.log('Starting case law search...');
 
-      // Build search query from form inputs
+      // Build search query
       let searchQuery = caseKeyword;
       if (caseType) searchQuery += ` ${caseType}`;
-      if (jurisdiction) searchQuery += ` ${jurisdiction}`;
       if (provision) searchQuery += ` ${provision}`;
-      if (judge) searchQuery += ` ${judge}`;
-      if (citation) searchQuery += ` ${citation}`;
 
-      // Use Gemini to provide legal research assistance
-      const researchPrompt = `As a legal research assistant, provide comprehensive guidance for finding Indian case law based on these search criteria:
+      const filters = mapFiltersToBackend();
+      
+      const endpoint = isRefresh ? '/api/case-search/next' : '/api/case-search';
+      const requestBody = isRefresh ? 
+        { query: lastSearchQuery, filters, currentPage } :
+        { query: searchQuery, filters };
 
-**Search Query:** ${searchQuery}
-**Case Type:** ${caseType || 'Not specified'}
-**Jurisdiction:** ${jurisdiction || 'Not specified'}
-**Legal Provision:** ${provision || 'Not specified'}
-**Judge:** ${judge || 'Not specified'}
-**Citation:** ${citation || 'Not specified'}
-**Year Range:** ${yearFrom ? `${yearFrom} to ${yearTo || 'present'}` : 'Not specified'}
+      const response = await fetch(`http://localhost:8000${endpoint}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody)
+      });
 
-Please provide:
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.details || 'Search failed');
+      }
 
-1. **SEARCH STRATEGY**: Detailed guidance on how to effectively search for these cases
-2. **RECOMMENDED DATABASES**: List of legal databases and resources to search
-3. **SEARCH TERMS**: Specific keywords and search terms to use
-4. **CITATION FORMATS**: Expected citation formats for the specified jurisdiction
-5. **LEGAL CONTEXT**: Brief explanation of the legal area and relevant precedents
-6. **RESEARCH TIPS**: Professional tips for finding relevant case law
+      const data = await response.json();
+      
+      setSearchResults(data.docs || []);
+      setCurrentPage(data.currentPage || (isRefresh ? currentPage + 1 : 0));
+      setLastSearchQuery(searchQuery);
+      setCaseDetails({});
+      setCaseSummaries({});
 
-Format your response as a comprehensive legal research guide.`;
-
-      const analysis = await callGeminiAPI(researchPrompt, geminiKey);
-
-      const mockResult = {
-        id: 'research-guide',
-        title: `Legal Research Guide: ${searchQuery}`,
-        content: analysis,
-        searchCriteria: {
-          keyword: caseKeyword,
-          caseType,
-          jurisdiction,
-          provision,
-          judge,
-          citation,
-          yearRange: yearFrom ? `${yearFrom}-${yearTo || 'present'}` : 'All years'
-        }
-      };
-
-      setSearchResults([mockResult]);
       toast({
-        title: "Research Guide Generated",
-        description: "AI-powered legal research guidance has been created for your search criteria."
+        title: "Search Complete",
+        description: `Found ${data.docs?.length || 0} cases. Click on any case to view AI-powered summary.`
       });
 
     } catch (error) {
-      console.error('Error generating research guide:', error);
+      console.error('Error searching cases:', error);
       toast({
-        title: "Search Error",
-        description: "Failed to generate research guide. Please check your API key and try again.",
+        title: "Search Error", 
+        description: error.message || "Failed to search cases. Please try again.",
         variant: "destructive"
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleGetCaseSummary = async (docId) => {
+    if (caseSummaries[docId]) return; // Already loaded
+
+    setIsLoadingSummary(prev => ({ ...prev, [docId]: true }));
+    
+    try {
+      console.log('Generating AI summary for case:', docId);
+
+      const response = await fetch(`http://localhost:8000/api/case-summary/${docId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.details || 'Failed to generate summary');
+      }
+
+      const data = await response.json();
+      
+      setCaseSummaries(prev => ({
+        ...prev,
+        [docId]: data.summary
+      }));
+
+      toast({
+        title: "Summary Generated",
+        description: "AI-powered case summary is ready!"
+      });
+
+    } catch (error) {
+      console.error('Error generating summary:', error);
+      toast({
+        title: "Summary Error",
+        description: error.message || "Failed to generate case summary.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoadingSummary(prev => ({ ...prev, [docId]: false }));
     }
   };
 
@@ -175,7 +234,7 @@ Format your response as a comprehensive legal research guide.`;
         <Button variant="ghost" onClick={() => navigate("/")}>
           ← Back to Home
         </Button>
-        <h1 className="text-3xl font-bold text-blue-900">Case Law Research Assistant</h1>
+        <h1 className="text-3xl font-bold text-blue-900">Indian Case Law Finder</h1>
       </div>
 
       <div className="max-w-7xl mx-auto w-full space-y-6">
@@ -184,7 +243,7 @@ Format your response as a comprehensive legal research guide.`;
           <CardHeader className="bg-blue-50">
             <CardTitle className="flex items-center gap-2 text-blue-900">
               <Search className="w-6 h-6" />
-              Legal Research Assistant
+              Find Indian Case Law
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6 p-6">
@@ -311,60 +370,107 @@ Format your response as a comprehensive legal research guide.`;
               </div>
             )}
 
-            <Button 
-              onClick={handleSearch} 
-              disabled={isLoading}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-              size="lg"
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Generating Research Guide...
-                </>
-              ) : (
-                <>
-                  <Search className="w-4 h-4 mr-2" />
-                  Generate Research Guide
-                </>
+            <div className="flex gap-4">
+              <Button 
+                onClick={() => handleSearch(false)} 
+                disabled={isLoading}
+                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+                size="lg"
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Searching Cases...
+                  </>
+                ) : (
+                  <>
+                    <Search className="w-4 h-4 mr-2" />
+                    Search Cases
+                  </>
+                )}
+              </Button>
+
+              {searchResults.length > 0 && (
+                <Button 
+                  onClick={() => handleSearch(true)} 
+                  disabled={isLoading}
+                  variant="outline"
+                  size="lg"
+                >
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  Next 5 Cases
+                </Button>
               )}
-            </Button>
+            </div>
           </CardContent>
         </Card>
 
-        {/* Research Guide Results */}
+        {/* Search Results */}
         {searchResults.length > 0 && (
-          <Card>
-            <CardHeader className="bg-green-50">
-              <CardTitle className="flex items-center gap-2 text-green-900">
-                <Search className="w-6 h-6" />
-                Legal Research Guide
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-6">
-              {searchResults.map((result) => (
-                <div key={result.id} className="space-y-4">
-                  <div className="bg-blue-50 p-4 rounded-lg">
-                    <h3 className="font-semibold text-blue-900 mb-2">Search Criteria</h3>
-                    <div className="grid grid-cols-2 gap-2 text-sm">
-                      <div><strong>Keyword:</strong> {result.searchCriteria.keyword || 'Not specified'}</div>
-                      <div><strong>Case Type:</strong> {result.searchCriteria.caseType || 'Not specified'}</div>
-                      <div><strong>Jurisdiction:</strong> {result.searchCriteria.jurisdiction || 'Not specified'}</div>
-                      <div><strong>Provision:</strong> {result.searchCriteria.provision || 'Not specified'}</div>
-                      <div><strong>Judge:</strong> {result.searchCriteria.judge || 'Not specified'}</div>
-                      <div><strong>Citation:</strong> {result.searchCriteria.citation || 'Not specified'}</div>
+          <div className="space-y-4">
+            <h2 className="text-2xl font-bold text-blue-900">Search Results</h2>
+            {searchResults.map((result, index) => (
+              <Card key={result.tid} className="border border-gray-200">
+                <CardHeader className="bg-gray-50">
+                  <CardTitle className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <FileText className="w-5 h-5 text-blue-600" />
+                        <span className="text-lg font-semibold text-blue-900">
+                          {result.title || `Case ${index + 1}`}
+                        </span>
+                      </div>
+                      {result.headline && (
+                        <p className="text-sm text-gray-600 mb-2">{result.headline}</p>
+                      )}
+                      <div className="flex items-center gap-4 text-sm text-gray-500">
+                        <span className="flex items-center gap-1">
+                          <Building className="w-4 h-4" />
+                          {result.docsource || 'Court'}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <FileText className="w-4 h-4" />
+                          {result.docsize ? `${Math.round(result.docsize / 1024)} KB` : 'Document'}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                  
-                  <div className="prose max-w-none">
-                    <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed">
-                      {result.content}
-                    </pre>
-                  </div>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
+                    <Button
+                      onClick={() => handleGetCaseSummary(result.tid)}
+                      disabled={isLoadingSummary[result.tid]}
+                      className="ml-4"
+                    >
+                      {isLoadingSummary[result.tid] ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Generating...
+                        </>
+                      ) : caseSummaries[result.tid] ? (
+                        <>
+                          <Scale className="w-4 h-4 mr-2" />
+                          View Summary
+                        </>
+                      ) : (
+                        <>
+                          <Scale className="w-4 h-4 mr-2" />
+                          Get AI Summary
+                        </>
+                      )}
+                    </Button>
+                  </CardTitle>
+                </CardHeader>
+                
+                {caseSummaries[result.tid] && (
+                  <CardContent className="p-6">
+                    <div className="prose max-w-none">
+                      <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed bg-blue-50 p-4 rounded-lg">
+                        {caseSummaries[result.tid]}
+                      </pre>
+                    </div>
+                  </CardContent>
+                )}
+              </Card>
+            ))}
+          </div>
         )}
       </div>
     </div>

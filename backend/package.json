@@ -1,7 +1,8 @@
+
 {
   "name": "legalops-backend",
   "version": "1.0.0",
-  "description": "Backend proxy for LegalOps Indian Kanoon API integration",
+  "description": "Backend for LegalOps with Indian Kanoon API integration using private key authentication",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
