@@ -1,3 +1,4 @@
+
 const crypto = require('crypto');
 
 const PRIVATE_KEY = `-----BEGIN PRIVATE KEY-----
@@ -36,15 +37,18 @@ const generateMessage = (url, method = 'GET') => {
   const timestamp = Date.now();
   const uuid = crypto.randomUUID();
   const message = `${uuid}-${timestamp}-${method}-${url}`;
+  console.log('Generated message for signing:', message);
   return message;
 };
 
 // Sign message with private key
 const signMessage = (message) => {
   try {
+    console.log('Signing message:', message);
     const sign = crypto.createSign('RSA-SHA256');
     sign.update(message);
     const signature = sign.sign(PRIVATE_KEY, 'base64');
+    console.log('Message signed successfully');
     return signature;
   } catch (error) {
     console.error('Error signing message:', error);
@@ -54,17 +58,26 @@ const signMessage = (message) => {
 
 // Generate authentication headers for Indian Kanoon API
 const generateAuthHeaders = (url, method = 'GET') => {
-  const message = generateMessage(url, method);
-  const signature = signMessage(message);
-  const encodedMessage = Buffer.from(message).toString('base64');
-  
-  return {
-    'X-Customer': CUSTOMER_EMAIL,
-    'X-Message': encodedMessage,
-    'Authorization': `HMAC ${signature}`,
-    'Content-Type': 'application/json',
-    'Accept': 'application/json'
-  };
+  try {
+    console.log('Generating auth headers for:', url, method);
+    const message = generateMessage(url, method);
+    const signature = signMessage(message);
+    const encodedMessage = Buffer.from(message).toString('base64');
+    
+    const headers = {
+      'X-Customer': CUSTOMER_EMAIL,
+      'X-Message': encodedMessage,
+      'Authorization': `HMAC ${signature}`,
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    };
+    
+    console.log('Auth headers generated for customer:', CUSTOMER_EMAIL);
+    return headers;
+  } catch (error) {
+    console.error('Error generating auth headers:', error);
+    throw new Error('Failed to generate authentication headers');
+  }
 };
 
 module.exports = {

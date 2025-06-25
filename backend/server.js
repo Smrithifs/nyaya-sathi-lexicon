@@ -36,10 +36,12 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Search cases endpoint
+// Search cases endpoint - matches frontend expectations
 app.post('/api/case-search', async (req, res) => {
   try {
     const { query, filters = {} } = req.body;
+    
+    console.log('Received search request:', { query, filters });
     
     if (!query || query.trim() === '') {
       return res.status(400).json({ 
@@ -55,14 +57,48 @@ app.post('/api/case-search', async (req, res) => {
     // Limit to top 5 results as requested
     const limitedResults = {
       ...searchResults,
-      docs: searchResults.docs ? searchResults.docs.slice(0, 5) : []
+      docs: searchResults.docs ? searchResults.docs.slice(0, 5) : [],
+      currentPage: filters.pagenum || 0
     };
     
+    console.log('Search results:', limitedResults);
     res.json(limitedResults);
   } catch (error) {
     console.error('Case search error:', error.message);
     res.status(500).json({ 
       error: 'Failed to search cases',
+      details: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
+// Get next page of results (pagination)
+app.post('/api/case-search/next', async (req, res) => {
+  try {
+    const { query, filters = {}, currentPage = 0 } = req.body;
+    
+    console.log('Next page request:', { query, filters, currentPage });
+    
+    const nextPageFilters = {
+      ...filters,
+      pagenum: currentPage + 1
+    };
+    
+    const searchResults = await indianKanoonService.searchCases(query, nextPageFilters);
+    
+    // Limit to top 5 results
+    const limitedResults = {
+      ...searchResults,
+      docs: searchResults.docs ? searchResults.docs.slice(0, 5) : [],
+      currentPage: currentPage + 1
+    };
+    
+    res.json(limitedResults);
+  } catch (error) {
+    console.error('Next page search error:', error.message);
+    res.status(500).json({ 
+      error: 'Failed to fetch next page',
       details: error.message,
       timestamp: new Date().toISOString()
     });
@@ -142,36 +178,6 @@ app.post('/api/case-summary/:docId', async (req, res) => {
   }
 });
 
-// Get next page of results (pagination)
-app.post('/api/case-search/next', async (req, res) => {
-  try {
-    const { query, filters = {}, currentPage = 0 } = req.body;
-    
-    const nextPageFilters = {
-      ...filters,
-      pagenum: currentPage + 1
-    };
-    
-    const searchResults = await indianKanoonService.searchCases(query, nextPageFilters);
-    
-    // Limit to top 5 results
-    const limitedResults = {
-      ...searchResults,
-      docs: searchResults.docs ? searchResults.docs.slice(0, 5) : [],
-      currentPage: currentPage + 1
-    };
-    
-    res.json(limitedResults);
-  } catch (error) {
-    console.error('Next page search error:', error.message);
-    res.status(500).json({ 
-      error: 'Failed to fetch next page',
-      details: error.message,
-      timestamp: new Date().toISOString()
-    });
-  }
-});
-
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error('Unhandled error:', err);
@@ -187,4 +193,6 @@ app.listen(PORT, () => {
   console.log(`🔐 Using private key authentication for Indian Kanoon API`);
   console.log(`🤖 Gemini AI integration available for case summarization`);
   console.log(`📡 API endpoints available at http://localhost:${PORT}/api/`);
+  console.log(`📧 Customer email: ${process.env.CUSTOMER_EMAIL}`);
+  console.log(`🔑 Gemini API configured: ${process.env.GEMINI_API_KEY ? 'Yes' : 'No'}`);
 });
