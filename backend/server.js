@@ -1,4 +1,3 @@
-
 const express = require('express');
 const cors = require('cors');
 const axios = require('axios');
@@ -65,22 +64,33 @@ app.post('/api/indian-kanoon/search', async (req, res) => {
       });
     }
     
+    // Clean up filters - remove undefined values that are being sent as objects
+    const cleanFilters = {};
+    Object.keys(filters).forEach(key => {
+      const value = filters[key];
+      // Only add filter if it's not undefined and not an object with undefined value
+      if (value !== undefined && 
+          !(typeof value === 'object' && value._type === 'undefined')) {
+        cleanFilters[key] = value;
+      }
+    });
+
     const searchParams = {
       formInput: query,
-      pagenum: filters.pagenum || 0
+      pagenum: cleanFilters.pagenum || 0
     };
     
-    // Add filters if provided
-    if (filters.fromdate) searchParams.fromdate = filters.fromdate;
-    if (filters.todate) searchParams.todate = filters.todate;
-    if (filters.doctypes) searchParams.doctypes = filters.doctypes;
-    if (filters.author) searchParams.author = filters.author;
-    if (filters.bench) searchParams.bench = filters.bench;
-    if (filters.title) searchParams.title = filters.title;
-    if (filters.cite) searchParams.cite = filters.cite;
-    if (filters.maxcites) searchParams.maxcites = filters.maxcites;
+    // Add valid filters
+    if (cleanFilters.fromdate) searchParams.fromdate = cleanFilters.fromdate;
+    if (cleanFilters.todate) searchParams.todate = cleanFilters.todate;
+    if (cleanFilters.doctypes) searchParams.doctypes = cleanFilters.doctypes;
+    if (cleanFilters.author) searchParams.author = cleanFilters.author;
+    if (cleanFilters.bench) searchParams.bench = cleanFilters.bench;
+    if (cleanFilters.title) searchParams.title = cleanFilters.title;
+    if (cleanFilters.cite) searchParams.cite = cleanFilters.cite;
+    if (cleanFilters.maxcites) searchParams.maxcites = cleanFilters.maxcites;
 
-    console.log('Search query:', query, 'Params:', searchParams);
+    console.log('Cleaned search params:', searchParams);
     
     const data = await makeIndianKanoonRequest('/search/', searchParams);
     res.json(data);
@@ -178,11 +188,27 @@ app.post('/api/indian-kanoon/docmeta/:docId', async (req, res) => {
   }
 });
 
-// Health check endpoint
+// Health check endpoint - FIXED to handle both GET and POST
 app.get('/api/health', (req, res) => {
   res.json({ 
     status: 'OK', 
     message: 'Backend proxy server is running',
+    timestamp: new Date().toISOString(),
+    endpoints: [
+      '/api/indian-kanoon/search',
+      '/api/indian-kanoon/doc/:docId',
+      '/api/indian-kanoon/origdoc/:docId',
+      '/api/indian-kanoon/docfragment/:docId',
+      '/api/indian-kanoon/docmeta/:docId'
+    ]
+  });
+});
+
+// Also support POST for health check
+app.post('/api/health', (req, res) => {
+  res.json({ 
+    status: 'OK', 
+    message: 'Backend proxy server is running (POST)',
     timestamp: new Date().toISOString(),
     endpoints: [
       '/api/indian-kanoon/search',
