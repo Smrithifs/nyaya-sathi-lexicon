@@ -7,9 +7,18 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 8000;
 
-// Enable CORS for all routes
-app.use(cors());
+// Enable CORS for all routes with specific configuration
+app.use(cors({
+  origin: ['http://localhost:5173', 'http://localhost:3000', 'https://567a48d1-baaa-4be4-8efd-44f674b408a9.lovableproject.com'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+  credentials: true
+}));
+
 app.use(express.json());
+
+// Preflight handler for all routes
+app.options('*', cors());
 
 // Indian Kanoon API configuration
 const INDIAN_KANOON_BASE_URL = 'https://api.indiankanoon.org';
@@ -26,7 +35,8 @@ const makeIndianKanoonRequest = async (endpoint, params = {}) => {
         'Accept': 'application/json',
         'User-Agent': 'LegalResearchApp/1.0'
       },
-      params
+      params,
+      timeout: 30000 // 30 second timeout
     };
 
     console.log('Making request to Indian Kanoon:', config.url);
@@ -36,6 +46,9 @@ const makeIndianKanoonRequest = async (endpoint, params = {}) => {
     return response.data;
   } catch (error) {
     console.error('Indian Kanoon API Error:', error.response?.data || error.message);
+    if (error.code === 'ECONNABORTED') {
+      throw new Error('Request timeout - Indian Kanoon API is taking too long to respond');
+    }
     throw error;
   }
 };
@@ -44,6 +57,13 @@ const makeIndianKanoonRequest = async (endpoint, params = {}) => {
 app.post('/api/indian-kanoon/search', async (req, res) => {
   try {
     const { query, filters = {} } = req.body;
+    
+    if (!query || query.trim() === '') {
+      return res.status(400).json({ 
+        error: 'Query parameter is required',
+        details: 'Please provide a search query' 
+      });
+    }
     
     const searchParams = {
       formInput: query,
@@ -68,7 +88,8 @@ app.post('/api/indian-kanoon/search', async (req, res) => {
     console.error('Search error:', error.message);
     res.status(500).json({ 
       error: 'Failed to search Indian Kanoon API',
-      details: error.response?.data || error.message 
+      details: error.message || 'Unknown error occurred',
+      timestamp: new Date().toISOString()
     });
   }
 });
@@ -92,7 +113,8 @@ app.post('/api/indian-kanoon/doc/:docId', async (req, res) => {
     console.error('Document fetch error:', error.message);
     res.status(500).json({ 
       error: 'Failed to fetch document from Indian Kanoon API',
-      details: error.response?.data || error.message 
+      details: error.message || 'Unknown error occurred',
+      timestamp: new Date().toISOString()
     });
   }
 });
@@ -109,7 +131,8 @@ app.post('/api/indian-kanoon/origdoc/:docId', async (req, res) => {
     console.error('Original court copy fetch error:', error.message);
     res.status(500).json({ 
       error: 'Failed to fetch original court copy from Indian Kanoon API',
-      details: error.response?.data || error.message 
+      details: error.message || 'Unknown error occurred',
+      timestamp: new Date().toISOString()
     });
   }
 });
@@ -131,7 +154,8 @@ app.post('/api/indian-kanoon/docfragment/:docId', async (req, res) => {
     console.error('Document fragment fetch error:', error.message);
     res.status(500).json({ 
       error: 'Failed to fetch document fragment from Indian Kanoon API',
-      details: error.response?.data || error.message 
+      details: error.message || 'Unknown error occurred',
+      timestamp: new Date().toISOString()
     });
   }
 });
@@ -148,17 +172,40 @@ app.post('/api/indian-kanoon/docmeta/:docId', async (req, res) => {
     console.error('Document metadata fetch error:', error.message);
     res.status(500).json({ 
       error: 'Failed to fetch document metadata from Indian Kanoon API',
-      details: error.response?.data || error.message 
+      details: error.message || 'Unknown error occurred',
+      timestamp: new Date().toISOString()
     });
   }
 });
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'OK', message: 'Backend proxy server is running' });
+  res.json({ 
+    status: 'OK', 
+    message: 'Backend proxy server is running',
+    timestamp: new Date().toISOString(),
+    endpoints: [
+      '/api/indian-kanoon/search',
+      '/api/indian-kanoon/doc/:docId',
+      '/api/indian-kanoon/origdoc/:docId',
+      '/api/indian-kanoon/docfragment/:docId',
+      '/api/indian-kanoon/docmeta/:docId'
+    ]
+  });
+});
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error('Unhandled error:', err);
+  res.status(500).json({
+    error: 'Internal server error',
+    details: err.message,
+    timestamp: new Date().toISOString()
+  });
 });
 
 app.listen(PORT, () => {
   console.log(`🚀 LegalOps Backend Proxy running on port ${PORT}`);
   console.log(`📡 Indian Kanoon API proxy endpoints available at http://localhost:${PORT}/api/indian-kanoon/`);
+  console.log(`🔍 Health check available at http://localhost:${PORT}/api/health`);
 });

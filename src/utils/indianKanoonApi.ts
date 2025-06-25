@@ -46,34 +46,62 @@ interface DocumentMetaResponse {
   citation: string;
 }
 
-export const searchCases = async (params: SearchParams): Promise<SearchResponse> => {
+// Helper function to make requests with better error handling
+const makeBackendRequest = async (endpoint: string, body: any) => {
   try {
-    const response = await fetch(`${BACKEND_BASE_URL}/api/indian-kanoon/search`, {
+    console.log(`Making request to backend: ${BACKEND_BASE_URL}${endpoint}`);
+    console.log('Request body:', body);
+
+    const response = await fetch(`${BACKEND_BASE_URL}${endpoint}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Accept': 'application/json',
       },
-      body: JSON.stringify({
-        query: params.formInput,
-        filters: {
-          doctypes: params.doctypes,
-          fromdate: params.fromdate,
-          todate: params.todate,
-          title: params.title,
-          cite: params.cite,
-          author: params.author,
-          bench: params.bench,
-          pagenum: params.pagenum,
-          maxcites: params.maxcites
-        }
-      })
+      body: JSON.stringify(body)
     });
 
+    console.log('Response status:', response.status);
+
     if (!response.ok) {
-      throw new Error(`Backend API error: ${response.status}`);
+      const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+      throw new Error(`Backend API error (${response.status}): ${errorData.error || errorData.details || 'Unknown error'}`);
     }
 
-    return await response.json();
+    const data = await response.json();
+    console.log('Response data received:', data);
+    return data;
+  } catch (error) {
+    console.error('Backend request failed:', error);
+    if (error instanceof TypeError && error.message.includes('fetch')) {
+      throw new Error('Cannot connect to backend server. Please ensure the backend is running on http://localhost:8000');
+    }
+    throw error;
+  }
+};
+
+export const searchCases = async (params: SearchParams): Promise<SearchResponse> => {
+  try {
+    if (!params.formInput || params.formInput.trim() === '') {
+      throw new Error('Search query is required');
+    }
+
+    const requestBody = {
+      query: params.formInput.trim(),
+      filters: {
+        doctypes: params.doctypes,
+        fromdate: params.fromdate,
+        todate: params.todate,
+        title: params.title,
+        cite: params.cite,
+        author: params.author,
+        bench: params.bench,
+        pagenum: params.pagenum || 0,
+        maxcites: params.maxcites
+      }
+    };
+
+    return await makeBackendRequest('/api/indian-kanoon/search', requestBody);
   } catch (error) {
     console.error('Error searching Indian Kanoon via backend:', error);
     throw error;
@@ -82,22 +110,14 @@ export const searchCases = async (params: SearchParams): Promise<SearchResponse>
 
 export const getDocument = async (docId: string, maxcites = 10, maxcitedby = 10): Promise<DocumentResponse> => {
   try {
-    const response = await fetch(`${BACKEND_BASE_URL}/api/indian-kanoon/doc/${docId}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        maxcites,
-        maxcitedby
-      })
-    });
-
-    if (!response.ok) {
-      throw new Error(`Backend API error: ${response.status}`);
+    if (!docId || docId.trim() === '') {
+      throw new Error('Document ID is required');
     }
 
-    return await response.json();
+    return await makeBackendRequest(`/api/indian-kanoon/doc/${docId}`, {
+      maxcites,
+      maxcitedby
+    });
   } catch (error) {
     console.error('Error fetching document via backend:', error);
     throw error;
@@ -106,18 +126,11 @@ export const getDocument = async (docId: string, maxcites = 10, maxcitedby = 10)
 
 export const getDocumentMeta = async (docId: string): Promise<DocumentMetaResponse> => {
   try {
-    const response = await fetch(`${BACKEND_BASE_URL}/api/indian-kanoon/docmeta/${docId}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      }
-    });
-
-    if (!response.ok) {
-      throw new Error(`Backend API error: ${response.status}`);
+    if (!docId || docId.trim() === '') {
+      throw new Error('Document ID is required');
     }
 
-    return await response.json();
+    return await makeBackendRequest(`/api/indian-kanoon/docmeta/${docId}`, {});
   } catch (error) {
     console.error('Error fetching document meta via backend:', error);
     throw error;
@@ -126,18 +139,11 @@ export const getDocumentMeta = async (docId: string): Promise<DocumentMetaRespon
 
 export const getOriginalDocument = async (docId: string): Promise<string> => {
   try {
-    const response = await fetch(`${BACKEND_BASE_URL}/api/indian-kanoon/origdoc/${docId}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      }
-    });
-
-    if (!response.ok) {
-      throw new Error(`Backend API error: ${response.status}`);
+    if (!docId || docId.trim() === '') {
+      throw new Error('Document ID is required');
     }
 
-    const data = await response.json();
+    const data = await makeBackendRequest(`/api/indian-kanoon/origdoc/${docId}`, {});
     return data.doc || data;
   } catch (error) {
     console.error('Error fetching original document via backend:', error);
