@@ -97,31 +97,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "formInput parameter is required" });
       }
 
-      // Check if private key is configured
-      if (!process.env.INDIAN_KANOON_PRIVATE_KEY) {
+      // Check if authentication is configured
+      if (!process.env.INDIAN_KANOON_API_TOKEN && !process.env.INDIAN_KANOON_PRIVATE_KEY) {
         return res.status(503).json({ 
-          error: "Indian Kanoon API authentication not configured. Private key required.",
-          mockData: {
-            docs: [
-              {
-                tid: "demo1",
-                title: "Article 21 - Right to Life and Personal Liberty",
-                headline: "Supreme Court case on fundamental rights under Article 21 of the Constitution",
-                docsource: "Supreme Court",
-                docsize: 15000
-              },
-              {
-                tid: "demo2", 
-                title: "Maneka Gandhi v. Union of India",
-                headline: "Landmark judgment expanding the scope of Article 21",
-                docsource: "Supreme Court",
-                docsize: 12000
-              }
-            ],
-            found: 2,
-            encodedformInput: Buffer.from(formInput as string).toString('base64'),
-            categories: []
-          }
+          error: "Indian Kanoon API authentication not configured. API Token or Private Key required."
         });
       }
 
@@ -134,20 +113,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (bench) url += `&bench=${encodeURIComponent(bench as string)}`;
         if (cite) url += `&cite=${encodeURIComponent(cite as string)}`;
 
+        console.log(`Making request to Indian Kanoon API: ${url}`);
         const response = await indianKanoonAuth.makeAuthenticatedRequest(url);
         
         if (!response.ok) {
-          throw new Error(`Indian Kanoon API responded with status ${response.status}`);
+          const errorText = await response.text().catch(() => 'No error details');
+          console.error(`Indian Kanoon API error: ${response.status} - ${errorText}`);
+          throw new Error(`Indian Kanoon API responded with status ${response.status}: ${errorText}`);
         }
 
         const data = await response.json();
+        console.log('Indian Kanoon API response received successfully');
         res.json(data);
       } catch (authError: any) {
-        console.error('Authentication error, please check private key format:', authError);
-        res.status(503).json({ 
-          error: "Indian Kanoon API authentication failed. Please verify private key format.",
-          details: "The private key provided may not be in the correct PEM format required for RSA signing."
-        });
+        console.error('Indian Kanoon API request failed:', authError);
+        
+        // If private key authentication fails, the user needs to provide a properly formatted key
+        if (authError.message.includes('DECODER routines')) {
+          res.status(503).json({ 
+            error: "Private key format issue",
+            details: "The private key provided is not in a supported format. Please ensure it's a valid PEM-formatted RSA private key.",
+            suggestion: "Generate a new key pair using: openssl genrsa -out private.pem 2048"
+          });
+        } else {
+          res.status(503).json({ 
+            error: "Indian Kanoon API authentication failed",
+            details: `API request failed: ${authError.message}`,
+            suggestion: "Please verify your authentication credentials are correct"
+          });
+        }
       }
 
     } catch (error: any) {

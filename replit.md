@@ -120,7 +120,12 @@ LegalOps AI is a comprehensive legal technology platform designed to assist lawy
 - **Backup Strategy**: Neon automated backups and point-in-time recovery
 
 ## Changelog
-- June 25, 2025. Initial setup
+- June 25, 2025: Successfully migrated LegalOps AI from Lovable to Replit
+  - Migrated from Supabase to PostgreSQL with Drizzle ORM
+  - Implemented server-side document processing endpoints
+  - Configured Indian Kanoon API authentication system
+  - Set up Gemini AI integration for legal document analysis
+  - All core features operational except Indian Kanoon API (requires proper private key format)
 
 ## User Preferences
 
