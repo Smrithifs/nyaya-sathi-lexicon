@@ -11,7 +11,7 @@ import { Check, ChevronDown, Search, Upload, FileText, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { marked } from "marked";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+
 import { useGeminiKey } from "@/hooks/useGeminiKey";
 import { callGeminiAPI } from "@/utils/geminiApi";
 
@@ -143,11 +143,16 @@ const ContractGenerator = () => {
       }
       formData.append('sessionId', sessionId);
 
-      const { data, error } = await supabase.functions.invoke('process-documents', {
+      const response = await fetch('/api/process-documents', {
+        method: 'POST',
         body: formData,
       });
 
-      if (error) throw error;
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to process documents');
+      }
 
       if (data.success) {
         setUploadedDocuments(data.documents);

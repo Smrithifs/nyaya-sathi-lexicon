@@ -3,7 +3,6 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Upload, X, FileText, Image, File } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
 
 interface UploadedDocument {
   id: string;
@@ -43,11 +42,16 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
       }
       formData.append('sessionId', sessionId);
 
-      const { data, error } = await supabase.functions.invoke('process-documents', {
+      const response = await fetch('/api/process-documents', {
+        method: 'POST',
         body: formData,
       });
 
-      if (error) throw error;
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to process documents');
+      }
 
       if (data.success) {
         onDocumentsUploaded(data.documents);

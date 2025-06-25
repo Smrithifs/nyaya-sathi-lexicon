@@ -4,7 +4,7 @@ import { Copy, Check, ArrowLeft, Plus } from "lucide-react";
 import Flashcard from "@/components/Flashcard";
 import DocumentUpload from "@/components/DocumentUpload";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+
 import { askPuter } from "@/utils/openaiApi";
 
 // Maps for system prompts per-feature:
