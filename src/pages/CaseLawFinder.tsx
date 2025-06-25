@@ -1,12 +1,14 @@
+
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Search, Filter, Download, Bookmark, ChevronDown, ChevronUp } from "lucide-react";
+import { Loader2, Search, Filter, Download, Bookmark, ChevronDown, ChevronUp, ExternalLink } from "lucide-react";
 import { useGeminiKey } from "@/hooks/useGeminiKey";
 import { callGeminiAPI } from "@/utils/geminiApi";
+import { searchCases, getDocument, getDocumentMeta, getOriginalDocument, mapSearchFilters } from "@/utils/indianKanoonApi";
 
 const jurisdictions = [
   "Supreme Court",
@@ -123,47 +125,65 @@ const CaseLawFinder = () => {
 
     setIsLoading(true);
     try {
-      console.log('Starting case law search with criteria:', {
+      console.log('Starting Indian Kanoon API search...');
+
+      // Prepare search filters for Indian Kanoon API
+      const searchFilters = {
         keyword: caseKeyword,
-        citation,
-        jurisdiction,
-        yearFrom,
-        yearTo,
-        provision
-      });
+        citation: citation,
+        jurisdiction: jurisdiction,
+        yearFrom: yearFrom,
+        yearTo: yearTo,
+        judge: judge,
+        provision: provision
+      };
 
-      let searchQuery = "";
-      if (caseKeyword) searchQuery += caseKeyword + " ";
-      if (citation) searchQuery += citation + " ";
-      if (provision) searchQuery += provision + " ";
-      if (jurisdiction && jurisdiction !== "All High Courts") searchQuery += jurisdiction + " ";
-      
-      // Create a comprehensive search prompt for AI-generated case analysis
-      const systemInstruction = "You are an expert Indian legal researcher. Generate comprehensive case briefs based on the search criteria provided.";
-      
-      let filters = [];
-      if (jurisdiction && jurisdiction !== "All High Courts") filters.push(`Jurisdiction: ${jurisdiction}`);
-      if (yearFrom || yearTo) filters.push(`Year Range: ${yearFrom || 'earliest'} to ${yearTo || 'latest'}`);
-      if (judge) filters.push(`Judge: ${judge}`);
-      if (benchType && benchType !== "All Benches") filters.push(`Bench Type: ${benchType}`);
-      if (legalDomain.length > 0) filters.push(`Legal Domain: ${legalDomain.join(', ')}`);
-      if (outcome && outcome !== "All") filters.push(`Outcome: ${outcome}`);
-      if (tags.length > 0) filters.push(`Tags: ${tags.join(', ')}`);
-      
-      const enhancedPrompt = `${systemInstruction}
+      const apiParams = mapSearchFilters(searchFilters);
+      console.log('API Parameters:', apiParams);
 
-Search Criteria:
-- Keywords: ${searchQuery.trim()}
-- Filters: ${filters.join('; ')}
+      // Search using Indian Kanoon API
+      const searchResponse = await searchCases(apiParams);
+      console.log('Search response:', searchResponse);
 
-Generate 3-5 comprehensive case briefs for Indian legal cases that match these criteria. Each case brief should follow this structure:
+      if (!searchResponse.docs || searchResponse.docs.length === 0) {
+        toast({
+          title: "No Results Found",
+          description: "No cases found matching your search criteria.",
+        });
+        setSearchResults([]);
+        return;
+      }
 
-**Case [Number]: [Case Title]**
-📌 **CASE TITLE:** [Full case name]
-📚 **CITATION:** [Standard Indian legal citation]
-📆 **DATE OF JUDGMENT:** [Date]
-⚖️ **COURT & BENCH:** [Court name and judges]
+      // Process top results (limit to 5 for better performance)
+      const topResults = searchResponse.docs.slice(0, 5);
+      const processedResults = [];
 
+      for (const result of topResults) {
+        try {
+          console.log(`Processing case: ${result.title}`);
+          
+          // Get document content and metadata
+          const [docContent, docMeta] = await Promise.all([
+            getDocument(result.tid),
+            getDocumentMeta(result.tid).catch(() => null) // Don't fail if meta is not available
+          ]);
+
+          // Use Gemini to analyze and structure the case information
+          const analysisPrompt = `Analyze this Indian legal case and provide structured information:
+
+**Case Title:** ${result.title}
+**Source:** ${result.docsource}
+**Headline:** ${result.headline}
+
+**Document Content:** ${docContent.doc ? docContent.doc.substring(0, 5000) : 'Content not available'}
+
+Please provide the following information in a structured format:
+
+📌 **CASE TITLE:** ${result.title}
+📚 **CITATION:** [Extract proper citation if available]
+📆 **DATE OF JUDGMENT:** [Extract date from content]
+⚖️ **COURT & BENCH:** [Extract court and judges information]
+🔢 **CASE NUMBER:** [Extract case number if available]
 📄 **SUMMARY OF FACTS** (400-500 words):
 [Detailed factual background of the case]
 
@@ -179,29 +199,50 @@ Generate 3-5 comprehensive case briefs for Indian legal cases that match these c
 📊 **LEGAL SIGNIFICANCE/PRECEDENT** (200-250 words):
 [Impact on Indian jurisprudence and precedential value]
 
-Ensure each case brief is relevant to the search criteria and represents actual legal principles from Indian jurisprudence.`;
+Please extract this information from the actual case content provided.`;
 
-      const result = await callGeminiAPI(enhancedPrompt, geminiKey);
-      
-      // Parse the AI response into structured case briefs
-      const caseBriefs = [{
-        id: 1,
-        content: result,
-        title: `AI-Generated Case Analysis for: ${searchQuery.trim()}`,
-        citation: 'AI Analysis',
-        expanded: false
-      }];
+          const analysis = await callGeminiAPI(analysisPrompt, geminiKey);
 
-      setSearchResults(caseBriefs);
+          processedResults.push({
+            id: result.tid,
+            title: result.title,
+            citation: docMeta?.citation || 'Citation not available',
+            court: docMeta?.court || result.docsource,
+            content: analysis,
+            originalDoc: docContent.doc,
+            headline: result.headline,
+            docsize: result.docsize,
+            expanded: false
+          });
+
+        } catch (error) {
+          console.error(`Error processing case ${result.tid}:`, error);
+          // Add basic result even if processing fails
+          processedResults.push({
+            id: result.tid,
+            title: result.title,
+            citation: 'Processing failed',
+            court: result.docsource,
+            content: `**Case Title:** ${result.title}\n\n**Source:** ${result.docsource}\n\n**Summary:** ${result.headline}\n\n*Full analysis unavailable due to processing error.*`,
+            originalDoc: null,
+            headline: result.headline,
+            docsize: result.docsize,
+            expanded: false
+          });
+        }
+      }
+
+      setSearchResults(processedResults);
       toast({
-        title: "Case Analysis Generated",
-        description: "AI-generated case analysis based on your search criteria."
+        title: "Search Complete",
+        description: `Found ${searchResponse.found} cases, displaying top ${processedResults.length} with detailed analysis.`
       });
+
     } catch (error) {
       console.error('Error searching case law:', error);
       toast({
-        title: "Error",
-        description: "Failed to search case law. Please try again.",
+        title: "Search Error",
+        description: "Failed to search cases. Please check your internet connection and try again.",
         variant: "destructive"
       });
     } finally {
@@ -211,6 +252,43 @@ Ensure each case brief is relevant to the search criteria and represents actual 
 
   const toggleCaseExpansion = (caseId) => {
     setExpandedCase(expandedCase === caseId ? null : caseId);
+  };
+
+  const viewOriginalDocument = async (caseItem) => {
+    if (!caseItem.originalDoc) {
+      try {
+        const originalDoc = await getOriginalDocument(caseItem.id);
+        // Open in new window/tab
+        const newWindow = window.open();
+        newWindow.document.write(`
+          <html>
+            <head><title>Original Document - ${caseItem.title}</title></head>
+            <body style="font-family: Arial, sans-serif; margin: 20px;">
+              <h2>${caseItem.title}</h2>
+              <div>${originalDoc}</div>
+            </body>
+          </html>
+        `);
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Failed to load original document.",
+          variant: "destructive"
+        });
+      }
+    } else {
+      // Open existing content in new window
+      const newWindow = window.open();
+      newWindow.document.write(`
+        <html>
+          <head><title>Document - ${caseItem.title}</title></head>
+          <body style="font-family: Arial, sans-serif; margin: 20px;">
+            <h2>${caseItem.title}</h2>
+            <div>${caseItem.originalDoc}</div>
+          </body>
+        </html>
+      `);
+    }
   };
 
   const exportToPDF = (caseContent, caseTitle) => {
@@ -226,7 +304,7 @@ Ensure each case brief is relevant to the search criteria and represents actual 
         <Button variant="ghost" onClick={() => navigate("/")}>
           ← Back to Home
         </Button>
-        <h1 className="text-3xl font-bold text-blue-900">Case Law Finder – AI-Powered Legal Research</h1>
+        <h1 className="text-3xl font-bold text-blue-900">Case Law Finder – Powered by Indian Kanoon</h1>
       </div>
 
       <div className="max-w-7xl mx-auto w-full space-y-6">
@@ -235,7 +313,7 @@ Ensure each case brief is relevant to the search criteria and represents actual 
           <CardHeader className="bg-blue-50">
             <CardTitle className="flex items-center gap-2 text-blue-900">
               <Search className="w-6 h-6" />
-              Search Indian Case Law
+              Search Real Indian Case Law
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6 p-6">
@@ -247,7 +325,7 @@ Ensure each case brief is relevant to the search criteria and represents actual 
                   type="text"
                   value={caseKeyword}
                   onChange={(e) => setCaseKeyword(e.target.value)}
-                  placeholder="e.g., 'Maneka Gandhi', 'Kesavananda Bharati'"
+                  placeholder="e.g., 'Maneka Gandhi', 'Kesavananda Bharati', 'murder'"
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
@@ -258,7 +336,7 @@ Ensure each case brief is relevant to the search criteria and represents actual 
                   type="text"
                   value={citation}
                   onChange={(e) => setCitation(e.target.value)}
-                  placeholder="e.g., 'AIR 1978 SC 597', '(1973) 4 SCC 225'"
+                  placeholder="e.g., 'AIR 1978 SC 597', '1993 AIR'"
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
@@ -295,34 +373,6 @@ Ensure each case brief is relevant to the search criteria and represents actual 
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium mb-2">Court Name (Optional)</label>
-                    <input
-                      type="text"
-                      value={courtName}
-                      onChange={(e) => setCourtName(e.target.value)}
-                      placeholder="e.g., Bombay High Court at Aurangabad"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Bench Type</label>
-                    <Select value={benchType} onValueChange={setBenchType}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select Bench Type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {benchTypes.map(bt => (
-                          <SelectItem key={bt} value={bt}>{bt}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                {/* Row 2 */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <div>
                     <label className="block text-sm font-medium mb-2">Year From</label>
                     <input
                       type="number"
@@ -347,35 +397,21 @@ Ensure each case brief is relevant to the search criteria and represents actual 
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
+                </div>
 
+                {/* Row 2 */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium mb-2">Judge(s)</label>
                     <input
                       type="text"
                       value={judge}
                       onChange={(e) => setJudge(e.target.value)}
-                      placeholder="e.g., Justice Khanna"
+                      placeholder="e.g., Justice Khanna, Arijit Pasayat"
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Outcome</label>
-                    <Select value={outcome} onValueChange={setOutcome}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select Outcome" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {outcomes.map(o => (
-                          <SelectItem key={o} value={o}>{o}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                {/* Row 3 */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium mb-2">Legal Provision / Section</label>
                     <input
@@ -386,63 +422,6 @@ Ensure each case brief is relevant to the search criteria and represents actual 
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
-
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Legal Domain</label>
-                    <div className="flex flex-wrap gap-2 p-2 border border-gray-300 rounded-md min-h-[42px]">
-                      {legalDomain.length === 0 && (
-                        <span className="text-gray-400 text-sm">Select domains...</span>
-                      )}
-                      {legalDomain.map(domain => (
-                        <span key={domain} className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">
-                          {domain}
-                          <button 
-                            onClick={() => handleMultiSelect(domain, legalDomain, setLegalDomain)}
-                            className="ml-1 text-blue-600 hover:text-blue-800"
-                          >×</button>
-                        </span>
-                      ))}
-                    </div>
-                    <Select onValueChange={(value) => handleMultiSelect(value, legalDomain, setLegalDomain)}>
-                      <SelectTrigger className="mt-1">
-                        <SelectValue placeholder="Add domain" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {legalDomains.filter(d => !legalDomain.includes(d)).map(domain => (
-                          <SelectItem key={domain} value={domain}>{domain}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                {/* Row 4 */}
-                <div>
-                  <label className="block text-sm font-medium mb-2">Important Tags</label>
-                  <div className="flex flex-wrap gap-2 p-2 border border-gray-300 rounded-md min-h-[42px]">
-                    {tags.length === 0 && (
-                      <span className="text-gray-400 text-sm">Select tags...</span>
-                    )}
-                    {tags.map(tag => (
-                      <span key={tag} className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">
-                        {tag}
-                        <button 
-                          onClick={() => handleMultiSelect(tag, tags, setTags)}
-                          className="ml-1 text-green-600 hover:text-green-800"
-                        >×</button>
-                      </span>
-                    ))}
-                  </div>
-                  <Select onValueChange={(value) => handleMultiSelect(value, tags, setTags)}>
-                    <SelectTrigger className="mt-1">
-                      <SelectValue placeholder="Add tag" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {importantTags.filter(t => !tags.includes(t)).map(tag => (
-                        <SelectItem key={tag} value={tag}>{tag}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
                 </div>
               </div>
             )}
@@ -456,12 +435,12 @@ Ensure each case brief is relevant to the search criteria and represents actual 
               {isLoading ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Generating Legal Analysis...
+                  Searching Indian Kanoon Database...
                 </>
               ) : (
                 <>
                   <Search className="w-4 h-4 mr-2" />
-                  Generate Case Analysis
+                  Search Real Cases
                 </>
               )}
             </Button>
@@ -474,7 +453,7 @@ Ensure each case brief is relevant to the search criteria and represents actual 
             <CardHeader className="bg-green-50">
               <CardTitle className="flex items-center gap-2 text-green-900">
                 <Search className="w-6 h-6" />
-                AI-Generated Legal Analysis ({searchResults.length} analysis generated)
+                Search Results from Indian Kanoon ({searchResults.length} cases found)
               </CardTitle>
             </CardHeader>
             <CardContent className="p-0">
@@ -483,11 +462,26 @@ Ensure each case brief is relevant to the search criteria and represents actual 
                   <Card key={caseItem.id} className="border-l-4 border-l-blue-500">
                     <CardHeader className="pb-3">
                       <div className="flex items-center justify-between">
-                        <CardTitle className="text-lg text-blue-900 cursor-pointer" 
-                                   onClick={() => toggleCaseExpansion(caseItem.id)}>
-                          {caseItem.title}
-                        </CardTitle>
+                        <div className="flex-1">
+                          <CardTitle className="text-lg text-blue-900 cursor-pointer mb-2" 
+                                     onClick={() => toggleCaseExpansion(caseItem.id)}>
+                            {caseItem.title}
+                          </CardTitle>
+                          <div className="text-sm text-gray-600 space-y-1">
+                            <div><strong>Court:</strong> {caseItem.court}</div>
+                            <div><strong>Citation:</strong> {caseItem.citation}</div>
+                            <div><strong>Document Size:</strong> {caseItem.docsize} characters</div>
+                          </div>
+                        </div>
                         <div className="flex gap-2">
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => viewOriginalDocument(caseItem)}
+                          >
+                            <ExternalLink className="w-4 h-4 mr-1" />
+                            Original
+                          </Button>
                           <Button 
                             variant="outline" 
                             size="sm"
@@ -499,7 +493,7 @@ Ensure each case brief is relevant to the search criteria and represents actual 
                           <Button 
                             variant="outline" 
                             size="sm"
-                            onClick={() => toast({ title: "Bookmarked", description: "Analysis saved to your library." })}
+                            onClick={() => toast({ title: "Bookmarked", description: "Case saved to your library." })}
                           >
                             <Bookmark className="w-4 h-4 mr-1" />
                             Save
