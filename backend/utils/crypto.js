@@ -1,4 +1,3 @@
-
 const crypto = require('crypto');
 
 const PRIVATE_KEY = `-----BEGIN PRIVATE KEY-----
@@ -30,7 +29,7 @@ MkBtgMDt7VKfOCYVVK7Q52oP7bPPdIpFw4b5E+s/MycWiAP2v4g0WlCiF+YK0Uir
 z++yp6ev8Yv1SCLIyxNWkgcA
 -----END PRIVATE KEY-----`;
 
-const CUSTOMER_EMAIL = process.env.CUSTOMER_EMAIL || 'your-email@gmail.com';
+const CUSTOMER_EMAIL = process.env.CUSTOMER_EMAIL || 'smritzz0007@gmail.com';
 
 // Generate unique message for signing
 const generateMessage = (url, method = 'GET') => {

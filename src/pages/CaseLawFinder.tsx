@@ -58,6 +58,14 @@ const caseTypes = [
   "Environmental Petition",
 ];
 
+interface BackendFilters {
+  fromdate?: string;
+  todate?: string;
+  bench?: string;
+  cite?: string;
+  doctypes?: string;
+}
+
 const CaseLawFinder = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -82,8 +90,8 @@ const CaseLawFinder = () => {
   const [currentPage, setCurrentPage] = useState(0);
   const [lastSearchQuery, setLastSearchQuery] = useState("");
 
-  const mapFiltersToBackend = () => {
-    const filters = {};
+  const mapFiltersToBackend = (): BackendFilters => {
+    const filters: BackendFilters = {};
     
     // Map year filters to date format
     if (yearFrom) filters.fromdate = `1-1-${yearFrom}`;
@@ -94,7 +102,7 @@ const CaseLawFinder = () => {
     if (citation) filters.cite = citation;
     
     // Map jurisdiction to doctypes
-    const jurisdictionMap = {
+    const jurisdictionMap: { [key: string]: string } = {
       'Supreme Court': 'supremecourt',
       'Delhi High Court': 'delhi',
       'Bombay High Court': 'bombay',
