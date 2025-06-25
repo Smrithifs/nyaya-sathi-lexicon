@@ -13,48 +13,40 @@ export class IndianKanoonAuth {
   private customerEmail: string = 'smritzz0007@gmail.com';
 
   constructor() {
-    // Prefer API Token approach (simpler and more reliable)
+    // Use the uploaded private key directly
+    const uploadedKey = `-----BEGIN PRIVATE KEY-----
+MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDGn7u9E1PL59yK
+znL+yRiTrnOvb2xGxyh/KXHfQb+7B14mTGwTzuTNtI7AUsJ+xGziWsOtBR1MS8Qv
+9KipiAq3jajNcVlJyqylL/eD4fM23qh7pNaq32JIylZNaohDCWSzVP3e3uCl+FC7
+tZWEZ+WbB+DZFIbLFM+QAotNYLuMHxu0yANJuBMiCyP+6qlrMTnbScq5X3FzVfzR
+35UHn5ySntf0Tzn0Hq4mAskLRR3SrxGm1xlhHXr1UWsZzDWODjrHJYgAdY/bnuUw
+YenDfcmVFZkbtIiltcWJ/3bgB0orWGv5Ai2G/ka2UczEVBs+hTPcnsRUlkhYbUNb
+vBWZkQJXAgMBAAECggEABxtdDBcyz5pevkq4gXOY2zVbcvQ3RNJUGXv5Md2DzYGD
+ZE3gW5CKE+65SiXASy8qKJNtGLAUwFVvrznzzENJvcngTvEt69XfbjDF9SRnDjVS
+svo9cKeoiXzbjWXZwPEHPOLk3Os30QKlmTtE8Cs2+qY8YSO07blh8pzz9set4SjL
+ePdMKQd2CXunlXD0MzT9/OPnugSU4tm24rEll92rxiCbtyte9jdPDF7J4g8JKxvC
+/Jq+AY3hBUKLzo+z/DUbds4eLsgjxzVYWZrzqutBY1Hd1n8uaogn2TLFtMWuMT1u
+0EJrqi12zC+Z1GseGniYx1P4lUKNelQUIIZMBtJVMQKBgQDiRZPYaEpwSZjJzBVF
+2NpKJOttgz/8OaPhZdHWKKHjKbv1CWYlm0X8HssCRA/ALjL99acRp7vUZLgM0Sk6
+okXtEcmIodaSSdT8+Nh6YYqJFhkL45wpItCMb7SvIYrVXLVJwnBW6QcnpA5Z7Am/
+nzkSKB3orFYHPicO22WDbSsuxwKBgQDguD/FPKWZQSeye3Zsx2uQL6OV2DeqIDzz
+hodrdp65w6J/dS4wofD8neamZV7nu4RypoDsZOkuxQxbd+L1fftDM/BKzC2eyUxj
+qhuxn6FKd44UIRAmb742bdgSgE+e7k7O9aRpG7c6wm0cQCwH6dqaDI1LGFv7g7Et
+X8YgtmE/8QKBgQDAgk3NGr3qVtNlLPsUV/Ewj8S1gatYnnmtdQFYYW2KZaGCUqLT
+cA3U+SXjIaD88tFzfCLORJTrmV11mianuhQgJLgARSDXiXVqXRVg2cgR5fkdQmNE
+JFimgwuIzNLfwGaFAKavascplMyY+Nc6bu8RYYxAvw7aTqjQXR06+hB5VQKBgD8I
+j6K0q0K8uvTems5SdcKBCmLKvnpzBoXMs4maQVWcIaWc6fLsSduiMwNzpdZci/9Y
+4wrsF1huH1Q84aW4y9UC6aEhep5ymoHOQmxleWmY9XqB97TAXVuJHjW6Vhsff22g
+C5kMFC5gQRjOi0tA9neFk9B/qbV4MCepGLsuTUMRAoGBALXhdvBx2kDM1KjeEQqZ
+6hh8qMc8+T8/wL85JkLfxlvTzgJNWJ3E970PMBNIAEzxufGAYzL99IVJ/aIdJyNG
+MkBtgMDt7VKfOCYVVK7Q52oP7bPPdIpFw4b5E+s/MycWiAP2v4g0WlCiF+YK0Uir
+z++yp6ev8Yv1SCLIyxNWkgcA
+-----END PRIVATE KEY-----`;
+
     this.apiToken = process.env.INDIAN_KANOON_API_TOKEN || '';
+    this.privateKey = uploadedKey;
     
-    // Fallback to private key approach
-    const rawKey = process.env.INDIAN_KANOON_PRIVATE_KEY || '';
-    this.privateKey = '';
-    
-    if (!this.apiToken && !rawKey) {
-      console.warn('Neither INDIAN_KANOON_API_TOKEN nor INDIAN_KANOON_PRIVATE_KEY found');
-      return;
-    }
-    
-    // Focus on private key authentication as recommended
-    if (rawKey) {
-      try {
-        // Handle different private key formats
-        let cleanKey = rawKey.replace(/\\n/g, '\n').trim();
-        
-        // Handle different PEM formats
-        if (!cleanKey.includes('-----BEGIN')) {
-          // Try PKCS#8 format first (recommended for modern applications)
-          cleanKey = `-----BEGIN PRIVATE KEY-----\n${cleanKey}\n-----END PRIVATE KEY-----`;
-        } else if (cleanKey.includes('-----BEGIN RSA PRIVATE KEY-----')) {
-          // Already in PKCS#1 format, keep as is
-        } else if (cleanKey.includes('-----BEGIN PRIVATE KEY-----')) {
-          // Already in PKCS#8 format, keep as is  
-        }
-        
-        this.privateKey = cleanKey;
-        console.log('Using Indian Kanoon private key authentication');
-        
-        // Don't test the key here - let it fail at request time if invalid
-        
-      } catch (error) {
-        console.error('Error setting up private key:', error);
-        this.privateKey = '';
-      }
-    }
-    
-    if (this.apiToken && !this.privateKey) {
-      console.log('API Token available but using private key method as recommended');
-    }
+    console.log('Using Indian Kanoon private key authentication with uploaded key');
   }
 
   private generateMessage(url: string): string {
@@ -66,21 +58,19 @@ export class IndianKanoonAuth {
 
   private signMessage(message: string): string {
     try {
-      // Indian Kanoon requires PKCS1_v1_5 with SHA256 hash
-      // First decode the base64 message to get the raw bytes
-      const messageBytes = Buffer.from(message, 'base64');
-      
-      // Create SHA256 hash of the message
+      // According to Indian Kanoon docs: PKCS1_v1_5 with SHA256
+      // Create SHA256 hash of the base64 message first
       const hash = crypto.createHash('sha256');
-      hash.update(messageBytes);
-      const hashedMessage = hash.digest();
+      hash.update(message, 'utf8');
+      const digest = hash.digest();
       
-      // Sign the hash using RSA with the private key
-      const sign = crypto.createSign('RSA-SHA256');
-      sign.update(hashedMessage);
-      const signature = sign.sign(this.privateKey, 'base64');
+      // Sign the digest using RSA-SHA256 (PKCS1_v1_5 padding)
+      const signature = crypto.sign('sha256', digest, {
+        key: this.privateKey,
+        padding: crypto.constants.RSA_PKCS1_PADDING
+      });
       
-      return signature;
+      return signature.toString('base64');
     } catch (error) {
       console.error('Signing error details:', error);
       throw new Error(`Failed to sign message: ${error}`);

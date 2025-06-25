@@ -1,0 +1,91 @@
+🔍 Issue Location
+In your /api/indiankanoon/search endpoint, there's a fallback response like this:
+
+ts
+Copy
+Edit
+const caseData = {
+  docs: [
+    {
+      tid: "198282",
+      title: "Maneka Gandhi vs Union Of India...",
+      ...
+    },
+    ...
+  ],
+  found: 847,
+  encodedformInput: Buffer.from(formInput as string).toString('base64'),
+  categories: [...]
+};
+Then you do:
+
+ts
+Copy
+Edit
+console.log(`Returning case data for query: ${formInput}`);
+res.json({
+  ...caseData,
+  _note: "Authentication in progress. Contact support for live API access."
+});
+✅ This code works if formInput is defined.
+
+⚠️ But if formInput is not passed in the query, Buffer.from(formInput) will crash.
+
+✅ Fix: Add a guard clause before using formInput
+Update the formInput check like this:
+
+ts
+Copy
+Edit
+if (!formInput || typeof formInput !== 'string') {
+  return res.status(400).json({ error: "formInput parameter is required and must be a string" });
+}
+And move it above this line:
+
+ts
+Copy
+Edit
+const { formInput, pagenum = 1, fromdate, todate, doctypes, bench, cite } = req.query;
+Or more robustly:
+
+✅ Final Fixed Version:
+ts
+Copy
+Edit
+app.get("/api/indiankanoon/search", async (req, res) => {
+  try {
+    const { formInput, pagenum = 1, fromdate, todate, doctypes, bench, cite } = req.query;
+
+    if (!formInput || typeof formInput !== 'string') {
+      return res.status(400).json({ error: "formInput parameter is required and must be a string" });
+    }
+
+    console.log(`Processing search request for: ${formInput}`);
+
+    ...
+    const caseData = {
+      docs: [...],
+      found: 847,
+      encodedformInput: Buffer.from(formInput).toString('base64'),
+      ...
+    };
+
+    return res.json({
+      ...caseData,
+      _note: "Authentication in progress. Contact support for live API access."
+    });
+
+  } catch (error: any) {
+    console.error('Error in Indian Kanoon search:', error);
+    return res.status(500).json({ 
+      error: error.message || 'Failed to search Indian Kanoon API' 
+    });
+  }
+});
+✅ Also Recommended:
+Add a log before the fallback to confirm if the signed request failed.
+
+Ensure makeAuthenticatedRequest() returns meaningful logs if auth fails.
+
+Consider rate limiting or caching if this is for public use.
+
