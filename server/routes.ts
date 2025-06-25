@@ -97,22 +97,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "formInput parameter is required" });
       }
 
-      let url = `https://api.indiankanoon.org/search/?formInput=${encodeURIComponent(formInput as string)}&pagenum=${pagenum}`;
-      
-      if (fromdate) url += `&fromdate=${fromdate}`;
-      if (todate) url += `&todate=${todate}`;
-      if (doctypes) url += `&doctypes=${doctypes}`;
-      if (bench) url += `&bench=${encodeURIComponent(bench as string)}`;
-      if (cite) url += `&cite=${encodeURIComponent(cite as string)}`;
-
-      const response = await indianKanoonAuth.makeAuthenticatedRequest(url);
-      
-      if (!response.ok) {
-        throw new Error(`Indian Kanoon API responded with status ${response.status}`);
+      // Check if private key is configured
+      if (!process.env.INDIAN_KANOON_PRIVATE_KEY) {
+        return res.status(503).json({ 
+          error: "Indian Kanoon API authentication not configured. Private key required.",
+          mockData: {
+            docs: [
+              {
+                tid: "demo1",
+                title: "Article 21 - Right to Life and Personal Liberty",
+                headline: "Supreme Court case on fundamental rights under Article 21 of the Constitution",
+                docsource: "Supreme Court",
+                docsize: 15000
+              },
+              {
+                tid: "demo2", 
+                title: "Maneka Gandhi v. Union of India",
+                headline: "Landmark judgment expanding the scope of Article 21",
+                docsource: "Supreme Court",
+                docsize: 12000
+              }
+            ],
+            found: 2,
+            encodedformInput: Buffer.from(formInput as string).toString('base64'),
+            categories: []
+          }
+        });
       }
 
-      const data = await response.json();
-      res.json(data);
+      try {
+        let url = `https://api.indiankanoon.org/search/?formInput=${encodeURIComponent(formInput as string)}&pagenum=${pagenum}`;
+        
+        if (fromdate) url += `&fromdate=${fromdate}`;
+        if (todate) url += `&todate=${todate}`;
+        if (doctypes) url += `&doctypes=${doctypes}`;
+        if (bench) url += `&bench=${encodeURIComponent(bench as string)}`;
+        if (cite) url += `&cite=${encodeURIComponent(cite as string)}`;
+
+        const response = await indianKanoonAuth.makeAuthenticatedRequest(url);
+        
+        if (!response.ok) {
+          throw new Error(`Indian Kanoon API responded with status ${response.status}`);
+        }
+
+        const data = await response.json();
+        res.json(data);
+      } catch (authError: any) {
+        console.error('Authentication error, please check private key format:', authError);
+        res.status(503).json({ 
+          error: "Indian Kanoon API authentication failed. Please verify private key format.",
+          details: "The private key provided may not be in the correct PEM format required for RSA signing."
+        });
+      }
 
     } catch (error: any) {
       console.error('Error in Indian Kanoon search:', error);
