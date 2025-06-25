@@ -5,10 +5,9 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Search, Filter, Download, Bookmark, ChevronDown, ChevronUp, ExternalLink } from "lucide-react";
+import { Loader2, Search, Filter, ChevronDown, ChevronUp } from "lucide-react";
 import { useGeminiKey } from "@/hooks/useGeminiKey";
 import { callGeminiAPI } from "@/utils/geminiApi";
-import { searchCases, getDocument, getDocumentMeta, getOriginalDocument, mapSearchFilters } from "@/utils/indianKanoonApi";
 
 const jurisdictions = [
   "Supreme Court",
@@ -27,29 +26,6 @@ const jurisdictions = [
   "Patna High Court",
   "Punjab & Haryana High Court",
   "Rajasthan High Court",
-];
-
-const benchTypes = [
-  "All Benches",
-  "Division Bench",
-  "Constitution Bench", 
-  "Full Bench",
-  "Single Judge",
-];
-
-const legalDomains = [
-  "Constitutional Law",
-  "Criminal Law",
-  "Civil Law", 
-  "Public Interest Litigation",
-  "Intellectual Property Rights",
-  "Corporate Law",
-  "Labour Law",
-  "Family Law",
-  "Property Law",
-  "Tax Law",
-  "Environmental Law",
-  "Human Rights",
 ];
 
 const caseTypes = [
@@ -85,25 +61,6 @@ const caseTypes = [
   "Environmental Petition",
 ];
 
-const outcomes = [
-  "All",
-  "Allowed",
-  "Dismissed", 
-  "Partially Allowed",
-  "Quashed",
-  "Remanded",
-];
-
-const importantTags = [
-  "Landmark Judgment",
-  "Basic Structure",
-  "Minority Rights", 
-  "Fundamental Rights",
-  "Directive Principles",
-  "PIL Guidelines",
-  "Precedent Setting",
-];
-
 const CaseLawFinder = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -113,30 +70,16 @@ const CaseLawFinder = () => {
   const [caseKeyword, setCaseKeyword] = useState("");
   const [citation, setCitation] = useState("");
   const [jurisdiction, setJurisdiction] = useState("");
-  const [courtName, setCourtName] = useState("");
   const [yearFrom, setYearFrom] = useState("");
   const [yearTo, setYearTo] = useState("");
   const [judge, setJudge] = useState("");
-  const [benchType, setBenchType] = useState("");
-  const [legalDomain, setLegalDomain] = useState([]);
   const [provision, setProvision] = useState("");
-  const [outcome, setOutcome] = useState("");
-  const [tags, setTags] = useState([]);
   const [caseType, setCaseType] = useState("");
   
   // UI states
   const [searchResults, setSearchResults] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
-  const [expandedCase, setExpandedCase] = useState(null);
-
-  const handleMultiSelect = (value, currentArray, setter) => {
-    if (currentArray.includes(value)) {
-      setter(currentArray.filter(item => item !== value));
-    } else {
-      setter([...currentArray, value]);
-    }
-  };
 
   const handleSearch = async () => {
     if (!caseKeyword.trim() && !citation.trim() && !provision.trim()) {
@@ -159,189 +102,71 @@ const CaseLawFinder = () => {
 
     setIsLoading(true);
     try {
-      console.log('Starting Indian Kanoon API search...');
+      console.log('Starting case law search with AI analysis...');
 
-      // Prepare search filters for Indian Kanoon API
-      const searchFilters = {
-        keyword: caseKeyword,
-        citation: citation,
-        jurisdiction: jurisdiction,
-        yearFrom: yearFrom,
-        yearTo: yearTo,
-        judge: judge,
-        provision: provision,
-        caseType: caseType
+      // Build search query from form inputs
+      let searchQuery = caseKeyword;
+      if (caseType) searchQuery += ` ${caseType}`;
+      if (jurisdiction) searchQuery += ` ${jurisdiction}`;
+      if (provision) searchQuery += ` ${provision}`;
+      if (judge) searchQuery += ` ${judge}`;
+      if (citation) searchQuery += ` ${citation}`;
+
+      // Use Gemini to provide legal research assistance
+      const researchPrompt = `As a legal research assistant, provide comprehensive guidance for finding Indian case law based on these search criteria:
+
+**Search Query:** ${searchQuery}
+**Case Type:** ${caseType || 'Not specified'}
+**Jurisdiction:** ${jurisdiction || 'Not specified'}
+**Legal Provision:** ${provision || 'Not specified'}
+**Judge:** ${judge || 'Not specified'}
+**Citation:** ${citation || 'Not specified'}
+**Year Range:** ${yearFrom ? `${yearFrom} to ${yearTo || 'present'}` : 'Not specified'}
+
+Please provide:
+
+1. **SEARCH STRATEGY**: Detailed guidance on how to effectively search for these cases
+2. **RECOMMENDED DATABASES**: List of legal databases and resources to search
+3. **SEARCH TERMS**: Specific keywords and search terms to use
+4. **CITATION FORMATS**: Expected citation formats for the specified jurisdiction
+5. **LEGAL CONTEXT**: Brief explanation of the legal area and relevant precedents
+6. **RESEARCH TIPS**: Professional tips for finding relevant case law
+
+Format your response as a comprehensive legal research guide.`;
+
+      const analysis = await callGeminiAPI(researchPrompt, geminiKey);
+
+      const mockResult = {
+        id: 'research-guide',
+        title: `Legal Research Guide: ${searchQuery}`,
+        content: analysis,
+        searchCriteria: {
+          keyword: caseKeyword,
+          caseType,
+          jurisdiction,
+          provision,
+          judge,
+          citation,
+          yearRange: yearFrom ? `${yearFrom}-${yearTo || 'present'}` : 'All years'
+        }
       };
 
-      // Include case type in the search query if specified
-      let enhancedQuery = caseKeyword;
-      if (caseType) {
-        enhancedQuery = enhancedQuery ? `${enhancedQuery} AND ${caseType}` : caseType;
-      }
-
-      const apiParams = mapSearchFilters({
-        ...searchFilters,
-        keyword: enhancedQuery
-      });
-      console.log('API Parameters:', apiParams);
-
-      // Search using Indian Kanoon API
-      const searchResponse = await searchCases(apiParams);
-      console.log('Search response:', searchResponse);
-
-      if (!searchResponse.docs || searchResponse.docs.length === 0) {
-        toast({
-          title: "No Results Found",
-          description: "No cases found matching your search criteria.",
-        });
-        setSearchResults([]);
-        return;
-      }
-
-      // Process top results (limit to 5 for better performance)
-      const topResults = searchResponse.docs.slice(0, 5);
-      const processedResults = [];
-
-      for (const result of topResults) {
-        try {
-          console.log(`Processing case: ${result.title}`);
-          
-          // Get document content and metadata
-          const [docContent, docMeta] = await Promise.all([
-            getDocument(result.tid),
-            getDocumentMeta(result.tid).catch(() => null) // Don't fail if meta is not available
-          ]);
-
-          // Use Gemini to analyze and structure the case information
-          const analysisPrompt = `Analyze this Indian legal case and provide structured information:
-
-**Case Title:** ${result.title}
-**Source:** ${result.docsource}
-**Headline:** ${result.headline}
-${caseType ? `**Case Type Filter:** ${caseType}` : ''}
-
-**Document Content:** ${docContent.doc ? docContent.doc.substring(0, 5000) : 'Content not available'}
-
-Please provide the following information in a structured format:
-
-📌 **CASE TITLE:** ${result.title}
-📚 **CITATION:** [Extract proper citation if available]
-📆 **DATE OF JUDGMENT:** [Extract date from content]
-⚖️ **COURT & BENCH:** [Extract court and judges information]
-🔢 **CASE NUMBER:** [Extract case number if available]
-🏷️ **CASE TYPE:** [Identify the type of case - e.g., Civil Appeal, Criminal Appeal, Writ Petition, etc.]
-📄 **SUMMARY OF FACTS** (400-500 words):
-[Detailed factual background of the case]
-
-⚖️ **LEGAL ISSUES** (200-300 words):
-[Key legal questions and constitutional/statutory provisions involved]
-
-🧾 **JUDGMENT & HOLDING** (400-500 words):
-[Court's decision, reasoning, and detailed analysis]
-
-📘 **RATIO DECIDENDI** (250-300 words):
-[Legal principle established by the judgment]
-
-📊 **LEGAL SIGNIFICANCE/PRECEDENT** (200-250 words):
-[Impact on Indian jurisprudence and precedential value]
-
-Please extract this information from the actual case content provided.`;
-
-          const analysis = await callGeminiAPI(analysisPrompt, geminiKey);
-
-          processedResults.push({
-            id: result.tid,
-            title: result.title,
-            citation: docMeta?.citation || 'Citation not available',
-            court: docMeta?.court || result.docsource,
-            content: analysis,
-            originalDoc: docContent.doc,
-            headline: result.headline,
-            docsize: result.docsize,
-            expanded: false
-          });
-
-        } catch (error) {
-          console.error(`Error processing case ${result.tid}:`, error);
-          // Add basic result even if processing fails
-          processedResults.push({
-            id: result.tid,
-            title: result.title,
-            citation: 'Processing failed',
-            court: result.docsource,
-            content: `**Case Title:** ${result.title}\n\n**Source:** ${result.docsource}\n\n**Summary:** ${result.headline}\n\n*Full analysis unavailable due to processing error.*`,
-            originalDoc: null,
-            headline: result.headline,
-            docsize: result.docsize,
-            expanded: false
-          });
-        }
-      }
-
-      setSearchResults(processedResults);
+      setSearchResults([mockResult]);
       toast({
-        title: "Search Complete",
-        description: `Found ${searchResponse.found} cases, displaying top ${processedResults.length} with detailed analysis.`
+        title: "Research Guide Generated",
+        description: "AI-powered legal research guidance has been created for your search criteria."
       });
 
     } catch (error) {
-      console.error('Error searching case law:', error);
+      console.error('Error generating research guide:', error);
       toast({
         title: "Search Error",
-        description: "Failed to search cases. Please check your internet connection and try again.",
+        description: "Failed to generate research guide. Please check your API key and try again.",
         variant: "destructive"
       });
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const toggleCaseExpansion = (caseId) => {
-    setExpandedCase(expandedCase === caseId ? null : caseId);
-  };
-
-  const viewOriginalDocument = async (caseItem) => {
-    if (!caseItem.originalDoc) {
-      try {
-        const originalDoc = await getOriginalDocument(caseItem.id);
-        // Open in new window/tab
-        const newWindow = window.open();
-        newWindow.document.write(`
-          <html>
-            <head><title>Original Document - ${caseItem.title}</title></head>
-            <body style="font-family: Arial, sans-serif; margin: 20px;">
-              <h2>${caseItem.title}</h2>
-              <div>${originalDoc}</div>
-            </body>
-          </html>
-        `);
-      } catch (error) {
-        toast({
-          title: "Error",
-          description: "Failed to load original document.",
-          variant: "destructive"
-        });
-      }
-    } else {
-      // Open existing content in new window
-      const newWindow = window.open();
-      newWindow.document.write(`
-        <html>
-          <head><title>Document - ${caseItem.title}</title></head>
-          <body style="font-family: Arial, sans-serif; margin: 20px;">
-            <h2>${caseItem.title}</h2>
-            <div>${caseItem.originalDoc}</div>
-          </body>
-        </html>
-      `);
-    }
-  };
-
-  const exportToPDF = (caseContent, caseTitle) => {
-    toast({
-      title: "Export Feature",
-      description: "PDF export functionality will be available soon.",
-    });
   };
 
   return (
@@ -350,7 +175,7 @@ Please extract this information from the actual case content provided.`;
         <Button variant="ghost" onClick={() => navigate("/")}>
           ← Back to Home
         </Button>
-        <h1 className="text-3xl font-bold text-blue-900">Case Law Finder – Powered by Indian Kanoon</h1>
+        <h1 className="text-3xl font-bold text-blue-900">Case Law Research Assistant</h1>
       </div>
 
       <div className="max-w-7xl mx-auto w-full space-y-6">
@@ -359,7 +184,7 @@ Please extract this information from the actual case content provided.`;
           <CardHeader className="bg-blue-50">
             <CardTitle className="flex items-center gap-2 text-blue-900">
               <Search className="w-6 h-6" />
-              Search Real Indian Case Law
+              Legal Research Assistant
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6 p-6">
@@ -495,91 +320,49 @@ Please extract this information from the actual case content provided.`;
               {isLoading ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Searching Indian Kanoon Database...
+                  Generating Research Guide...
                 </>
               ) : (
                 <>
                   <Search className="w-4 h-4 mr-2" />
-                  Search Real Cases
+                  Generate Research Guide
                 </>
               )}
             </Button>
           </CardContent>
         </Card>
 
-        {/* Search Results */}
+        {/* Research Guide Results */}
         {searchResults.length > 0 && (
           <Card>
             <CardHeader className="bg-green-50">
               <CardTitle className="flex items-center gap-2 text-green-900">
                 <Search className="w-6 h-6" />
-                Search Results from Indian Kanoon ({searchResults.length} cases found)
+                Legal Research Guide
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-0">
-              <div className="space-y-4 p-6">
-                {searchResults.map((caseItem) => (
-                  <Card key={caseItem.id} className="border-l-4 border-l-blue-500">
-                    <CardHeader className="pb-3">
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1">
-                          <CardTitle className="text-lg text-blue-900 cursor-pointer mb-2" 
-                                     onClick={() => toggleCaseExpansion(caseItem.id)}>
-                            {caseItem.title}
-                          </CardTitle>
-                          <div className="text-sm text-gray-600 space-y-1">
-                            <div><strong>Court:</strong> {caseItem.court}</div>
-                            <div><strong>Citation:</strong> {caseItem.citation}</div>
-                            <div><strong>Document Size:</strong> {caseItem.docsize} characters</div>
-                          </div>
-                        </div>
-                        <div className="flex gap-2">
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => viewOriginalDocument(caseItem)}
-                          >
-                            <ExternalLink className="w-4 h-4 mr-1" />
-                            Original
-                          </Button>
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => exportToPDF(caseItem.content, caseItem.title)}
-                          >
-                            <Download className="w-4 h-4 mr-1" />
-                            PDF
-                          </Button>
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => toast({ title: "Bookmarked", description: "Case saved to your library." })}
-                          >
-                            <Bookmark className="w-4 h-4 mr-1" />
-                            Save
-                          </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={() => toggleCaseExpansion(caseItem.id)}
-                          >
-                            {expandedCase === caseItem.id ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                          </Button>
-                        </div>
-                      </div>
-                    </CardHeader>
-                    {expandedCase === caseItem.id && (
-                      <CardContent>
-                        <div className="prose max-w-none">
-                          <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed">
-                            {caseItem.content}
-                          </pre>
-                        </div>
-                      </CardContent>
-                    )}
-                  </Card>
-                ))}
-              </div>
+            <CardContent className="p-6">
+              {searchResults.map((result) => (
+                <div key={result.id} className="space-y-4">
+                  <div className="bg-blue-50 p-4 rounded-lg">
+                    <h3 className="font-semibold text-blue-900 mb-2">Search Criteria</h3>
+                    <div className="grid grid-cols-2 gap-2 text-sm">
+                      <div><strong>Keyword:</strong> {result.searchCriteria.keyword || 'Not specified'}</div>
+                      <div><strong>Case Type:</strong> {result.searchCriteria.caseType || 'Not specified'}</div>
+                      <div><strong>Jurisdiction:</strong> {result.searchCriteria.jurisdiction || 'Not specified'}</div>
+                      <div><strong>Provision:</strong> {result.searchCriteria.provision || 'Not specified'}</div>
+                      <div><strong>Judge:</strong> {result.searchCriteria.judge || 'Not specified'}</div>
+                      <div><strong>Citation:</strong> {result.searchCriteria.citation || 'Not specified'}</div>
+                    </div>
+                  </div>
+                  
+                  <div className="prose max-w-none">
+                    <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed">
+                      {result.content}
+                    </pre>
+                  </div>
+                </div>
+              ))}
             </CardContent>
           </Card>
         )}
