@@ -1,4 +1,3 @@
-
 const express = require('express');
 const cors = require('cors');
 const axios = require('axios');
@@ -7,7 +6,7 @@ const geminiService = require('./services/geminiService');
 require('dotenv').config();
 
 const app = express();
-const PORT = process.env.PORT || 8000;
+const PORT = process.env.PORT || 8001; // Changed default port to 8001
 
 // Enable CORS for all routes with specific configuration
 app.use(cors({
@@ -188,11 +187,25 @@ app.use((err, req, res, next) => {
   });
 });
 
-app.listen(PORT, () => {
-  console.log(`🚀 LegalOps Backend with Indian Kanoon Integration running on port ${PORT}`);
-  console.log(`🔐 Using private key authentication for Indian Kanoon API`);
-  console.log(`🤖 Gemini AI integration available for case summarization`);
-  console.log(`📡 API endpoints available at http://localhost:${PORT}/api/`);
-  console.log(`📧 Customer email: ${process.env.CUSTOMER_EMAIL}`);
-  console.log(`🔑 Gemini API configured: ${process.env.GEMINI_API_KEY ? 'Yes' : 'No'}`);
-});
+// Enhanced server startup with port fallback
+const startServer = (port) => {
+  const server = app.listen(port, () => {
+    console.log(`🚀 LegalOps Backend with Indian Kanoon Integration running on port ${port}`);
+    console.log(`🔐 Using private key authentication for Indian Kanoon API`);
+    console.log(`🤖 Gemini AI integration available for case summarization`);
+    console.log(`📡 API endpoints available at http://localhost:${port}/api/`);
+    console.log(`📧 Customer email: ${process.env.CUSTOMER_EMAIL}`);
+    console.log(`🔑 Gemini API configured: ${process.env.GEMINI_API_KEY ? 'Yes' : 'No'}`);
+  });
+
+  server.on('error', (err) => {
+    if (err.code === 'EADDRINUSE') {
+      console.log(`Port ${port} is busy, trying port ${port + 1}...`);
+      startServer(port + 1);
+    } else {
+      console.error('Server error:', err);
+    }
+  });
+};
+
+startServer(PORT);
