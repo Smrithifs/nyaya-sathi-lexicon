@@ -1,6 +1,5 @@
 
-const INDIAN_KANOON_BASE_URL = 'http://api.indiankanoon.org';
-const API_TOKEN = '7061433e91576225eb89bbbeb11c9a350146a264';
+const BACKEND_BASE_URL = 'http://localhost:8000';
 
 interface SearchParams {
   formInput: string;
@@ -47,96 +46,101 @@ interface DocumentMetaResponse {
   citation: string;
 }
 
-const getHeaders = () => ({
-  'Authorization': `Token ${API_TOKEN}`,
-  'Accept': 'application/json',
-  'Content-Type': 'application/json'
-});
-
 export const searchCases = async (params: SearchParams): Promise<SearchResponse> => {
-  const searchParams = new URLSearchParams();
-  
-  Object.entries(params).forEach(([key, value]) => {
-    if (value !== undefined && value !== null && value !== '') {
-      searchParams.append(key, value.toString());
-    }
-  });
-
-  const url = `${INDIAN_KANOON_BASE_URL}/search/?${searchParams.toString()}`;
-  
   try {
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: getHeaders(),
+    const response = await fetch(`${BACKEND_BASE_URL}/api/indian-kanoon/search`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        query: params.formInput,
+        filters: {
+          doctypes: params.doctypes,
+          fromdate: params.fromdate,
+          todate: params.todate,
+          title: params.title,
+          cite: params.cite,
+          author: params.author,
+          bench: params.bench,
+          pagenum: params.pagenum,
+          maxcites: params.maxcites
+        }
+      })
     });
 
     if (!response.ok) {
-      throw new Error(`Indian Kanoon API error: ${response.status}`);
+      throw new Error(`Backend API error: ${response.status}`);
     }
 
     return await response.json();
   } catch (error) {
-    console.error('Error searching Indian Kanoon:', error);
+    console.error('Error searching Indian Kanoon via backend:', error);
     throw error;
   }
 };
 
 export const getDocument = async (docId: string, maxcites = 10, maxcitedby = 10): Promise<DocumentResponse> => {
-  const url = `${INDIAN_KANOON_BASE_URL}/doc/${docId}/?maxcites=${maxcites}&maxcitedby=${maxcitedby}`;
-  
   try {
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: getHeaders(),
+    const response = await fetch(`${BACKEND_BASE_URL}/api/indian-kanoon/doc/${docId}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        maxcites,
+        maxcitedby
+      })
     });
 
     if (!response.ok) {
-      throw new Error(`Indian Kanoon API error: ${response.status}`);
+      throw new Error(`Backend API error: ${response.status}`);
     }
 
     return await response.json();
   } catch (error) {
-    console.error('Error fetching document from Indian Kanoon:', error);
+    console.error('Error fetching document via backend:', error);
     throw error;
   }
 };
 
 export const getDocumentMeta = async (docId: string): Promise<DocumentMetaResponse> => {
-  const url = `${INDIAN_KANOON_BASE_URL}/docmeta/${docId}/`;
-  
   try {
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: getHeaders(),
+    const response = await fetch(`${BACKEND_BASE_URL}/api/indian-kanoon/docmeta/${docId}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      }
     });
 
     if (!response.ok) {
-      throw new Error(`Indian Kanoon API error: ${response.status}`);
+      throw new Error(`Backend API error: ${response.status}`);
     }
 
     return await response.json();
   } catch (error) {
-    console.error('Error fetching document meta from Indian Kanoon:', error);
+    console.error('Error fetching document meta via backend:', error);
     throw error;
   }
 };
 
 export const getOriginalDocument = async (docId: string): Promise<string> => {
-  const url = `${INDIAN_KANOON_BASE_URL}/origdoc/${docId}/`;
-  
   try {
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: getHeaders(),
+    const response = await fetch(`${BACKEND_BASE_URL}/api/indian-kanoon/origdoc/${docId}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      }
     });
 
     if (!response.ok) {
-      throw new Error(`Indian Kanoon API error: ${response.status}`);
+      throw new Error(`Backend API error: ${response.status}`);
     }
 
-    return await response.text();
+    const data = await response.json();
+    return data.doc || data;
   } catch (error) {
-    console.error('Error fetching original document from Indian Kanoon:', error);
+    console.error('Error fetching original document via backend:', error);
     throw error;
   }
 };

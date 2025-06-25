@@ -1,3 +1,4 @@
+
 const express = require('express');
 const cors = require('cors');
 const axios = require('axios');
@@ -12,13 +13,13 @@ app.use(express.json());
 
 // Indian Kanoon API configuration
 const INDIAN_KANOON_BASE_URL = 'https://api.indiankanoon.org';
-const INDIAN_KANOON_API_KEY = '7bab131b7fdd98e4d9e7c7c62c1aa7afaaccec40';
+const INDIAN_KANOON_API_KEY = '7061433e91576225eb89bbbeb11c9a350146a264';
 
 // Helper function to make Indian Kanoon API requests
 const makeIndianKanoonRequest = async (endpoint, params = {}) => {
   try {
     const config = {
-      method: 'POST',
+      method: 'GET',
       url: `${INDIAN_KANOON_BASE_URL}${endpoint}`,
       headers: {
         'Authorization': `Token ${INDIAN_KANOON_API_KEY}`,
@@ -29,6 +30,8 @@ const makeIndianKanoonRequest = async (endpoint, params = {}) => {
     };
 
     console.log('Making request to Indian Kanoon:', config.url);
+    console.log('With params:', params);
+    
     const response = await axios(config);
     return response.data;
   } catch (error) {
@@ -42,18 +45,24 @@ app.post('/api/indian-kanoon/search', async (req, res) => {
   try {
     const { query, filters = {} } = req.body;
     
-    let searchUrl = `/search/?formInput=${encodeURIComponent(query)}`;
+    const searchParams = {
+      formInput: query,
+      pagenum: filters.pagenum || 0
+    };
     
     // Add filters if provided
-    if (filters.fromdate) searchUrl += `&fromdate=${filters.fromdate}`;
-    if (filters.todate) searchUrl += `&todate=${filters.todate}`;
-    if (filters.doctypes) searchUrl += `&doctypes=${filters.doctypes}`;
-    if (filters.author) searchUrl += `&author=${encodeURIComponent(filters.author)}`;
-    if (filters.bench) searchUrl += `&bench=${encodeURIComponent(filters.bench)}`;
+    if (filters.fromdate) searchParams.fromdate = filters.fromdate;
+    if (filters.todate) searchParams.todate = filters.todate;
+    if (filters.doctypes) searchParams.doctypes = filters.doctypes;
+    if (filters.author) searchParams.author = filters.author;
+    if (filters.bench) searchParams.bench = filters.bench;
+    if (filters.title) searchParams.title = filters.title;
+    if (filters.cite) searchParams.cite = filters.cite;
+    if (filters.maxcites) searchParams.maxcites = filters.maxcites;
 
-    console.log('Search query:', query, 'URL:', searchUrl);
+    console.log('Search query:', query, 'Params:', searchParams);
     
-    const data = await makeIndianKanoonRequest(searchUrl);
+    const data = await makeIndianKanoonRequest('/search/', searchParams);
     res.json(data);
   } catch (error) {
     console.error('Search error:', error.message);
@@ -68,9 +77,16 @@ app.post('/api/indian-kanoon/search', async (req, res) => {
 app.post('/api/indian-kanoon/doc/:docId', async (req, res) => {
   try {
     const { docId } = req.params;
+    const { maxcites = 10, maxcitedby = 10 } = req.body;
+    
     console.log('Fetching document:', docId);
     
-    const data = await makeIndianKanoonRequest(`/doc/${docId}/`);
+    const searchParams = {
+      maxcites,
+      maxcitedby
+    };
+    
+    const data = await makeIndianKanoonRequest(`/doc/${docId}/`, searchParams);
     res.json(data);
   } catch (error) {
     console.error('Document fetch error:', error.message);
@@ -105,7 +121,11 @@ app.post('/api/indian-kanoon/docfragment/:docId', async (req, res) => {
     const { query } = req.body;
     console.log('Fetching document fragment:', docId, 'with query:', query);
     
-    const data = await makeIndianKanoonRequest(`/docfragment/${docId}/?formInput=${encodeURIComponent(query)}`);
+    const searchParams = {
+      formInput: query
+    };
+    
+    const data = await makeIndianKanoonRequest(`/docfragment/${docId}/`, searchParams);
     res.json(data);
   } catch (error) {
     console.error('Document fragment fetch error:', error.message);
