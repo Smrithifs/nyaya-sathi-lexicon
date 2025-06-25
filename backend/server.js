@@ -52,6 +52,37 @@ const makeIndianKanoonRequest = async (endpoint, params = {}) => {
   }
 };
 
+// Health check endpoints - both GET and POST
+app.get('/api/health', (req, res) => {
+  res.json({ 
+    status: 'OK', 
+    message: 'Backend proxy server is running',
+    timestamp: new Date().toISOString(),
+    endpoints: [
+      '/api/indian-kanoon/search',
+      '/api/indian-kanoon/doc/:docId',
+      '/api/indian-kanoon/origdoc/:docId',
+      '/api/indian-kanoon/docfragment/:docId',
+      '/api/indian-kanoon/docmeta/:docId'
+    ]
+  });
+});
+
+app.post('/api/health', (req, res) => {
+  res.json({ 
+    status: 'OK', 
+    message: 'Backend proxy server is running (POST)',
+    timestamp: new Date().toISOString(),
+    endpoints: [
+      '/api/indian-kanoon/search',
+      '/api/indian-kanoon/doc/:docId',
+      '/api/indian-kanoon/origdoc/:docId',
+      '/api/indian-kanoon/docfragment/:docId',
+      '/api/indian-kanoon/docmeta/:docId'
+    ]
+  });
+});
+
 // Search endpoint
 app.post('/api/indian-kanoon/search', async (req, res) => {
   try {
@@ -186,38 +217,6 @@ app.post('/api/indian-kanoon/docmeta/:docId', async (req, res) => {
       timestamp: new Date().toISOString()
     });
   }
-});
-
-// Health check endpoint - FIXED to handle both GET and POST
-app.get('/api/health', (req, res) => {
-  res.json({ 
-    status: 'OK', 
-    message: 'Backend proxy server is running',
-    timestamp: new Date().toISOString(),
-    endpoints: [
-      '/api/indian-kanoon/search',
-      '/api/indian-kanoon/doc/:docId',
-      '/api/indian-kanoon/origdoc/:docId',
-      '/api/indian-kanoon/docfragment/:docId',
-      '/api/indian-kanoon/docmeta/:docId'
-    ]
-  });
-});
-
-// Also support POST for health check
-app.post('/api/health', (req, res) => {
-  res.json({ 
-    status: 'OK', 
-    message: 'Backend proxy server is running (POST)',
-    timestamp: new Date().toISOString(),
-    endpoints: [
-      '/api/indian-kanoon/search',
-      '/api/indian-kanoon/doc/:docId',
-      '/api/indian-kanoon/origdoc/:docId',
-      '/api/indian-kanoon/docfragment/:docId',
-      '/api/indian-kanoon/docmeta/:docId'
-    ]
-  });
 });
 
 // Error handling middleware
