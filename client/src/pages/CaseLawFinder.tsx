@@ -6,6 +6,14 @@ import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Search, Filter, ChevronDown, ChevronUp, RefreshCw, FileText, Calendar, User, Building, Scale } from "lucide-react";
 
+interface SearchResult {
+  tid: string;
+  title: string;
+  headline: string;
+  docsource: string;
+  docsize: number;
+}
+
 const jurisdictions = [
   "Supreme Court",
   "All High Courts",
@@ -81,11 +89,11 @@ const CaseLawFinder = () => {
   const [caseType, setCaseType] = useState("");
   
   // UI states
-  const [searchResults, setSearchResults] = useState([]);
-  const [caseDetails, setCaseDetails] = useState({});
-  const [caseSummaries, setCaseSummaries] = useState({});
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+  const [caseDetails, setCaseDetails] = useState<Record<string, any>>({});
+  const [caseSummaries, setCaseSummaries] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
-  const [isLoadingSummary, setIsLoadingSummary] = useState({});
+  const [isLoadingSummary, setIsLoadingSummary] = useState<Record<string, boolean>>({});
   const [showFilters, setShowFilters] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
   const [lastSearchQuery, setLastSearchQuery] = useState("");
@@ -149,17 +157,23 @@ const CaseLawFinder = () => {
 
       const filters = mapFiltersToBackend();
       
-      const endpoint = isRefresh ? '/api/case-search/next' : '/api/case-search';
-      const requestBody = isRefresh ? 
-        { query: lastSearchQuery, filters, currentPage } :
-        { query: searchQuery, filters };
+      // Use Indian Kanoon API search endpoint
+      const params = new URLSearchParams();
+      params.append('formInput', isRefresh ? lastSearchQuery : searchQuery);
+      params.append('pagenum', currentPage.toString());
+      
+      // Add filters to params
+      if (filters.fromdate) params.append('fromdate', filters.fromdate);
+      if (filters.todate) params.append('todate', filters.todate);
+      if (filters.bench) params.append('bench', filters.bench);
+      if (filters.cite) params.append('cite', filters.cite);
+      if (filters.doctypes) params.append('doctypes', filters.doctypes);
 
-      const response = await fetch(`http://localhost:8000${endpoint}`, {
-        method: 'POST',
+      const response = await fetch(`/api/indiankanoon/search?${params.toString()}`, {
+        method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestBody)
+        }
       });
 
       if (!response.ok) {
@@ -169,15 +183,16 @@ const CaseLawFinder = () => {
 
       const data = await response.json();
       
+      // Handle Indian Kanoon API response format
       setSearchResults(data.docs || []);
-      setCurrentPage(data.currentPage || (isRefresh ? currentPage + 1 : 0));
-      setLastSearchQuery(searchQuery);
+      setCurrentPage(isRefresh ? currentPage + 1 : 1);
+      setLastSearchQuery(isRefresh ? lastSearchQuery : searchQuery);
       setCaseDetails({});
       setCaseSummaries({});
 
       toast({
         title: "Search Complete",
-        description: `Found ${data.docs?.length || 0} cases. Click on any case to view AI-powered summary.`
+        description: `Found ${data.found || data.docs?.length || 0} cases from Indian Kanoon database. Click on any case to view AI-powered summary.`
       });
 
     } catch (error) {
