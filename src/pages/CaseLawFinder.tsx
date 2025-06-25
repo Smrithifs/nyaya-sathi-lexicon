@@ -52,6 +52,39 @@ const legalDomains = [
   "Human Rights",
 ];
 
+const caseTypes = [
+  "Civil Appeal",
+  "Criminal Appeal", 
+  "Writ Petition",
+  "Special Leave Petition",
+  "Review Petition",
+  "Contempt Petition",
+  "Bail Application",
+  "Habeas Corpus",
+  "Mandamus",
+  "Certiorari",
+  "Prohibition",
+  "Quo Warranto",
+  "Public Interest Litigation",
+  "Transfer Petition",
+  "Interlocutory Application",
+  "Miscellaneous Petition",
+  "Company Petition",
+  "Arbitration Petition",
+  "Election Petition",
+  "Matrimonial Cases",
+  "Land Acquisition Cases",
+  "Service Matter",
+  "Constitutional Petition",
+  "Tax Appeal",
+  "Commercial Dispute",
+  "Consumer Complaint",
+  "Trademark Opposition",
+  "Patent Dispute",
+  "Copyright Infringement",
+  "Environmental Petition",
+];
+
 const outcomes = [
   "All",
   "Allowed",
@@ -89,6 +122,7 @@ const CaseLawFinder = () => {
   const [provision, setProvision] = useState("");
   const [outcome, setOutcome] = useState("");
   const [tags, setTags] = useState([]);
+  const [caseType, setCaseType] = useState("");
   
   // UI states
   const [searchResults, setSearchResults] = useState([]);
@@ -135,10 +169,20 @@ const CaseLawFinder = () => {
         yearFrom: yearFrom,
         yearTo: yearTo,
         judge: judge,
-        provision: provision
+        provision: provision,
+        caseType: caseType
       };
 
-      const apiParams = mapSearchFilters(searchFilters);
+      // Include case type in the search query if specified
+      let enhancedQuery = caseKeyword;
+      if (caseType) {
+        enhancedQuery = enhancedQuery ? `${enhancedQuery} AND ${caseType}` : caseType;
+      }
+
+      const apiParams = mapSearchFilters({
+        ...searchFilters,
+        keyword: enhancedQuery
+      });
       console.log('API Parameters:', apiParams);
 
       // Search using Indian Kanoon API
@@ -174,6 +218,7 @@ const CaseLawFinder = () => {
 **Case Title:** ${result.title}
 **Source:** ${result.docsource}
 **Headline:** ${result.headline}
+${caseType ? `**Case Type Filter:** ${caseType}` : ''}
 
 **Document Content:** ${docContent.doc ? docContent.doc.substring(0, 5000) : 'Content not available'}
 
@@ -184,6 +229,7 @@ Please provide the following information in a structured format:
 📆 **DATE OF JUDGMENT:** [Extract date from content]
 ⚖️ **COURT & BENCH:** [Extract court and judges information]
 🔢 **CASE NUMBER:** [Extract case number if available]
+🏷️ **CASE TYPE:** [Identify the type of case - e.g., Civil Appeal, Criminal Appeal, Writ Petition, etc.]
 📄 **SUMMARY OF FACTS** (400-500 words):
 [Detailed factual background of the case]
 
@@ -359,6 +405,20 @@ Please extract this information from the actual case content provided.`;
                 {/* Row 1 */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
+                    <label className="block text-sm font-medium mb-2">Case Type</label>
+                    <Select value={caseType} onValueChange={setCaseType}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select Case Type" />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-60 overflow-y-auto">
+                        {caseTypes.map(type => (
+                          <SelectItem key={type} value={type}>{type}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
                     <label className="block text-sm font-medium mb-2">Jurisdiction</label>
                     <Select value={jurisdiction} onValueChange={setJurisdiction}>
                       <SelectTrigger>
@@ -372,6 +432,20 @@ Please extract this information from the actual case content provided.`;
                     </Select>
                   </div>
 
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Legal Provision / Section</label>
+                    <input
+                      type="text"
+                      value={provision}
+                      onChange={(e) => setProvision(e.target.value)}
+                      placeholder="e.g., Article 21, Section 438 CrPC"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+
+                {/* Row 2 */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
                     <label className="block text-sm font-medium mb-2">Year From</label>
                     <input
@@ -397,10 +471,7 @@ Please extract this information from the actual case content provided.`;
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
-                </div>
 
-                {/* Row 2 */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium mb-2">Judge(s)</label>
                     <input
@@ -408,17 +479,6 @@ Please extract this information from the actual case content provided.`;
                       value={judge}
                       onChange={(e) => setJudge(e.target.value)}
                       placeholder="e.g., Justice Khanna, Arijit Pasayat"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Legal Provision / Section</label>
-                    <input
-                      type="text"
-                      value={provision}
-                      onChange={(e) => setProvision(e.target.value)}
-                      placeholder="e.g., Article 21, Section 438 CrPC"
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
