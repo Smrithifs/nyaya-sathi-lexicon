@@ -1,0 +1,74 @@
+📌 Objective:
+Build an AI-powered **CaseFinder web app** using Indian Kanoon's public-private key API and Gemini AI. The app will allow users to search for Indian legal cases by keyword, act/section, or year range and get detailed summaries.
+
+👤 Authentication:
+✅ Use the **public-private key crypto** method for Indian Kanoon API (not API token).
+✅ I’ve uploaded my `private_key.pem`.
+✅ I’ve already uploaded the corresponding public key to Indian Kanoon.
+
+🔐 Your job is to:
+- Sign each request to Indian Kanoon API using my private key
+- Attach required headers:
+  - `X-Customer`: my email (e.g., smr...@gmail.com)
+  - `X-Message`: base64-encoded unique message (e.g., UUID + timestamp + URL)
+  - `Authorization`: HMAC + base64-encoded signed message
+
+🔍 Use these Indian Kanoon API endpoints:
+1. `https://api.indiankanoon.org/search/?formInput=<query>&pagenum=<pagenum>`
+2. `https://api.indiankanoon.org/doc/<docid>/`
+3. `https://api.indiankanoon.org/origdoc/<docid>/`
+4. `https://api.indiankanoon.org/docfragment/<docid>/?formInput=<query>`
+5. `https://api.indiankanoon.org/docmeta/<docid>/`
+
+🧠 What the app should do:
+
+### 1. Search Flow:
+- User can enter:
+  - A **case name or keyword**
+  - OR a **section/act** (e.g., "Article 21", "Section 438 CrPC")
+  - OR filter cases from **Year X to Year Y**
+- App should:
+  - Fetch results from Indian Kanoon `/search/` endpoint using formInput and optional filters (`fromdate`, `todate`)
+  - Display **top 5 results**
+  - On refresh, display 5 **new** cases (next from paginated results)
+
+### 2. Case Detail Flow:
+For each of the 5 cases shown:
+- Fetch using `/doc/`, `/docmeta/`, `/origdoc/`
+- Pass the judgment to Gemini AI via `summarize_with_gemini.py`
+- Display a rich summary including:
+  - 📌 Case Name, Case Number
+  - 🗓 Date of Judgment
+  - 🧑‍⚖️ Bench & Judge(s)
+  - 🏛 Court (SC/HC/etc.)
+  - 📚 Citation
+  - ⚖️ Ratio Decidendi
+  - 🔍 Legal Significance / Precedent
+  - 📝 Summary of the case
+  - 🧾 Original Judgment document (PDF or text)
+
+### 3. UI Requirements:
+- Clean UI (React + Tailwind preferred)
+- Filters:
+  - 📅 From Year, To Year
+  - 📚 Section or Act (e.g., Article 19, Section 376 IPC)
+- 🔁 "Refresh" button to show 5 new cases per filter set
+- Display structured Gemini AI summary per case
+
+📁 I’ve uploaded:
+- `private_key.pem` – for signing requests
+- `indian_kanoon_client.py` – handles secure API calling
+- `summarize_with_gemini.py` – summarizes judgments using Gemini
+- (Optional) `app.py` – Flask backend, if needed
+
+🔑 Setup Notes:
+- Use my Gemini API key as an environment variable or secret
+- All Indian Kanoon requests must go via client-side (signed) using JS + AJAX or backend forwarding
+
+🎯 Target Users:
+Law students, researchers, and lawyers who want to quickly find important Indian case law, understand it easily, and access authoritative judgments.
+
+📦 Output:
+Deliver a full working web app with backend + frontend and dummy/test data if needed. I’ll plug in production keys later.
+
+Thanks a lot!

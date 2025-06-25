@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import multer from "multer";
+import { indianKanoonAuth } from "./indianKanoonAuth";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Configure multer for file uploads
@@ -83,6 +84,134 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ 
         success: false, 
         error: error.message || 'Failed to process documents' 
+      });
+    }
+  });
+
+  // Indian Kanoon API authenticated endpoints
+  app.get("/api/indiankanoon/search", async (req, res) => {
+    try {
+      const { formInput, pagenum = 1, fromdate, todate, doctypes, bench, cite } = req.query;
+      
+      if (!formInput) {
+        return res.status(400).json({ error: "formInput parameter is required" });
+      }
+
+      let url = `https://api.indiankanoon.org/search/?formInput=${encodeURIComponent(formInput as string)}&pagenum=${pagenum}`;
+      
+      if (fromdate) url += `&fromdate=${fromdate}`;
+      if (todate) url += `&todate=${todate}`;
+      if (doctypes) url += `&doctypes=${doctypes}`;
+      if (bench) url += `&bench=${encodeURIComponent(bench as string)}`;
+      if (cite) url += `&cite=${encodeURIComponent(cite as string)}`;
+
+      const response = await indianKanoonAuth.makeAuthenticatedRequest(url);
+      
+      if (!response.ok) {
+        throw new Error(`Indian Kanoon API responded with status ${response.status}`);
+      }
+
+      const data = await response.json();
+      res.json(data);
+
+    } catch (error: any) {
+      console.error('Error in Indian Kanoon search:', error);
+      res.status(500).json({ 
+        error: error.message || 'Failed to search Indian Kanoon API' 
+      });
+    }
+  });
+
+  app.get("/api/indiankanoon/doc/:docid", async (req, res) => {
+    try {
+      const { docid } = req.params;
+      const { maxcites = 10, maxcitedby = 10 } = req.query;
+      
+      const url = `https://api.indiankanoon.org/doc/${docid}/?maxcites=${maxcites}&maxcitedby=${maxcitedby}`;
+      const response = await indianKanoonAuth.makeAuthenticatedRequest(url);
+      
+      if (!response.ok) {
+        throw new Error(`Indian Kanoon API responded with status ${response.status}`);
+      }
+
+      const data = await response.json();
+      res.json(data);
+
+    } catch (error: any) {
+      console.error('Error fetching document:', error);
+      res.status(500).json({ 
+        error: error.message || 'Failed to fetch document from Indian Kanoon API' 
+      });
+    }
+  });
+
+  app.get("/api/indiankanoon/origdoc/:docid", async (req, res) => {
+    try {
+      const { docid } = req.params;
+      
+      const url = `https://api.indiankanoon.org/origdoc/${docid}/`;
+      const response = await indianKanoonAuth.makeAuthenticatedRequest(url);
+      
+      if (!response.ok) {
+        throw new Error(`Indian Kanoon API responded with status ${response.status}`);
+      }
+
+      const data = await response.text();
+      res.json({ doc: data });
+
+    } catch (error: any) {
+      console.error('Error fetching original document:', error);
+      res.status(500).json({ 
+        error: error.message || 'Failed to fetch original document from Indian Kanoon API' 
+      });
+    }
+  });
+
+  app.get("/api/indiankanoon/docmeta/:docid", async (req, res) => {
+    try {
+      const { docid } = req.params;
+      
+      const url = `https://api.indiankanoon.org/docmeta/${docid}/`;
+      const response = await indianKanoonAuth.makeAuthenticatedRequest(url);
+      
+      if (!response.ok) {
+        throw new Error(`Indian Kanoon API responded with status ${response.status}`);
+      }
+
+      const data = await response.json();
+      res.json(data);
+
+    } catch (error: any) {
+      console.error('Error fetching document metadata:', error);
+      res.status(500).json({ 
+        error: error.message || 'Failed to fetch document metadata from Indian Kanoon API' 
+      });
+    }
+  });
+
+  app.get("/api/indiankanoon/docfragment/:docid", async (req, res) => {
+    try {
+      const { docid } = req.params;
+      const { formInput } = req.query;
+      
+      if (!formInput) {
+        return res.status(400).json({ error: "formInput parameter is required" });
+      }
+      
+      const url = `https://api.indiankanoon.org/docfragment/${docid}/?formInput=${encodeURIComponent(formInput as string)}`;
+      const response = await indianKanoonAuth.makeAuthenticatedRequest(url);
+      
+      if (!response.ok) {
+        throw new Error(`Indian Kanoon API responded with status ${response.status}`);
+      }
+
+      const data = await response.text();
+      res.json({ fragment: data });
+
+    } catch (error: any) {
+      console.error('Error fetching document fragment:', error);
+      res.status(500).json({ 
+        error: error.message || 'Failed to fetch document fragment from Indian Kanoon API' 
       });
     }
   });
