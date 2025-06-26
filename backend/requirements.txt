@@ -1,0 +1,13 @@
+# Workspace version: 1.46.18
+uvicorn[standard]==0.34.2
+databutton==0.38.34
+python-multipart==0.0.9
+ipykernel==6.29.5
+fastapi==0.115.12
+openai
+beautifulsoup4
+requests
+asyncpg
+cryptography
+google-generativeai
+pycryptodome
