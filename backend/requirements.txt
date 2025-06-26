@@ -11,4 +11,3 @@ asyncpg
 cryptography
 google-generativeai
 pycryptodome
-PyJWT
