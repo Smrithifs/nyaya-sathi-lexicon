@@ -6,7 +6,8 @@ from fastapi import FastAPI, APIRouter, Depends
 
 dotenv.load_dotenv()
 
-from databutton_app.mw.auth_mw import AuthConfig, get_authorized_user
+from backend.databutton_app.mw.auth_mw import AuthConfig, get_authorized_user
+
 
 
 def get_router_config() -> dict:
