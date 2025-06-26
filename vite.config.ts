@@ -1,9 +1,11 @@
+
 import react from "@vitejs/plugin-react";
 import "dotenv/config";
 import path from "node:path";
 import { defineConfig, splitVendorChunkPlugin } from "vite";
 import injectHTML from "vite-plugin-html-inject";
 import tsConfigPaths from "vite-tsconfig-paths";
+import { componentTagger } from "lovable-tagger";
 
 type Extension = {
 	name: string;
@@ -69,11 +71,18 @@ const buildVariables = () => {
 };
 
 // https://vite.dev/config/
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
 	define: buildVariables(),
-	plugins: [react(), splitVendorChunkPlugin(), tsConfigPaths(), injectHTML()],
+	plugins: [
+		react(), 
+		splitVendorChunkPlugin(), 
+		tsConfigPaths(), 
+		injectHTML(),
+		mode === 'development' && componentTagger(),
+	].filter(Boolean),
 	server: {
-		 port: 8080,
+		host: "::",
+		port: 8080,
 		proxy: {
 			"/routes": {
 				target: "http://127.0.0.1:8000",
@@ -83,11 +92,7 @@ export default defineConfig({
 	},
 	resolve: {
 		alias: {
-			resolve: {
-				alias: {
-					"@": path.resolve(__dirname, "./src"),
-				},
-			},
+			"@": path.resolve(__dirname, "./src"),
 		},
 	},
-});
+}));
