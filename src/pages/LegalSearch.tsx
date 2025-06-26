@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Button } from '@/extensions/shadcn/components/button';
+import { Input } from '@/extensions/shadcn/components/input';
+import { Label } from '@/extensions/shadcn/components/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/extensions/shadcn/components/select';
+import { Card, CardContent, CardHeader, CardTitle } from '@/extensions/shadcn/components/card';
+import { Badge } from '@/extensions/shadcn/components/badge';
 import { ExternalLink, Search, RefreshCw } from 'lucide-react';
 import brain from 'brain';
 import { toast } from 'sonner';
