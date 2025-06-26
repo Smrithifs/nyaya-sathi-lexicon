@@ -73,6 +73,7 @@ export default defineConfig({
 	define: buildVariables(),
 	plugins: [react(), splitVendorChunkPlugin(), tsConfigPaths(), injectHTML()],
 	server: {
+		 port: 8080,
 		proxy: {
 			"/routes": {
 				target: "http://127.0.0.1:8000",
