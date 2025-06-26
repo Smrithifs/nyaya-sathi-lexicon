@@ -1,8 +1,8 @@
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
 from typing import Optional, List, Dict, Any
-from app.libs.indian_kanoon import IndianKanoonAPI
-from app.libs.gemini_analyzer import GeminiCaseAnalyzer
+#from app.libs.indian_kanoon import IndianKanoonAPI
+#from app.libs.gemini_analyzer import GeminiCaseAnalyzer
 import asyncio
 
 router = APIRouter()
