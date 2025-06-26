@@ -18,7 +18,7 @@ export const userRoutes: RouteObject[] = [
 	{ path: "/auth/redirect", element: <LoginRedirect />},
 	{ path: "/auth/*", element: <StackHandlerRoutes />},
 	{ path: "/", element: <App />},
-	{ path: "/legal-search", element: <LegalSearch /></UserGuard>},
-	{ path: "/legalsearch", element:<LegalSearch /></UserGuard>},
+	{ path: "/legal-search", element: <LegalSearch />},
+	{ path: "/legalsearch", element:<LegalSearch />},
 
 ];
