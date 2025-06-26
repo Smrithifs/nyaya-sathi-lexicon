@@ -31,6 +31,10 @@ interface SearchParams {
 }
 
 const LegalSearch = () => {
+  useEffect(() => {
+  console.log("✅ LegalSearch main component loaded");
+}, []);
+
   const [searchParams, setSearchParams] = useState<SearchParams>({
     case_type: '',
     section: '',
@@ -282,10 +286,6 @@ const LegalSearch = () => {
     </div>
   );
 };
-const LegalSearch = () => {
-  useEffect(() => {
-    console.log("✅ LegalSearch loaded");
-  }, []);
 
   return <div>Search component here</div>;
 };
