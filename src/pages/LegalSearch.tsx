@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -32,8 +32,8 @@ interface SearchParams {
 
 const LegalSearch = () => {
   useEffect(() => {
-  console.log("✅ LegalSearch main component loaded");
-}, []);
+    console.log("✅ LegalSearch main component loaded");
+  }, []);
 
   const [searchParams, setSearchParams] = useState<SearchParams>({
     case_type: '',
@@ -43,7 +43,7 @@ const LegalSearch = () => {
     case_name: '',
     court_type: ''
   });
-  
+
   const [cases, setCases] = useState<CaseDetail[]>([]);
   const [loading, setLoading] = useState(false);
   const [offset, setOffset] = useState(0);
@@ -51,8 +51,7 @@ const LegalSearch = () => {
   const [caseTypes, setCaseTypes] = useState<string[]>([]);
   const [courtTypes, setCourtTypes] = useState<string[]>([]);
 
-  React.useEffect(() => {
-    // Load dropdown options
+  useEffect(() => {
     loadDropdownOptions();
   }, []);
 
@@ -62,10 +61,10 @@ const LegalSearch = () => {
         brain.get_case_types(),
         brain.get_court_types()
       ]);
-      
+
       const caseTypesData = await caseTypesRes.json();
       const courtTypesData = await courtTypesRes.json();
-      
+
       setCaseTypes(caseTypesData);
       setCourtTypes(courtTypesData);
     } catch (error) {
@@ -78,12 +77,12 @@ const LegalSearch = () => {
       setCases([]);
       setOffset(0);
     }
-    
+
     setLoading(true);
-    
+
     try {
       const currentOffset = newSearch ? 0 : offset;
-      
+
       const response = await brain.search_legal_cases({
         case_type: searchParams.case_type || null,
         section: searchParams.section || null,
@@ -93,20 +92,19 @@ const LegalSearch = () => {
         court_type: searchParams.court_type || null,
         offset: currentOffset
       });
-      
+
       const data = await response.json();
-      
+
       if (newSearch) {
         setCases(data.cases);
       } else {
         setCases(prev => [...prev, ...data.cases]);
       }
-      
+
       setOffset(currentOffset + 5);
       setHasMore(data.has_more);
-      
+
       toast.success(`Found ${data.cases.length} cases`);
-      
     } catch (error) {
       console.error('Search failed:', error);
       toast.error('Search failed. Please try again.');
@@ -140,7 +138,6 @@ const LegalSearch = () => {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-            {/* Case Type */}
             <div>
               <Label htmlFor="case-type">Case Type</Label>
               <Select value={searchParams.case_type} onValueChange={(value) => updateSearchParam('case_type', value)}>
@@ -155,7 +152,6 @@ const LegalSearch = () => {
               </Select>
             </div>
 
-            {/* Section/Act */}
             <div>
               <Label htmlFor="section">Section/Act</Label>
               <Input
@@ -166,7 +162,6 @@ const LegalSearch = () => {
               />
             </div>
 
-            {/* From Year */}
             <div>
               <Label htmlFor="from-year">From Year</Label>
               <Input
@@ -178,7 +173,6 @@ const LegalSearch = () => {
               />
             </div>
 
-            {/* To Year */}
             <div>
               <Label htmlFor="to-year">To Year</Label>
               <Input
@@ -190,7 +184,6 @@ const LegalSearch = () => {
               />
             </div>
 
-            {/* Case Name */}
             <div>
               <Label htmlFor="case-name">Case Name (Optional)</Label>
               <Input
@@ -201,7 +194,6 @@ const LegalSearch = () => {
               />
             </div>
 
-            {/* Court Type */}
             <div>
               <Label htmlFor="court-type">Court Type</Label>
               <Select value={searchParams.court_type} onValueChange={(value) => updateSearchParam('court_type', value)}>
@@ -222,7 +214,7 @@ const LegalSearch = () => {
               <Search className="h-4 w-4" />
               {loading ? 'Searching...' : 'Search Cases'}
             </Button>
-            
+
             {cases.length > 0 && hasMore && (
               <Button variant="outline" onClick={getNewCases} disabled={loading} className="flex items-center gap-2">
                 <RefreshCw className="h-4 w-4" />
@@ -233,13 +225,12 @@ const LegalSearch = () => {
         </CardContent>
       </Card>
 
-      {/* Results */}
       {cases.length > 0 && (
         <div className="space-y-6">
           <h2 className="text-2xl font-semibold">Search Results ({cases.length} cases)</h2>
-          
+
           {cases.map((case_item, index) => (
-            <Card key={`${case_item.doc_id}-${index}`} className="">
+            <Card key={`${case_item.doc_id}-${index}`}>
               <CardHeader>
                 <div className="flex justify-between items-start">
                   <CardTitle className="text-lg">{case_item.case_title}</CardTitle>
@@ -258,17 +249,17 @@ const LegalSearch = () => {
                     <h4 className="font-semibold text-sm uppercase tracking-wide text-gray-700 mb-1">Summary</h4>
                     <p className="text-gray-800">{case_item.summary}</p>
                   </div>
-                  
+
                   <div>
                     <h4 className="font-semibold text-sm uppercase tracking-wide text-gray-700 mb-1">Ratio Decidendi</h4>
                     <p className="text-gray-800">{case_item.ratio_decidendi}</p>
                   </div>
-                  
+
                   <div>
                     <h4 className="font-semibold text-sm uppercase tracking-wide text-gray-700 mb-1">Judgment Outcome</h4>
                     <p className="text-gray-800">{case_item.judgment_outcome}</p>
                   </div>
-                  
+
                   <div className="pt-2">
                     <Button variant="outline" size="sm" asChild>
                       <a href={case_item.download_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2">
@@ -285,9 +276,6 @@ const LegalSearch = () => {
       )}
     </div>
   );
-};
-
-  return <div>Search component here</div>;
 };
 
 export default LegalSearch;
