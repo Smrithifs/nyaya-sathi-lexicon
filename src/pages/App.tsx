@@ -90,7 +90,7 @@ const App = () => {
               </p>
               <Button 
                 size="lg" 
-                onClick={() => navigate('/LegalSearch')}
+                onClick={() => navigate('/legal-search')}
                 className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3"
               >
                 <Search className="h-5 w-5 mr-2" />
