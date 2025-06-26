@@ -282,7 +282,12 @@ const LegalSearch = () => {
     </div>
   );
 };
-console.log("LegalSearch page loaded");
+const LegalSearch = () => {
+  useEffect(() => {
+    console.log("✅ LegalSearch loaded");
+  }, []);
 
+  return <div>Search component here</div>;
+};
 
 export default LegalSearch;
