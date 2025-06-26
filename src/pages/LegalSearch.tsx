@@ -282,5 +282,7 @@ const LegalSearch = () => {
     </div>
   );
 };
+console.log("LegalSearch page loaded");
+
 
 export default LegalSearch;
